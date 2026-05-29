@@ -7,6 +7,11 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireAdmin } from "./users.functions";
 
+// types.ts is regenerated post-migration; until then, address the table via an untyped handle.
+const db = supabaseAdmin as unknown as {
+  from: (table: string) => any;
+};
+
 const VideoItem = z.object({
   id: z.string(),
   src: z.string().min(1),
@@ -87,7 +92,7 @@ export const listVideoSectionsForPlacement = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await db
       .from("video_sections")
       .select("*")
       .eq("enabled", true)
@@ -112,7 +117,7 @@ export const listVideoSectionsForPlacement = createServerFn({ method: "POST" })
 export const adminListVideoSections = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from("video_sections")
       .select("*")
       .order("sort_order", { ascending: true })
@@ -138,7 +143,7 @@ export const upsertVideoSection = createServerFn({ method: "POST" })
       updated_at: new Date().toISOString(),
     };
     if (data.id) {
-      const { data: row, error } = await supabaseAdmin
+      const { data: row, error } = await db
         .from("video_sections")
         .update(payload)
         .eq("id", data.id)
@@ -147,7 +152,7 @@ export const upsertVideoSection = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return rowToSection(row);
     } else {
-      const { data: row, error } = await supabaseAdmin
+      const { data: row, error } = await db
         .from("video_sections")
         .insert(payload)
         .select("*")
@@ -162,7 +167,7 @@ export const deleteVideoSection = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("video_sections").delete().eq("id", data.id);
+    const { error } = await db.from("video_sections").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
