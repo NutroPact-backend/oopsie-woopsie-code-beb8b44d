@@ -1,27 +1,16 @@
-// Captures the original Error out-of-band so server.ts can recover the stack
-// when h3 has already swallowed the throw into a generic 500 Response.
+// Minimal SSR error capture used by src/server.ts
+let lastError: unknown = null;
 
-let lastCapturedError: { error: unknown; at: number } | undefined;
-const TTL_MS = 5_000;
-
-function record(error: unknown) {
-  lastCapturedError = { error, at: Date.now() };
-}
-
-if (typeof globalThis.addEventListener === "function") {
-  globalThis.addEventListener("error", (event) => record((event as ErrorEvent).error ?? event));
-  globalThis.addEventListener("unhandledrejection", (event) =>
-    record((event as PromiseRejectionEvent).reason),
-  );
+if (typeof globalThis !== "undefined") {
+  const g = globalThis as unknown as {
+    addEventListener?: (e: string, cb: (ev: { error?: unknown; reason?: unknown }) => void) => void;
+  };
+  g.addEventListener?.("error", (ev) => { lastError = ev?.error ?? lastError; });
+  g.addEventListener?.("unhandledrejection", (ev) => { lastError = ev?.reason ?? lastError; });
 }
 
 export function consumeLastCapturedError(): unknown {
-  if (!lastCapturedError) return undefined;
-  if (Date.now() - lastCapturedError.at > TTL_MS) {
-    lastCapturedError = undefined;
-    return undefined;
-  }
-  const { error } = lastCapturedError;
-  lastCapturedError = undefined;
-  return error;
+  const err = lastError;
+  lastError = null;
+  return err;
 }

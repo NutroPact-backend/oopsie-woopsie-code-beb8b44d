@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS combo_widget_enabled boolean NOT NULL DEFAULT true;

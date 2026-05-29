@@ -1,0 +1,1 @@
+drop policy if exists "anyone can create chat conversation" on public.chat_conversations;

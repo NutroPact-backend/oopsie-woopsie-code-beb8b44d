@@ -1,0 +1,23 @@
+{
+  "name": "NutroPact — Premium Nutrition",
+  "short_name": "NutroPact",
+  "description": "Lab-tested whey, creatine, pre-workout & mass gainers. Premium supplements made in India.",
+  "start_url": "/?utm_source=pwa",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "lang": "en-IN",
+  "categories": ["shopping", "health", "fitness"],
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/og-image.jpg", "sizes": "1200x630", "type": "image/jpeg", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Track Order", "url": "/track-order", "description": "Track your latest order" },
+    { "name": "Shop Whey Protein", "url": "/category/whey-protein" },
+    { "name": "My Account", "url": "/account" }
+  ]
+}

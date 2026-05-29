@@ -9,38 +9,937 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ShippingRouteImport } from './routes/shipping'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ComboRouteImport } from './routes/combo'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as VerifyWallRouteImport } from './routes/verify.wall'
+import { Route as VerifyHeatmapRouteImport } from './routes/verify.heatmap'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as ReturnTokenRouteImport } from './routes/return.$token'
+import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as ModifyTokenRouteImport } from './routes/modify.$token'
+import { Route as InvoiceOrderNumberRouteImport } from './routes/invoice.$orderNumber'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AccountSubscriptionsRouteImport } from './routes/account.subscriptions'
+import { Route as AccountReferRouteImport } from './routes/account.refer'
+import { Route as AccountRedeemRouteImport } from './routes/account.redeem'
+import { Route as AccountLoyaltyRouteImport } from './routes/account.loyalty'
+import { Route as AccountAddressesRouteImport } from './routes/account.addresses'
+import { Route as VerifyCodeCertificateRouteImport } from './routes/verify.$code.certificate'
+import { Route as ApiShippingTestRouteImport } from './routes/api/shipping.test'
+import { Route as ApiPublicVerifyProductRouteImport } from './routes/api/public/verify-product'
+import { Route as ApiPublicTrustBadgeRouteImport } from './routes/api/public/trust-badge'
+import { Route as ApiPublicTrackVisitRouteImport } from './routes/api/public/track-visit'
+import { Route as ApiPublicSyncTrackingRouteImport } from './routes/api/public/sync-tracking'
+import { Route as ApiPublicPincodeCheckRouteImport } from './routes/api/public/pincode-check'
+import { Route as ApiPublicDispatchMessagesRouteImport } from './routes/api/public/dispatch-messages'
+import { Route as ApiPublicDailyRewardsRouteImport } from './routes/api/public/daily-rewards'
+import { Route as ApiPublicConversionRouteImport } from './routes/api/public/conversion'
+import { Route as ApiPublicAutoShipmentRouteImport } from './routes/api/public/auto-shipment'
+import { Route as ApiPublicAutoInvoiceRouteImport } from './routes/api/public/auto-invoice'
+import { Route as ApiPublicHooksSubscriptionsRunRouteImport } from './routes/api/public/hooks/subscriptions-run'
+import { Route as ApiPublicHooksSeoInsightsRouteImport } from './routes/api/public/hooks/seo-insights'
+import { Route as ApiPublicHooksSeoDailyRouteImport } from './routes/api/public/hooks/seo-daily'
+import { Route as ApiPublicHooksSeoAuditRouteImport } from './routes/api/public/hooks/seo-audit'
+import { Route as ApiPublicHooksRunReportsRouteImport } from './routes/api/public/hooks/run-reports'
+import { Route as ApiPublicHooksRecoverCartsRouteImport } from './routes/api/public/hooks/recover-carts'
+import { Route as ApiPublicHooksRazorpayRouteImport } from './routes/api/public/hooks/razorpay'
+import { Route as ApiPublicHooksPhonepeRouteImport } from './routes/api/public/hooks/phonepe'
 
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingRoute = ShippingRouteImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComboRoute = ComboRouteImport.update({
+  id: '/combo',
+  path: '/combo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const VerifyWallRoute = VerifyWallRouteImport.update({
+  id: '/verify/wall',
+  path: '/verify/wall',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyHeatmapRoute = VerifyHeatmapRouteImport.update({
+  id: '/verify/heatmap',
+  path: '/verify/heatmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnTokenRoute = ReturnTokenRouteImport.update({
+  id: '/return/$token',
+  path: '/return/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModifyTokenRoute = ModifyTokenRouteImport.update({
+  id: '/modify/$token',
+  path: '/modify/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoiceOrderNumberRoute = InvoiceOrderNumberRouteImport.update({
+  id: '/invoice/$orderNumber',
+  path: '/invoice/$orderNumber',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSubscriptionsRoute = AccountSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountReferRoute = AccountReferRouteImport.update({
+  id: '/refer',
+  path: '/refer',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountRedeemRoute = AccountRedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountLoyaltyRoute = AccountLoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountAddressesRoute = AccountAddressesRouteImport.update({
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => AccountRoute,
+} as any)
+const VerifyCodeCertificateRoute = VerifyCodeCertificateRouteImport.update({
+  id: '/certificate',
+  path: '/certificate',
+  getParentRoute: () => VerifyCodeRoute,
+} as any)
+const ApiShippingTestRoute = ApiShippingTestRouteImport.update({
+  id: '/api/shipping/test',
+  path: '/api/shipping/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVerifyProductRoute = ApiPublicVerifyProductRouteImport.update({
+  id: '/api/public/verify-product',
+  path: '/api/public/verify-product',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTrustBadgeRoute = ApiPublicTrustBadgeRouteImport.update({
+  id: '/api/public/trust-badge',
+  path: '/api/public/trust-badge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTrackVisitRoute = ApiPublicTrackVisitRouteImport.update({
+  id: '/api/public/track-visit',
+  path: '/api/public/track-visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSyncTrackingRoute = ApiPublicSyncTrackingRouteImport.update({
+  id: '/api/public/sync-tracking',
+  path: '/api/public/sync-tracking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPincodeCheckRoute = ApiPublicPincodeCheckRouteImport.update({
+  id: '/api/public/pincode-check',
+  path: '/api/public/pincode-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDispatchMessagesRoute =
+  ApiPublicDispatchMessagesRouteImport.update({
+    id: '/api/public/dispatch-messages',
+    path: '/api/public/dispatch-messages',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicDailyRewardsRoute = ApiPublicDailyRewardsRouteImport.update({
+  id: '/api/public/daily-rewards',
+  path: '/api/public/daily-rewards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicConversionRoute = ApiPublicConversionRouteImport.update({
+  id: '/api/public/conversion',
+  path: '/api/public/conversion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAutoShipmentRoute = ApiPublicAutoShipmentRouteImport.update({
+  id: '/api/public/auto-shipment',
+  path: '/api/public/auto-shipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAutoInvoiceRoute = ApiPublicAutoInvoiceRouteImport.update({
+  id: '/api/public/auto-invoice',
+  path: '/api/public/auto-invoice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksSubscriptionsRunRoute =
+  ApiPublicHooksSubscriptionsRunRouteImport.update({
+    id: '/api/public/hooks/subscriptions-run',
+    path: '/api/public/hooks/subscriptions-run',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSeoInsightsRoute =
+  ApiPublicHooksSeoInsightsRouteImport.update({
+    id: '/api/public/hooks/seo-insights',
+    path: '/api/public/hooks/seo-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSeoDailyRoute = ApiPublicHooksSeoDailyRouteImport.update({
+  id: '/api/public/hooks/seo-daily',
+  path: '/api/public/hooks/seo-daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksSeoAuditRoute = ApiPublicHooksSeoAuditRouteImport.update({
+  id: '/api/public/hooks/seo-audit',
+  path: '/api/public/hooks/seo-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksRunReportsRoute =
+  ApiPublicHooksRunReportsRouteImport.update({
+    id: '/api/public/hooks/run-reports',
+    path: '/api/public/hooks/run-reports',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksRecoverCartsRoute =
+  ApiPublicHooksRecoverCartsRouteImport.update({
+    id: '/api/public/hooks/recover-carts',
+    path: '/api/public/hooks/recover-carts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksRazorpayRoute = ApiPublicHooksRazorpayRouteImport.update({
+  id: '/api/public/hooks/razorpay',
+  path: '/api/public/hooks/razorpay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksPhonepeRoute = ApiPublicHooksPhonepeRouteImport.update({
+  id: '/api/public/hooks/phonepe',
+  path: '/api/public/hooks/phonepe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/combo': typeof ComboRoute
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/products': typeof ProductsRouteWithChildren
+  '/refund': typeof RefundRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
+  '/shipping': typeof ShippingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/loyalty': typeof AccountLoyaltyRoute
+  '/account/redeem': typeof AccountRedeemRoute
+  '/account/refer': typeof AccountReferRoute
+  '/account/subscriptions': typeof AccountSubscriptionsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/invoice/$orderNumber': typeof InvoiceOrderNumberRoute
+  '/modify/$token': typeof ModifyTokenRoute
+  '/p/$slug': typeof PSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
+  '/return/$token': typeof ReturnTokenRoute
+  '/verify/$code': typeof VerifyCodeRouteWithChildren
+  '/verify/heatmap': typeof VerifyHeatmapRoute
+  '/verify/wall': typeof VerifyWallRoute
+  '/products/': typeof ProductsIndexRoute
+  '/api/public/auto-invoice': typeof ApiPublicAutoInvoiceRoute
+  '/api/public/auto-shipment': typeof ApiPublicAutoShipmentRoute
+  '/api/public/conversion': typeof ApiPublicConversionRoute
+  '/api/public/daily-rewards': typeof ApiPublicDailyRewardsRoute
+  '/api/public/dispatch-messages': typeof ApiPublicDispatchMessagesRoute
+  '/api/public/pincode-check': typeof ApiPublicPincodeCheckRoute
+  '/api/public/sync-tracking': typeof ApiPublicSyncTrackingRoute
+  '/api/public/track-visit': typeof ApiPublicTrackVisitRoute
+  '/api/public/trust-badge': typeof ApiPublicTrustBadgeRoute
+  '/api/public/verify-product': typeof ApiPublicVerifyProductRoute
+  '/api/shipping/test': typeof ApiShippingTestRoute
+  '/verify/$code/certificate': typeof VerifyCodeCertificateRoute
+  '/api/public/hooks/phonepe': typeof ApiPublicHooksPhonepeRoute
+  '/api/public/hooks/razorpay': typeof ApiPublicHooksRazorpayRoute
+  '/api/public/hooks/recover-carts': typeof ApiPublicHooksRecoverCartsRoute
+  '/api/public/hooks/run-reports': typeof ApiPublicHooksRunReportsRoute
+  '/api/public/hooks/seo-audit': typeof ApiPublicHooksSeoAuditRoute
+  '/api/public/hooks/seo-daily': typeof ApiPublicHooksSeoDailyRoute
+  '/api/public/hooks/seo-insights': typeof ApiPublicHooksSeoInsightsRoute
+  '/api/public/hooks/subscriptions-run': typeof ApiPublicHooksSubscriptionsRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/combo': typeof ComboRoute
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
+  '/shipping': typeof ShippingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/loyalty': typeof AccountLoyaltyRoute
+  '/account/redeem': typeof AccountRedeemRoute
+  '/account/refer': typeof AccountReferRoute
+  '/account/subscriptions': typeof AccountSubscriptionsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/invoice/$orderNumber': typeof InvoiceOrderNumberRoute
+  '/modify/$token': typeof ModifyTokenRoute
+  '/p/$slug': typeof PSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
+  '/return/$token': typeof ReturnTokenRoute
+  '/verify/$code': typeof VerifyCodeRouteWithChildren
+  '/verify/heatmap': typeof VerifyHeatmapRoute
+  '/verify/wall': typeof VerifyWallRoute
+  '/products': typeof ProductsIndexRoute
+  '/api/public/auto-invoice': typeof ApiPublicAutoInvoiceRoute
+  '/api/public/auto-shipment': typeof ApiPublicAutoShipmentRoute
+  '/api/public/conversion': typeof ApiPublicConversionRoute
+  '/api/public/daily-rewards': typeof ApiPublicDailyRewardsRoute
+  '/api/public/dispatch-messages': typeof ApiPublicDispatchMessagesRoute
+  '/api/public/pincode-check': typeof ApiPublicPincodeCheckRoute
+  '/api/public/sync-tracking': typeof ApiPublicSyncTrackingRoute
+  '/api/public/track-visit': typeof ApiPublicTrackVisitRoute
+  '/api/public/trust-badge': typeof ApiPublicTrustBadgeRoute
+  '/api/public/verify-product': typeof ApiPublicVerifyProductRoute
+  '/api/shipping/test': typeof ApiShippingTestRoute
+  '/verify/$code/certificate': typeof VerifyCodeCertificateRoute
+  '/api/public/hooks/phonepe': typeof ApiPublicHooksPhonepeRoute
+  '/api/public/hooks/razorpay': typeof ApiPublicHooksRazorpayRoute
+  '/api/public/hooks/recover-carts': typeof ApiPublicHooksRecoverCartsRoute
+  '/api/public/hooks/run-reports': typeof ApiPublicHooksRunReportsRoute
+  '/api/public/hooks/seo-audit': typeof ApiPublicHooksSeoAuditRoute
+  '/api/public/hooks/seo-daily': typeof ApiPublicHooksSeoDailyRoute
+  '/api/public/hooks/seo-insights': typeof ApiPublicHooksSeoInsightsRoute
+  '/api/public/hooks/subscriptions-run': typeof ApiPublicHooksSubscriptionsRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/account': typeof AccountRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
+  '/combo': typeof ComboRoute
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/products': typeof ProductsRouteWithChildren
+  '/refund': typeof RefundRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/search': typeof SearchRoute
+  '/shipping': typeof ShippingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/track-order': typeof TrackOrderRoute
+  '/account/addresses': typeof AccountAddressesRoute
+  '/account/loyalty': typeof AccountLoyaltyRoute
+  '/account/redeem': typeof AccountRedeemRoute
+  '/account/refer': typeof AccountReferRoute
+  '/account/subscriptions': typeof AccountSubscriptionsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/invoice/$orderNumber': typeof InvoiceOrderNumberRoute
+  '/modify/$token': typeof ModifyTokenRoute
+  '/p/$slug': typeof PSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
+  '/return/$token': typeof ReturnTokenRoute
+  '/verify/$code': typeof VerifyCodeRouteWithChildren
+  '/verify/heatmap': typeof VerifyHeatmapRoute
+  '/verify/wall': typeof VerifyWallRoute
+  '/products/': typeof ProductsIndexRoute
+  '/api/public/auto-invoice': typeof ApiPublicAutoInvoiceRoute
+  '/api/public/auto-shipment': typeof ApiPublicAutoShipmentRoute
+  '/api/public/conversion': typeof ApiPublicConversionRoute
+  '/api/public/daily-rewards': typeof ApiPublicDailyRewardsRoute
+  '/api/public/dispatch-messages': typeof ApiPublicDispatchMessagesRoute
+  '/api/public/pincode-check': typeof ApiPublicPincodeCheckRoute
+  '/api/public/sync-tracking': typeof ApiPublicSyncTrackingRoute
+  '/api/public/track-visit': typeof ApiPublicTrackVisitRoute
+  '/api/public/trust-badge': typeof ApiPublicTrustBadgeRoute
+  '/api/public/verify-product': typeof ApiPublicVerifyProductRoute
+  '/api/shipping/test': typeof ApiShippingTestRoute
+  '/verify/$code/certificate': typeof VerifyCodeCertificateRoute
+  '/api/public/hooks/phonepe': typeof ApiPublicHooksPhonepeRoute
+  '/api/public/hooks/razorpay': typeof ApiPublicHooksRazorpayRoute
+  '/api/public/hooks/recover-carts': typeof ApiPublicHooksRecoverCartsRoute
+  '/api/public/hooks/run-reports': typeof ApiPublicHooksRunReportsRoute
+  '/api/public/hooks/seo-audit': typeof ApiPublicHooksSeoAuditRoute
+  '/api/public/hooks/seo-daily': typeof ApiPublicHooksSeoDailyRoute
+  '/api/public/hooks/seo-insights': typeof ApiPublicHooksSeoInsightsRoute
+  '/api/public/hooks/subscriptions-run': typeof ApiPublicHooksSubscriptionsRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/account'
+    | '/admin'
+    | '/blog'
+    | '/cart'
+    | '/checkout'
+    | '/combo'
+    | '/contact'
+    | '/faq'
+    | '/login'
+    | '/privacy'
+    | '/products'
+    | '/refund'
+    | '/robots.txt'
+    | '/search'
+    | '/shipping'
+    | '/sitemap.xml'
+    | '/support'
+    | '/terms'
+    | '/testimonials'
+    | '/track-order'
+    | '/account/addresses'
+    | '/account/loyalty'
+    | '/account/redeem'
+    | '/account/refer'
+    | '/account/subscriptions'
+    | '/auth/callback'
+    | '/blog/$slug'
+    | '/category/$slug'
+    | '/invoice/$orderNumber'
+    | '/modify/$token'
+    | '/p/$slug'
+    | '/products/$slug'
+    | '/return/$token'
+    | '/verify/$code'
+    | '/verify/heatmap'
+    | '/verify/wall'
+    | '/products/'
+    | '/api/public/auto-invoice'
+    | '/api/public/auto-shipment'
+    | '/api/public/conversion'
+    | '/api/public/daily-rewards'
+    | '/api/public/dispatch-messages'
+    | '/api/public/pincode-check'
+    | '/api/public/sync-tracking'
+    | '/api/public/track-visit'
+    | '/api/public/trust-badge'
+    | '/api/public/verify-product'
+    | '/api/shipping/test'
+    | '/verify/$code/certificate'
+    | '/api/public/hooks/phonepe'
+    | '/api/public/hooks/razorpay'
+    | '/api/public/hooks/recover-carts'
+    | '/api/public/hooks/run-reports'
+    | '/api/public/hooks/seo-audit'
+    | '/api/public/hooks/seo-daily'
+    | '/api/public/hooks/seo-insights'
+    | '/api/public/hooks/subscriptions-run'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/account'
+    | '/admin'
+    | '/blog'
+    | '/cart'
+    | '/checkout'
+    | '/combo'
+    | '/contact'
+    | '/faq'
+    | '/login'
+    | '/privacy'
+    | '/refund'
+    | '/robots.txt'
+    | '/search'
+    | '/shipping'
+    | '/sitemap.xml'
+    | '/support'
+    | '/terms'
+    | '/testimonials'
+    | '/track-order'
+    | '/account/addresses'
+    | '/account/loyalty'
+    | '/account/redeem'
+    | '/account/refer'
+    | '/account/subscriptions'
+    | '/auth/callback'
+    | '/blog/$slug'
+    | '/category/$slug'
+    | '/invoice/$orderNumber'
+    | '/modify/$token'
+    | '/p/$slug'
+    | '/products/$slug'
+    | '/return/$token'
+    | '/verify/$code'
+    | '/verify/heatmap'
+    | '/verify/wall'
+    | '/products'
+    | '/api/public/auto-invoice'
+    | '/api/public/auto-shipment'
+    | '/api/public/conversion'
+    | '/api/public/daily-rewards'
+    | '/api/public/dispatch-messages'
+    | '/api/public/pincode-check'
+    | '/api/public/sync-tracking'
+    | '/api/public/track-visit'
+    | '/api/public/trust-badge'
+    | '/api/public/verify-product'
+    | '/api/shipping/test'
+    | '/verify/$code/certificate'
+    | '/api/public/hooks/phonepe'
+    | '/api/public/hooks/razorpay'
+    | '/api/public/hooks/recover-carts'
+    | '/api/public/hooks/run-reports'
+    | '/api/public/hooks/seo-audit'
+    | '/api/public/hooks/seo-daily'
+    | '/api/public/hooks/seo-insights'
+    | '/api/public/hooks/subscriptions-run'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/account'
+    | '/admin'
+    | '/blog'
+    | '/cart'
+    | '/checkout'
+    | '/combo'
+    | '/contact'
+    | '/faq'
+    | '/login'
+    | '/privacy'
+    | '/products'
+    | '/refund'
+    | '/robots.txt'
+    | '/search'
+    | '/shipping'
+    | '/sitemap.xml'
+    | '/support'
+    | '/terms'
+    | '/testimonials'
+    | '/track-order'
+    | '/account/addresses'
+    | '/account/loyalty'
+    | '/account/redeem'
+    | '/account/refer'
+    | '/account/subscriptions'
+    | '/auth/callback'
+    | '/blog/$slug'
+    | '/category/$slug'
+    | '/invoice/$orderNumber'
+    | '/modify/$token'
+    | '/p/$slug'
+    | '/products/$slug'
+    | '/return/$token'
+    | '/verify/$code'
+    | '/verify/heatmap'
+    | '/verify/wall'
+    | '/products/'
+    | '/api/public/auto-invoice'
+    | '/api/public/auto-shipment'
+    | '/api/public/conversion'
+    | '/api/public/daily-rewards'
+    | '/api/public/dispatch-messages'
+    | '/api/public/pincode-check'
+    | '/api/public/sync-tracking'
+    | '/api/public/track-visit'
+    | '/api/public/trust-badge'
+    | '/api/public/verify-product'
+    | '/api/shipping/test'
+    | '/verify/$code/certificate'
+    | '/api/public/hooks/phonepe'
+    | '/api/public/hooks/razorpay'
+    | '/api/public/hooks/recover-carts'
+    | '/api/public/hooks/run-reports'
+    | '/api/public/hooks/seo-audit'
+    | '/api/public/hooks/seo-daily'
+    | '/api/public/hooks/seo-insights'
+    | '/api/public/hooks/subscriptions-run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AccountRoute: typeof AccountRouteWithChildren
+  AdminRoute: typeof AdminRoute
+  BlogRoute: typeof BlogRouteWithChildren
+  CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
+  ComboRoute: typeof ComboRoute
+  ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
+  LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ProductsRoute: typeof ProductsRouteWithChildren
+  RefundRoute: typeof RefundRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SearchRoute: typeof SearchRoute
+  ShippingRoute: typeof ShippingRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
+  TestimonialsRoute: typeof TestimonialsRoute
+  TrackOrderRoute: typeof TrackOrderRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  CategorySlugRoute: typeof CategorySlugRoute
+  InvoiceOrderNumberRoute: typeof InvoiceOrderNumberRoute
+  ModifyTokenRoute: typeof ModifyTokenRoute
+  PSlugRoute: typeof PSlugRoute
+  ReturnTokenRoute: typeof ReturnTokenRoute
+  VerifyCodeRoute: typeof VerifyCodeRouteWithChildren
+  VerifyHeatmapRoute: typeof VerifyHeatmapRoute
+  VerifyWallRoute: typeof VerifyWallRoute
+  ApiPublicAutoInvoiceRoute: typeof ApiPublicAutoInvoiceRoute
+  ApiPublicAutoShipmentRoute: typeof ApiPublicAutoShipmentRoute
+  ApiPublicConversionRoute: typeof ApiPublicConversionRoute
+  ApiPublicDailyRewardsRoute: typeof ApiPublicDailyRewardsRoute
+  ApiPublicDispatchMessagesRoute: typeof ApiPublicDispatchMessagesRoute
+  ApiPublicPincodeCheckRoute: typeof ApiPublicPincodeCheckRoute
+  ApiPublicSyncTrackingRoute: typeof ApiPublicSyncTrackingRoute
+  ApiPublicTrackVisitRoute: typeof ApiPublicTrackVisitRoute
+  ApiPublicTrustBadgeRoute: typeof ApiPublicTrustBadgeRoute
+  ApiPublicVerifyProductRoute: typeof ApiPublicVerifyProductRoute
+  ApiShippingTestRoute: typeof ApiShippingTestRoute
+  ApiPublicHooksPhonepeRoute: typeof ApiPublicHooksPhonepeRoute
+  ApiPublicHooksRazorpayRoute: typeof ApiPublicHooksRazorpayRoute
+  ApiPublicHooksRecoverCartsRoute: typeof ApiPublicHooksRecoverCartsRoute
+  ApiPublicHooksRunReportsRoute: typeof ApiPublicHooksRunReportsRoute
+  ApiPublicHooksSeoAuditRoute: typeof ApiPublicHooksSeoAuditRoute
+  ApiPublicHooksSeoDailyRoute: typeof ApiPublicHooksSeoDailyRoute
+  ApiPublicHooksSeoInsightsRoute: typeof ApiPublicHooksSeoInsightsRoute
+  ApiPublicHooksSubscriptionsRunRoute: typeof ApiPublicHooksSubscriptionsRunRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/combo': {
+      id: '/combo'
+      path: '/combo'
+      fullPath: '/combo'
+      preLoaderRoute: typeof ComboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +947,374 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products/': {
+      id: '/products/'
+      path: '/'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/verify/wall': {
+      id: '/verify/wall'
+      path: '/verify/wall'
+      fullPath: '/verify/wall'
+      preLoaderRoute: typeof VerifyWallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/heatmap': {
+      id: '/verify/heatmap'
+      path: '/verify/heatmap'
+      fullPath: '/verify/heatmap'
+      preLoaderRoute: typeof VerifyHeatmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/return/$token': {
+      id: '/return/$token'
+      path: '/return/$token'
+      fullPath: '/return/$token'
+      preLoaderRoute: typeof ReturnTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modify/$token': {
+      id: '/modify/$token'
+      path: '/modify/$token'
+      fullPath: '/modify/$token'
+      preLoaderRoute: typeof ModifyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoice/$orderNumber': {
+      id: '/invoice/$orderNumber'
+      path: '/invoice/$orderNumber'
+      fullPath: '/invoice/$orderNumber'
+      preLoaderRoute: typeof InvoiceOrderNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/subscriptions': {
+      id: '/account/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/account/subscriptions'
+      preLoaderRoute: typeof AccountSubscriptionsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/refer': {
+      id: '/account/refer'
+      path: '/refer'
+      fullPath: '/account/refer'
+      preLoaderRoute: typeof AccountReferRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/redeem': {
+      id: '/account/redeem'
+      path: '/redeem'
+      fullPath: '/account/redeem'
+      preLoaderRoute: typeof AccountRedeemRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/loyalty': {
+      id: '/account/loyalty'
+      path: '/loyalty'
+      fullPath: '/account/loyalty'
+      preLoaderRoute: typeof AccountLoyaltyRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/addresses': {
+      id: '/account/addresses'
+      path: '/addresses'
+      fullPath: '/account/addresses'
+      preLoaderRoute: typeof AccountAddressesRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/verify/$code/certificate': {
+      id: '/verify/$code/certificate'
+      path: '/certificate'
+      fullPath: '/verify/$code/certificate'
+      preLoaderRoute: typeof VerifyCodeCertificateRouteImport
+      parentRoute: typeof VerifyCodeRoute
+    }
+    '/api/shipping/test': {
+      id: '/api/shipping/test'
+      path: '/api/shipping/test'
+      fullPath: '/api/shipping/test'
+      preLoaderRoute: typeof ApiShippingTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/verify-product': {
+      id: '/api/public/verify-product'
+      path: '/api/public/verify-product'
+      fullPath: '/api/public/verify-product'
+      preLoaderRoute: typeof ApiPublicVerifyProductRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/trust-badge': {
+      id: '/api/public/trust-badge'
+      path: '/api/public/trust-badge'
+      fullPath: '/api/public/trust-badge'
+      preLoaderRoute: typeof ApiPublicTrustBadgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/track-visit': {
+      id: '/api/public/track-visit'
+      path: '/api/public/track-visit'
+      fullPath: '/api/public/track-visit'
+      preLoaderRoute: typeof ApiPublicTrackVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sync-tracking': {
+      id: '/api/public/sync-tracking'
+      path: '/api/public/sync-tracking'
+      fullPath: '/api/public/sync-tracking'
+      preLoaderRoute: typeof ApiPublicSyncTrackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pincode-check': {
+      id: '/api/public/pincode-check'
+      path: '/api/public/pincode-check'
+      fullPath: '/api/public/pincode-check'
+      preLoaderRoute: typeof ApiPublicPincodeCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/dispatch-messages': {
+      id: '/api/public/dispatch-messages'
+      path: '/api/public/dispatch-messages'
+      fullPath: '/api/public/dispatch-messages'
+      preLoaderRoute: typeof ApiPublicDispatchMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/daily-rewards': {
+      id: '/api/public/daily-rewards'
+      path: '/api/public/daily-rewards'
+      fullPath: '/api/public/daily-rewards'
+      preLoaderRoute: typeof ApiPublicDailyRewardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/conversion': {
+      id: '/api/public/conversion'
+      path: '/api/public/conversion'
+      fullPath: '/api/public/conversion'
+      preLoaderRoute: typeof ApiPublicConversionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auto-shipment': {
+      id: '/api/public/auto-shipment'
+      path: '/api/public/auto-shipment'
+      fullPath: '/api/public/auto-shipment'
+      preLoaderRoute: typeof ApiPublicAutoShipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auto-invoice': {
+      id: '/api/public/auto-invoice'
+      path: '/api/public/auto-invoice'
+      fullPath: '/api/public/auto-invoice'
+      preLoaderRoute: typeof ApiPublicAutoInvoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/subscriptions-run': {
+      id: '/api/public/hooks/subscriptions-run'
+      path: '/api/public/hooks/subscriptions-run'
+      fullPath: '/api/public/hooks/subscriptions-run'
+      preLoaderRoute: typeof ApiPublicHooksSubscriptionsRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/seo-insights': {
+      id: '/api/public/hooks/seo-insights'
+      path: '/api/public/hooks/seo-insights'
+      fullPath: '/api/public/hooks/seo-insights'
+      preLoaderRoute: typeof ApiPublicHooksSeoInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/seo-daily': {
+      id: '/api/public/hooks/seo-daily'
+      path: '/api/public/hooks/seo-daily'
+      fullPath: '/api/public/hooks/seo-daily'
+      preLoaderRoute: typeof ApiPublicHooksSeoDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/seo-audit': {
+      id: '/api/public/hooks/seo-audit'
+      path: '/api/public/hooks/seo-audit'
+      fullPath: '/api/public/hooks/seo-audit'
+      preLoaderRoute: typeof ApiPublicHooksSeoAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/run-reports': {
+      id: '/api/public/hooks/run-reports'
+      path: '/api/public/hooks/run-reports'
+      fullPath: '/api/public/hooks/run-reports'
+      preLoaderRoute: typeof ApiPublicHooksRunReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/recover-carts': {
+      id: '/api/public/hooks/recover-carts'
+      path: '/api/public/hooks/recover-carts'
+      fullPath: '/api/public/hooks/recover-carts'
+      preLoaderRoute: typeof ApiPublicHooksRecoverCartsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/razorpay': {
+      id: '/api/public/hooks/razorpay'
+      path: '/api/public/hooks/razorpay'
+      fullPath: '/api/public/hooks/razorpay'
+      preLoaderRoute: typeof ApiPublicHooksRazorpayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/phonepe': {
+      id: '/api/public/hooks/phonepe'
+      path: '/api/public/hooks/phonepe'
+      fullPath: '/api/public/hooks/phonepe'
+      preLoaderRoute: typeof ApiPublicHooksPhonepeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AccountRouteChildren {
+  AccountAddressesRoute: typeof AccountAddressesRoute
+  AccountLoyaltyRoute: typeof AccountLoyaltyRoute
+  AccountRedeemRoute: typeof AccountRedeemRoute
+  AccountReferRoute: typeof AccountReferRoute
+  AccountSubscriptionsRoute: typeof AccountSubscriptionsRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountAddressesRoute: AccountAddressesRoute,
+  AccountLoyaltyRoute: AccountLoyaltyRoute,
+  AccountRedeemRoute: AccountRedeemRoute,
+  AccountReferRoute: AccountReferRoute,
+  AccountSubscriptionsRoute: AccountSubscriptionsRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
+interface ProductsRouteChildren {
+  ProductsSlugRoute: typeof ProductsSlugRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
+}
+
+const ProductsRouteChildren: ProductsRouteChildren = {
+  ProductsSlugRoute: ProductsSlugRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
+}
+
+const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
+  ProductsRouteChildren,
+)
+
+interface VerifyCodeRouteChildren {
+  VerifyCodeCertificateRoute: typeof VerifyCodeCertificateRoute
+}
+
+const VerifyCodeRouteChildren: VerifyCodeRouteChildren = {
+  VerifyCodeCertificateRoute: VerifyCodeCertificateRoute,
+}
+
+const VerifyCodeRouteWithChildren = VerifyCodeRoute._addFileChildren(
+  VerifyCodeRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AccountRoute: AccountRouteWithChildren,
+  AdminRoute: AdminRoute,
+  BlogRoute: BlogRouteWithChildren,
+  CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
+  ComboRoute: ComboRoute,
+  ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
+  LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
+  ProductsRoute: ProductsRouteWithChildren,
+  RefundRoute: RefundRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SearchRoute: SearchRoute,
+  ShippingRoute: ShippingRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
+  TestimonialsRoute: TestimonialsRoute,
+  TrackOrderRoute: TrackOrderRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  CategorySlugRoute: CategorySlugRoute,
+  InvoiceOrderNumberRoute: InvoiceOrderNumberRoute,
+  ModifyTokenRoute: ModifyTokenRoute,
+  PSlugRoute: PSlugRoute,
+  ReturnTokenRoute: ReturnTokenRoute,
+  VerifyCodeRoute: VerifyCodeRouteWithChildren,
+  VerifyHeatmapRoute: VerifyHeatmapRoute,
+  VerifyWallRoute: VerifyWallRoute,
+  ApiPublicAutoInvoiceRoute: ApiPublicAutoInvoiceRoute,
+  ApiPublicAutoShipmentRoute: ApiPublicAutoShipmentRoute,
+  ApiPublicConversionRoute: ApiPublicConversionRoute,
+  ApiPublicDailyRewardsRoute: ApiPublicDailyRewardsRoute,
+  ApiPublicDispatchMessagesRoute: ApiPublicDispatchMessagesRoute,
+  ApiPublicPincodeCheckRoute: ApiPublicPincodeCheckRoute,
+  ApiPublicSyncTrackingRoute: ApiPublicSyncTrackingRoute,
+  ApiPublicTrackVisitRoute: ApiPublicTrackVisitRoute,
+  ApiPublicTrustBadgeRoute: ApiPublicTrustBadgeRoute,
+  ApiPublicVerifyProductRoute: ApiPublicVerifyProductRoute,
+  ApiShippingTestRoute: ApiShippingTestRoute,
+  ApiPublicHooksPhonepeRoute: ApiPublicHooksPhonepeRoute,
+  ApiPublicHooksRazorpayRoute: ApiPublicHooksRazorpayRoute,
+  ApiPublicHooksRecoverCartsRoute: ApiPublicHooksRecoverCartsRoute,
+  ApiPublicHooksRunReportsRoute: ApiPublicHooksRunReportsRoute,
+  ApiPublicHooksSeoAuditRoute: ApiPublicHooksSeoAuditRoute,
+  ApiPublicHooksSeoDailyRoute: ApiPublicHooksSeoDailyRoute,
+  ApiPublicHooksSeoInsightsRoute: ApiPublicHooksSeoInsightsRoute,
+  ApiPublicHooksSubscriptionsRunRoute: ApiPublicHooksSubscriptionsRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
