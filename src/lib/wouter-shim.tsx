@@ -35,8 +35,9 @@ export function useLocation(): [string, (to: string) => void] {
   const navigate = useNavigate();
   const go = React.useCallback(
     (to: string) => {
-      // Allow query strings: split path from search
-      const [path, search] = to.split("?");
+      // Strip hash fragment first, then split path from search
+      const [withoutHash] = to.split("#");
+      const [path, search] = withoutHash.split("?");
       navigate({
         to: path as string,
         search: search ? Object.fromEntries(new URLSearchParams(search)) : undefined,
