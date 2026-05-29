@@ -1918,6 +1918,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      <LiveOrderToaster />
       <aside className="w-64 bg-gray-900 text-white shrink-0 flex flex-col">
         <div className="p-5 border-b border-gray-800">
           <p className="text-sm font-black text-orange-400 tracking-wider">NUTROPACT</p>
