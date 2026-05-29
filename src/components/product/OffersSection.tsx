@@ -94,8 +94,8 @@ export default function OffersSection({ product, selectedFlavor, selectedSize }:
         supabase.from('combo_rules').select('id').eq('active', true).limit(1),
       ]);
       if (!alive) return;
-      setOffers((a.data || []) as Offer[]);
-      setPayOffers((b.data || []) as PaymentOffer[]);
+      setOffers((a.data || []) as unknown as Offer[]);
+      setPayOffers((b.data || []) as unknown as PaymentOffer[]);
       setHasCombo((c.data || []).length > 0);
     })();
     return () => { alive = false; };
