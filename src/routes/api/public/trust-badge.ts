@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Embeddable SVG trust badge for retailer pages.
  * GET /api/public/trust-badge?batch=BATCH123

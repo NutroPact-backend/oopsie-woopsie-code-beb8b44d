@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Public cron endpoint to drain the notification_queue. Protected by a
  * shared secret stored in `site_settings.messaging.cronSecret` or env

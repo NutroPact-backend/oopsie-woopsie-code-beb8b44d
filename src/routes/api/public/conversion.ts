@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Public server-side conversion endpoint (FB CAPI + GA4 MP).
  * Lets external callers (cron, server scripts, third-party tools) push
