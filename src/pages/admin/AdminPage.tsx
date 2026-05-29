@@ -1847,6 +1847,7 @@ export default function AdminPage() {
       id: 'customers', label: 'Customers & Support',
       items: [
         { id: 'users', icon: <Users size={16} />, label: 'Users & Auth', desc: 'Accounts, roles, sign-in settings' },
+        { id: 'customer360', icon: <Activity size={16} />, label: 'Customer 360°', desc: 'Section-wise live activity timeline per customer — every page, cart, checkout, order, refund, review & chat' },
         { id: 'reviewmod', icon: <MessageSquare size={16} />, label: 'Reviews Moderation', desc: 'Approve / pin / delete customer reviews + photos' },
         { id: 'reviews', icon: <Star size={16} />, label: 'Global Testimonials', desc: 'Curated reviews on homepage' },
         { id: 'productqa', icon: <MessageCircle size={16} />, label: 'Product Q&A', desc: 'Customer questions on PDP — moderate & answer' },
