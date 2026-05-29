@@ -45,7 +45,7 @@ export default function UrgencyStack({ productId, stock }: { productId: string; 
     enabled: flagOn,
   });
 
-  const widgets = (widgetsRes?.widgets ?? []) as Widget[];
+  const widgets = (widgetsRes?.widgets ?? []) as unknown as Widget[];
 
   const needsStats = widgets.some((w) => w.widget_type === "recent_purchase" || w.widget_type === "cart_urgency");
   const windowHours = Math.max(...widgets.map((w) => w.window_hours), 24);
