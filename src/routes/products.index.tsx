@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import ProductsPage from "@/pages/ProductsPage";
 

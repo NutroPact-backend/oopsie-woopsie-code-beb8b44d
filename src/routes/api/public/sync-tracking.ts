@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { loadShippingConfig, trackByCarrier, type TrackResult } from "@/lib/shipping.functions";

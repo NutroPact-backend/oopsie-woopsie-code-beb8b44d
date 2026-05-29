@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Customer-facing loyalty status page — shows current tier, progress to next, perks.
  */

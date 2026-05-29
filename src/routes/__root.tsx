@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {

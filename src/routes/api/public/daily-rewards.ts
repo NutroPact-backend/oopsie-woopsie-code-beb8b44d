@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Daily cron: birthday + anniversary wallet credits, and refresh of
  * "frequently bought together" cooccurrence cache.

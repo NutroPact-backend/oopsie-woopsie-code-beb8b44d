@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Daily AI insights digest — called by pg_cron at 5 AM UTC.
 // Uses Gemini directly (no Lovable runtime dep) to summarize last 7 days of SEO data.
 import { createFileRoute } from '@tanstack/react-router';

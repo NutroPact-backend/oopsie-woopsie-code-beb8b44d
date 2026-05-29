@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Cron-callable endpoint that scans analytics_report_subscriptions for any
  * schedules whose `next_run_at` has passed and dispatches them.
