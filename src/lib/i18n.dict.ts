@@ -28,6 +28,8 @@ const en: Dict = {
   "cta.buy_now": "Buy now",
   "cta.checkout": "Checkout",
   "cta.continue": "Continue",
+  "video.views": "views",
+  "video.watch_now": "Watch now",
   "cta.save": "Save",
   "cta.cancel": "Cancel",
   "cta.submit": "Submit",
