@@ -22,6 +22,7 @@ import ProductQA from '@/components/product/ProductQA';
 import UrgencyStack from '@/components/product/UrgencyStack';
 // (Hindi-only infographics removed — replaced by site-wide multi-language preference)
 import VariantsProPicker from '@/components/product/VariantsProPicker';
+import VideoSections from '@/components/video-sections/VideoSections';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import API from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
