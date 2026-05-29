@@ -1,139 +1,130 @@
-## Goal
+## 🎯 Goal
 
-Puricane / Itivedam style ka **shoppable video reel carousel** (vertical 9:16 thumbnails + view count + attached product + Add to Cart) bana — ek hi admin jagah se manage, kisi bhi page par show, ek page par multiple sections with alag-alag heading bhi possible.
-
-Existing dashboard / homepage builder / product page kuch nahi toota — pure addition hai.
-
----
-
-## What the user sees (frontend)
-
-Ek reusable section component:
-
-```text
-┌──────────── Watch & Shop ───────────────┐   ← heading (per section)
-│ subheading (optional)                    │
-│ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ →               │
-│ │▶ │ │▶ │ │▶ │ │▶ │ │▶ │  horizontal     │
-│ │9:│ │9:│ │9:│ │9:│ │9:│  vertical reels │
-│ │16│ │16│ │16│ │16│ │16│  carousel       │
-│ └──┘ └──┘ └──┘ └──┘ └──┘                 │
-│  65K   80K   97K  ...      (view count)  │
-│  ──────── product card ────────          │
-│  Puricane Weight Loss   ₹799             │
-│  [ Add to Cart ]                         │
-└──────────────────────────────────────────┘
-```
-
-- Tap → fullscreen reel player (vertical, swipe up/down for next, mute toggle, attached product pinned bottom with ATC).
-- Layouts supported: `reel-carousel` (default), `grid` (3-4 cols), `single-feature` (one big hero video).
+3 cheezein deliver karni hain:
+1. **AI/Translation engine switch** — Lovable AI Gateway nikal ke teri di hui API key use karni h (Google Cloud Translation API recommend kar raha hu — accuracy ke liye)
+2. **Full audit & wrap** — pages/products/blogs/banners/FAQs sab admin-authored content ko `useContentTBatch` se wrap karna h taki language switch pe sab translate ho
+3. **Glitch fixes** — existing setup me 2 chhote issues hain (niche detail h)
 
 ---
 
-## Admin: ONE place — new "Video Sections" tab
+## 🌐 Part 1 — Translation Engine (100% accuracy ke liye)
 
-New top-level admin tab **Video Sections** (added to `src/pages/admin/AdminPage.tsx` tab list — kuch existing remove nahi).
+### Recommendation: **Google Cloud Translation API**
 
-Two sub-tabs inside:
+Tu bola "100% accuracy chahiye" — iske liye **dedicated translation service** chahiye, LLM nahi. Comparison:
 
-**1. Video Library**
-   - Upload / link videos (mp4 URL, YouTube, Instagram embed, or direct upload via existing `useSimpleUpload`)
-   - Per video: title, thumbnail (auto-generated or uploaded), view count (manual or auto from analytics), attached product (search picker — reuses PlacementsView product search), CTA text/link override, tags.
+| Engine | Indian languages accuracy | Cost (after free tier) |
+|---|---|---|
+| Google Cloud Translation v3 | ~92-95% (industry best) | $20 per 1M chars |
+| Gemini/GPT (current) | ~80-85% | Per token |
+| LibreTranslate (free) | ~75% | Free |
 
-**2. Sections**
-   - List of named sections (e.g. "Watch & Shop", "Customer Video Reviews", "How to Use").
-   - Per section config:
-     - Heading + subheading
-     - Layout (reel-carousel / grid / single-feature)
-     - Pick videos from library (drag to reorder)
-     - **Placement** (multi-select, exactly like PlacementsView pattern):
-       - Homepage (with position: top / after-products / bottom / custom index)
-       - All product pages / specific products
-       - All category pages / specific categories
-       - Custom pages (PagesTab)
-       - Blog index / specific blog posts
-     - Enabled toggle, schedule (start/end date — optional), device visibility (desktop/mobile/both).
+Google Translate **500K chars/month FREE** — tere 100 items + ~13 languages me first month free hi nikal jayega.
 
-**Multiple sections on same page with different headings** → just create 2 sections with overlapping placement and an order field — renderer sorts and stacks them.
+### Code changes
+- New file `src/lib/translation-provider.server.ts` — abstraction with 2 backends:
+  1. **`google`** (default if `GOOGLE_TRANSLATE_API_KEY` set) — REST API call to `translation.googleapis.com/language/translate/v2`
+  2. **`ai-fallback`** — existing AI gateway (Gemini/OpenAI), used only if Google key missing
+- Refactor `src/lib/content-translations.functions.ts` → `translateBatch()` calls new provider instead of inline AI
+- **Lovable AI Gateway code untouched** — bas priority me Google ko top pe rakh denge. AI ko fallback rakhenge taki agar Google API key na ho to system na toote.
 
----
+### Secret needed
+Tu **Google Cloud Translation API key** banake dega:
+- Console: https://console.cloud.google.com/ → enable "Cloud Translation API" → Credentials → Create API Key
+- Restrict it to "Cloud Translation API" only (security)
 
-## Data model (new table)
-
-```text
-public.video_sections
-  id, heading, subheading, layout, enabled,
-  placements jsonb   -- [{type:'home'|'product'|'category'|'page'|'blog', ids?:[], position:int}]
-  videos jsonb       -- [{id, src, type:'mp4'|'youtube'|'instagram',
-                         thumbnail, title, views, product_id?, cta?}]
-  visibility jsonb   -- {desktop, mobile, startAt?, endAt?}
-  sort_order int, created_at, updated_at
-```
-
-One table is enough — `videos` is denormalized JSON for simple CRUD; product attach is just an id reference to existing products. Standard `GRANT` + RLS (admin write, public read) following project's user-roles convention.
+Main `secrets--add_secret` se `GOOGLE_TRANSLATE_API_KEY` maangunga jab build mode me jayega.
 
 ---
 
-## Rendering glue (drop-in, non-breaking)
+## 🔍 Part 2 — Full Audit & Wrap (sabse bada chunk)
 
-New component `src/components/video-sections/VideoSections.tsx`:
+Abhi sirf 2 files me `useContentTBatch` use ho raha h. Saare ye DB-fed content **English me hi dikh raha h** language switch ke baad:
 
+### Customer pages to wrap
+
+| File | Admin-authored fields |
+|---|---|
+| `src/pages/Home.tsx` | section headings, subheadings, banner text, hero copy |
+| `src/pages/ProductPage.tsx` | product name, description, badges, review titles, Q&A |
+| `src/pages/ProductsPage.tsx` | product names, category names |
+| `src/pages/AboutPage.tsx` | story title/subtitle, blocks, pillars |
+| `src/pages/BlogPage.tsx` + `BlogPostPage.tsx` | post titles, excerpts, content |
+| `src/pages/FAQPage.tsx` | question/answer pairs |
+| `src/pages/TestimonialsPage.tsx` | testimonial text, author names→keep |
+| `src/pages/ComboPage.tsx` | combo names, descriptions |
+| `src/pages/CustomPage.tsx` | custom page title + body |
+| `src/pages/ContactPage.tsx`, `ShippingPage.tsx`, `RefundPage.tsx`, `TermsPage.tsx`, `PrivacyPage.tsx`, `ReturnPage.tsx` | page title + content (admin settings) |
+
+### Shared components
+| File | Fields |
+|---|---|
+| `src/components/layout/Header.tsx` | nav labels (if from DB) |
+| `src/components/layout/Footer.tsx` | footer links, copy |
+| `src/components/layout/AnnouncementBar.tsx` | announcement text |
+| `src/components/MarketplaceStrip.tsx`, `TrustBadges.tsx`, `SocialProof.tsx` | labels |
+| `src/components/CategoryLinks.tsx` | category names |
+| `src/components/product/OffersSection.tsx`, `UrgencyStack.tsx` | offer copy |
+| `src/components/RecentlyViewed.tsx`, `AbandonedCart.tsx` | product names |
+
+### Pattern me wrap karunga
 ```tsx
-<VideoSections placement="home" position="after-products" />
-<VideoSections placement="product" id={product.id} />
-<VideoSections placement="category" id={category.id} />
-<VideoSections placement="page" id={page.id} />
+// Pehle (English me lock)
+<h2>{section.heading}</h2>
+
+// Baad me (auto-translate)
+const ct = useContentTBatch([
+  { entityType: "home_section", entityId: section.id, field: "heading", source: section.heading },
+  { entityType: "home_section", entityId: section.id, field: "subheading", source: section.subheading ?? "" },
+]);
+<h2>{ct("home_section", section.id, "heading")}</h2>
 ```
 
-- Fetches all sections whose `placements` match → renders in `sort_order`.
-- Renders nothing if zero matches (zero visual change for pages where admin hasn't placed anything).
+### Stable `entityType` naming convention (memory me save karunga)
+- `product` (name, description, short_desc)
+- `blog_post` (title, excerpt, content)
+- `faq_item` (question, answer)
+- `page_block` (title, body) — for custom pages, about, privacy etc.
+- `home_section` (heading, subheading, cta_label)
+- `banner` (text)
+- `category` (name)
+- `nav_item` (label)
+- `testimonial` (text)
+- `combo` (name, description)
 
-Drop calls into (surgical, additive only):
-- `src/pages/Home.tsx` — 2-3 placement slots (top / after-products / bottom)
-- `src/pages/ProductPage.tsx` — after product info, after reviews
-- `src/pages/CategoryPage.tsx` — top, bottom
-- `src/pages/BlogPostPage.tsx` — bottom
-- Custom page renderer (`p.$slug.tsx`) — supports placements
-
-No existing section is modified or removed.
-
----
-
-## Files (new + minimal edits)
-
-**New**
-- `supabase/migrations/<ts>_video_sections.sql` — table + GRANT + RLS
-- `src/pages/admin/tabs/VideoSectionsTab.tsx` — admin UI (library + sections + placements)
-- `src/components/video-sections/VideoSections.tsx` — public renderer
-- `src/components/video-sections/ReelCarousel.tsx` — carousel layout
-- `src/components/video-sections/ReelPlayer.tsx` — fullscreen swipeable player
-- `src/components/video-sections/GridLayout.tsx` + `FeatureLayout.tsx`
-- `src/lib/video-sections.functions.ts` — `listSectionsForPlacement`, `getAllSections`, `upsertSection`, `deleteSection`, `incrementView`
-
-**Edited (additive only)**
-- `src/pages/admin/AdminPage.tsx` — add "Video Sections" tab entry
-- `src/pages/Home.tsx`, `ProductPage.tsx`, `CategoryPage.tsx`, `BlogPostPage.tsx`, `p.$slug.tsx` — insert `<VideoSections .../>` slots
-
-**Untouched**
-- Existing dashboard, analytics, homepage builder, product reviews, all other admin tabs.
-- Lovable-independence work already done — new code uses no Lovable runtime.
+Jab future me admin koi naya section banaye, bas existing `entityType` me se pick karna h ya naya add karna h.
 
 ---
 
-## Technical notes
+## 🐞 Part 3 — Existing setup glitches mile
 
-- Reuses existing patterns: PlacementsView's product picker, useSimpleUpload, `createServerFn` + `requireSupabaseAuth` for admin writes, public list via server fn (no auth).
-- View counts: stored as displayed number (admin-editable); optional auto-track via existing `track-event` → `site_events` (new event type `video_view`).
-- View tracking ties into the analytics dashboard built last turn — "most-played video" KPI auto-available.
-- Mobile-first responsive; lazy-load videos (`preload="none"`, intersection observer for autoplay-on-view of muted previews).
-- No Lovable dependency anywhere in new code.
+### Glitch 1: `useAutoT` ka length cap silently fail karta h
+File: `src/lib/useContentT.tsx` line ~145 — `if (text.length > 200) return;` — agar koi `<T>` me 200+ char ka string dale to chup-chap source dikha deta h, koi warning nahi. **Fix:** length cap hata ke proper UI strings ke liye chunking add karunga, ya `console.warn` lagaunga dev mode me.
+
+### Glitch 2: `LocaleSwitcher` aur `LanguagePicker` me overlap
+2 components hain language switching ke liye — `LocaleSwitcher` (hreflang region) aur `LanguagePicker` (in-app locale). Confusing. **Fix:** verify karunga koi conflict toh nahi, dono apne-apne purpose ke liye chal rahe hain — agar nahi, consolidate karunga.
+
+### Glitch 3: Batch limit 50, lekin ProductsPage me 50+ products ho sakte
+`getContentTranslations` me `max(50)` validator h. Agar ek page pe 50 products × 2 fields = 100 items hue to error throw karega. **Fix:** client side me 50 ke chunks me split karke parallel calls karunga.
 
 ---
 
-## Out of scope (call out)
+## 🛠️ Execution Order
 
-- TikTok/Instagram OAuth import — admin manually pastes URL/uploads file.
-- Live-streaming.
-- AI-generated captions.
+1. Google Translate API integration banaunga (translation-provider.server.ts + refactor)
+2. Tujhse `GOOGLE_TRANSLATE_API_KEY` secret maangunga
+3. Glitch fixes (3 chote fix)
+4. Audit + wrap — customer pages (Home → Product → Products → Blog → others)
+5. Audit + wrap — shared components (Header/Footer/Announcement/etc.)
+6. Test: language switch karke verify karunga ki sab content translate ho raha h
+7. Memory update: naye `entityType` convention save karunga `mem://features/i18n.md` me
 
-Approve → I implement end-to-end, then verify with a build check and admin walkthrough.
+---
+
+## ❓ Confirm karne wali baatein
+
+1. **Google Cloud Translation API** OK h? (Pehle tu bola tha "free wala try karein" — but ab "100% accuracy" bola, to Google hi best h. ₹0 first month, baad me ~₹1200 ek-baar ka translate cost, monthly updates almost free.)
+2. **Agar Google nahi chahiye**, to bata kya use karu — DeepL (best for Euro langs, weak in Indian), Microsoft Translator (similar to Google), ya LibreTranslate (free but 75% accuracy).
+3. **Scope confirm** — saari 24 customer pages + ~10 shared components wrap karne hain, sahi h?
+
+Approve karte hi shuru kar deta hu.
