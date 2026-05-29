@@ -217,8 +217,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...metaExtras,
         { name: "twitter:title", content: "NutroPact — Premium Nutrition" },
         { name: "twitter:description", content: "Premium nutrition and supplements crafted for performance and wellness." },
-        { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0499baf2-21cd-4af5-9087-cb52f0d742d6/id-preview-f5353a03--c8147537-1c2b-4913-b346-b3177bc91925.lovable.app-1779703201520.png" },
-        { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0499baf2-21cd-4af5-9087-cb52f0d742d6/id-preview-f5353a03--c8147537-1c2b-4913-b346-b3177bc91925.lovable.app-1779703201520.png" },
+        // OG image — uses brand cfg.og_default_image when set, else /og-image.png from public/.
+        // No hardcoded Lovable preview URL → fully portable to any domain.
+        { property: "og:image", content: cfg.og_default_image || "/og-image.jpg" },
+        { name: "twitter:image", content: cfg.og_default_image || "/og-image.jpg" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
