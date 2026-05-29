@@ -74,7 +74,7 @@ export default function Customer360Tab() {
       setLoadingUsers(true);
       // Recent active users / sessions from site_events (last 30 days)
       const since = new Date(Date.now() - 30 * 86400_000).toISOString();
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("site_events")
         .select("user_id, session_id, created_at")
         .gte("created_at", since)
