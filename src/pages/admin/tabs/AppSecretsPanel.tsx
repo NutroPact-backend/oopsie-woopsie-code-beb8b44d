@@ -12,6 +12,7 @@ import { TabHelp } from "./_TabHelp";
  */
 
 const COMMON_KEYS = [
+  { key: "GOOGLE_TRANSLATE_API_KEY", hint: "Google Cloud Console → Cloud Translation API → Credentials → API key (best accuracy for Indian languages)" },
   { key: "SMTP_USER", hint: "SMTP username (Gmail/Zoho/cPanel mail address)" },
   { key: "SMTP_PASS", hint: "SMTP password / Gmail App Password (16 chars)" },
   { key: "TWILIO_ACCOUNT_SID", hint: "Twilio Console → Account → API credentials" },
