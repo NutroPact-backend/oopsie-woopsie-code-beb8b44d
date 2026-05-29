@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import API from '@/lib/api';
 import QuickCheckoutBar from '@/components/cart/QuickCheckoutBar';
 import EmptyCartUpsell from '@/components/cart/EmptyCartUpsell';
+import { T } from '@/lib/useContentT';
 
 const FREE_SHIPPING_THRESHOLD = 999;
 const SHIPPING_FEE = 99;
@@ -225,7 +226,7 @@ function SavedForLater() {
   if (!items.length) return null;
   return (
     <div className="mt-8">
-      <h2 className="text-base font-black mb-3 flex items-center gap-2"><Heart size={16} className="text-red-500 fill-red-500" /> Saved for later ({items.length})</h2>
+      <h2 className="text-base font-black mb-3 flex items-center gap-2"><Heart size={16} className="text-red-500 fill-red-500" /> <T>Saved for later</T> ({items.length})</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {items.map((it) => (
           <div key={it.id} className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3">
@@ -374,10 +375,10 @@ export default function CartPage() {
     <div className="max-w-7xl mx-auto px-4 py-6 sm:py-10 pb-32 md:pb-10">
       <div className="flex items-end justify-between mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Your Cart</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight"><T>Your Cart</T></h1>
           <p className="text-sm text-gray-500 mt-0.5">{count()} item{count() !== 1 ? 's' : ''} • Review before checkout</p>
         </div>
-        <button onClick={clearCart} className="text-xs text-gray-400 hover:text-red-500 font-semibold hidden sm:inline">Clear cart</button>
+        <button onClick={clearCart} className="text-xs text-gray-400 hover:text-red-500 font-semibold hidden sm:inline"><T>Clear cart</T></button>
       </div>
 
       {recovered && (
@@ -422,7 +423,7 @@ export default function CartPage() {
                     </div>
                     <button onClick={() => moveToWishlist(item)}
                       className="text-[11px] sm:text-xs font-bold text-gray-600 hover:text-red-500 inline-flex items-center gap-1">
-                      <Heart size={12} /> Save for later
+                      <Heart size={12} /> <T>Save for later</T>
                     </button>
                     <button onClick={() => removeItem(item.id, item.flavor, item.size)}
                       className="text-[11px] sm:text-xs font-bold text-gray-400 hover:text-red-500 inline-flex items-center gap-1">
