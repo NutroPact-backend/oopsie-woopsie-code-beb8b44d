@@ -58,9 +58,22 @@ export function useContentTBatch(items: TItem[]) {
       return;
     }
     let cancelled = false;
-    call({ data: { locale: loc, items: filtered.slice(0, 50) } })
-      .then((r) => { if (!cancelled && r?.translations) setMap(r.translations); })
-      .catch(() => { /* keep source fallback */ });
+    // Chunk into 50-item batches so pages with many products / FAQs
+    // don't trip the server-side max(50) validator.
+    const chunks: TItem[][] = [];
+    for (let i = 0; i < filtered.length; i += 50) {
+      chunks.push(filtered.slice(i, i + 50));
+    }
+    Promise.all(
+      chunks.map((c) => call({ data: { locale: loc, items: c } }).catch(() => null)),
+    ).then((results) => {
+      if (cancelled) return;
+      const merged: Record<string, string> = {};
+      for (const r of results) {
+        if (r?.translations) Object.assign(merged, r.translations);
+      }
+      setMap(merged);
+    });
     return () => { cancelled = true; };
   }, [loc, sig]);
 
@@ -151,8 +164,14 @@ export function useAutoT(text: string): string {
     if (!text || loc === "en") return;
     const k = `${loc}::${text}`;
     if (autoCache[k]) { setOut(autoCache[k]); return; }
-    // Skip very long strings (use proper dict key instead).
-    if (text.length > 200) return;
+    // Skip very long strings — use useContentT(...) with a stable entityId
+    // instead so the cache row is keyed by entity, not by hashed text.
+    if (text.length > 200) {
+      if (typeof window !== "undefined" && import.meta.env?.DEV) {
+        console.warn(`[useAutoT] string >200 chars not translated; use useContentT with a stable entityId. First 80 chars: "${text.slice(0, 80)}..."`);
+      }
+      return;
+    }
     let cancelled = false;
     autoTranslate(text, loc, call).then((map) => {
       if (!cancelled && map[text]) setOut(map[text]);
