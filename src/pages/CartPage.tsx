@@ -226,7 +226,7 @@ function SavedForLater() {
   if (!items.length) return null;
   return (
     <div className="mt-8">
-      <h2 className="text-base font-black mb-3 flex items-center gap-2"><Heart size={16} className="text-red-500 fill-red-500" /> Saved for later ({items.length})</h2>
+      <h2 className="text-base font-black mb-3 flex items-center gap-2"><Heart size={16} className="text-red-500 fill-red-500" /> <T>Saved for later</T> ({items.length})</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {items.map((it) => (
           <div key={it.id} className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3">
@@ -423,7 +423,7 @@ export default function CartPage() {
                     </div>
                     <button onClick={() => moveToWishlist(item)}
                       className="text-[11px] sm:text-xs font-bold text-gray-600 hover:text-red-500 inline-flex items-center gap-1">
-                      <Heart size={12} /> Save for later
+                      <Heart size={12} /> <T>Save for later</T>
                     </button>
                     <button onClick={() => removeItem(item.id, item.flavor, item.size)}
                       className="text-[11px] sm:text-xs font-bold text-gray-400 hover:text-red-500 inline-flex items-center gap-1">
