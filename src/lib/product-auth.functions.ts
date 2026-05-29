@@ -5,6 +5,7 @@ const { createHmac, randomBytes, createHash, timingSafeEqual } = crypto;
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
 import { getRequest, getRequestHeader } from '@tanstack/react-start/server';
+import { getAIConfig } from './ai-config.server';
 
 // Secret cache (in-memory, short TTL). Holds current + optional previous secret.
 let _secretCache: { current: string; previous?: string; fetchedAt: number } | null = null;
@@ -377,8 +378,8 @@ export const analyzeSealPhoto = createServerFn({ method: 'POST' })
     photoUrl: z.string().url().max(1000),
   }).parse(i))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) return { ok: false, verdict: 'unknown', notes: 'AI verification temporarily unavailable.' };
+    const ai = getAIConfig();
+    if (!ai) return { ok: false, verdict: 'unknown', notes: 'AI verification temporarily unavailable.' };
 
     const prompt = `You are a counterfeit-detection vision assistant for NutroPact supplement products.
 Analyze the uploaded photo for: (1) tamper-evident seal intact? (2) holographic sticker present and unique pattern visible? (3) printing quality (sharp vs blurry/pixelated — counterfeits are usually blurry)? (4) any signs of seal damage, re-sealing, or print misalignment?
@@ -386,11 +387,11 @@ Respond ONLY as compact JSON:
 {"verdict":"authentic"|"suspicious"|"counterfeit"|"unclear","confidence":0-1,"notes":"<1-2 sentences>"}`;
 
     try {
-      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const res = await fetch(ai.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ai.key}` },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: ai.model('google/gemini-2.5-flash'),
           messages: [{
             role: 'user',
             content: [
