@@ -1,156 +1,139 @@
-# Build Plan — 5 "Itivedam+" Features (Superior + Fully Backend-Controlled)
+## Goal
 
-Har feature ka rule (non-negotiable):
-1. **Backend se fully customizable** (text, colors, icons, behavior — sab editable).
-2. **Master ON/OFF toggle** har feature ke liye (ek click me poora feature site se hide).
-3. **Granular permissions** — har feature ke liye `feature.view` + `feature.edit` + `feature.toggle` codes seed honge, taaki super_admin kisi bhi backend user ko sirf wo feature de/le sake.
-4. **Lite-mode friendly** — koi feature 2G par bhi smooth chale; heavy assets lazy.
-5. **No copy-paste** — superior version banayenge (extra config knobs, multi-variant support, A/B ready jaha possible).
-6. **Mobile-first responsive** — sab kuch viewport-aware.
+Puricane / Itivedam style ka **shoppable video reel carousel** (vertical 9:16 thumbnails + view count + attached product + Add to Cart) bana — ek hi admin jagah se manage, kisi bhi page par show, ek page par multiple sections with alag-alag heading bhi possible.
+
+Existing dashboard / homepage builder / product page kuch nahi toota — pure addition hai.
 
 ---
 
-## Feature 1 — Header WhatsApp Icon (Smart, Multi-Number)
+## What the user sees (frontend)
 
-**Unke paas:** Single static WhatsApp icon top-right.
-**Hamara superior version:**
-- **Multiple WhatsApp numbers** support (Sales / Support / Wholesale) — dropdown agar >1, single icon agar 1.
-- Per-number: label, prefilled message template (with `{page}`, `{product}` placeholders), business hours, fallback message agar offline.
-- **Position config**: header-right / header-left / before-cart-icon.
-- **Icon style**: filled / outline / brand-green / custom color + custom SVG upload.
-- **Show on**: All pages / specific pages (re-use `page-keys`).
-- **Hide on mobile / desktop** toggle (kyunki mobile pe already `WhatsAppFloat` hai).
-- **Click tracking** → analytics event.
+Ek reusable section component:
 
-**Backend tab:** new `WhatsAppChannelsTab` (under Marketing/Communications).
-**Permissions:** `whatsapp_channels.view`, `whatsapp_channels.edit`, `whatsapp_channels.toggle`.
-
----
-
-## Feature 2 — Multi-Pack / Duration Variant Selector (Pro)
-
-**Unke paas:** 1/2/3 Month cards with single badge.
-**Hamara superior version:**
-- Already variants hain — upar **"Pack Picker UI Mode"** add karna: `dropdown` (current) / `radio-cards` (new pro) / `tabs`.
-- Per-variant admin fields (already partial): **badge text**, **badge color**, **badge icon**, **strike-through "MRP"**, **"You Save ₹X (Y%)"** auto-compute, **"Per day cost" auto-calc** (₹/day for X-month pack).
-- **Highlight one variant** as "Recommended" with glow ring + animated chip.
-- **Stock-aware**: out-of-stock pack greyed + "Notify Me" inline.
-- **Per-pack offer line** (e.g. "+ Free Shaker") — editable rich text.
-- Master ON/OFF: agar off → fallback to existing simple variant dropdown.
-
-**Backend:** extend `VariantsManager.tsx` with new "Display Mode" + per-variant badge/highlight fields.
-**Permissions:** `products.variants_pro.edit`, `products.variants_pro.toggle`.
-
----
-
-## Feature 3 — PDP Urgency Stack (Configurable, Honest)
-
-**Unke paas:** Hardcoded "🔥 18 pieces left" + red bar.
-**Hamara superior version (NO fake urgency — real data):**
-- **Low-stock widget**: shows only when `stock_count <= threshold`. Admin sets threshold per product or global default.
-- **Recent purchase ticker**: "12 people bought this in last 24h" — pulls from real `orders` table (last 24h count). Admin can set min-threshold to show (e.g. show only if >5).
-- **Live viewers** (optional, real via supabase realtime presence channel — opt-in).
-- **Cart urgency**: "X added to cart in last hour".
-- **Per widget**: ON/OFF, icon, color, text template with placeholders (`{count}`, `{hours}`), animation style (pulse / shake / none / fade).
-- **Per-product override**: disable on specific products (e.g. evergreen items).
-- Master ON/OFF for entire urgency stack.
-
-**Backend tab:** new `UrgencyWidgetsTab` (under Marketing).
-**Permissions:** `urgency.view`, `urgency.edit`, `urgency.toggle`.
-
----
-
-## Feature 4 — Mega Menu (3-Level, Drag-Reorder, Rich)
-
-**Unke paas:** 3-level cat → sub-cat → product flat list.
-**Hamara superior version:**
-- Already `NavigationTab` hai — extend to **mega-menu mode** per top-level item.
-- Per top-level: choose **layout** (simple-dropdown / mega-grid-2col / mega-grid-3col / mega-grid-4col / featured-panel).
-- Each column: title + list of links (categories, sub-categories, custom pages, products, external URLs).
-- **Featured panel**: image + heading + CTA button + link (right side of mega menu).
-- **Promo banners** inside mega menu (e.g. "Up to 50% off — Shop Now").
-- **Drag-reorder** columns and items.
-- **Icons per item** (lucide picker or custom upload).
-- **Mobile**: auto-converts to accordion drawer.
-- Per top-level: ON/OFF, "show on hover" vs "click only".
-
-**Backend:** extend `NavigationTab.tsx` with MegaMenu builder.
-**Permissions:** existing `navigation.edit` + new `navigation.megamenu.edit`, `navigation.megamenu.toggle`.
-
----
-
-## Feature 5 — Express UPI "BUY NOW" in Cart Drawer (Quick Checkout)
-
-**Unke paas:** Single static UPI quick button.
-**Hamara superior version:**
-- In cart drawer + cart page: **"Quick Pay" section** above normal checkout button.
-- Buttons: **UPI Apps intent** (GPay / PhonePe / Paytm / BHIM) — uses Razorpay UPI Intent / PhonePe SDK already integrated.
-- **Express checkout flow**: if user has 1 saved address → skip address step → direct payment.
-- **Per-method**: ON/OFF, icon, label, sort order, min/max order amount eligibility, COD-eligibility check.
-- **Smart default**: detects last-used method per user and pre-highlights.
-- **Fail-safe**: if UPI intent fails on desktop → graceful fallback to normal checkout.
-- **A/B ready**: admin can toggle "Quick Pay first" vs "Normal checkout first".
-- Master ON/OFF.
-
-**Backend tab:** new `QuickCheckoutTab` (under Payments).
-**Permissions:** `quick_checkout.view`, `quick_checkout.edit`, `quick_checkout.toggle`.
-
----
-
-## Cross-Cutting Work (har feature pe apply)
-
-### Database
-- Naya table: `feature_flags` (key, enabled, config jsonb, updated_by, updated_at) — single source of truth for master ON/OFF + global config per feature.
-- Feature-specific tables jaha zarurat:
-  - `whatsapp_channels` (id, label, number, message_template, hours, position, icon, color, show_on_pages, sort_order, enabled)
-  - `urgency_widgets` (id, type, config jsonb, enabled, exclude_product_ids)
-  - `quick_checkout_methods` (id, provider, label, icon, sort_order, min_order, max_order, cod_eligible, enabled)
-  - Mega menu → extend existing `navigation` jsonb.
-  - Variant pro fields → extend `product_variants` jsonb config column.
-
-### Permissions Seed (new codes)
+```text
+┌──────────── Watch & Shop ───────────────┐   ← heading (per section)
+│ subheading (optional)                    │
+│ ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐ →               │
+│ │▶ │ │▶ │ │▶ │ │▶ │ │▶ │  horizontal     │
+│ │9:│ │9:│ │9:│ │9:│ │9:│  vertical reels │
+│ │16│ │16│ │16│ │16│ │16│  carousel       │
+│ └──┘ └──┘ └──┘ └──┘ └──┘                 │
+│  65K   80K   97K  ...      (view count)  │
+│  ──────── product card ────────          │
+│  Puricane Weight Loss   ₹799             │
+│  [ Add to Cart ]                         │
+└──────────────────────────────────────────┘
 ```
-whatsapp_channels.view / .edit / .toggle
-products.variants_pro.edit / .toggle
-urgency.view / .edit / .toggle
-navigation.megamenu.edit / .toggle
-quick_checkout.view / .edit / .toggle
-feature_flags.manage   ← master toggle control (super_admin + selected users)
+
+- Tap → fullscreen reel player (vertical, swipe up/down for next, mute toggle, attached product pinned bottom with ATC).
+- Layouts supported: `reel-carousel` (default), `grid` (3-4 cols), `single-feature` (one big hero video).
+
+---
+
+## Admin: ONE place — new "Video Sections" tab
+
+New top-level admin tab **Video Sections** (added to `src/pages/admin/AdminPage.tsx` tab list — kuch existing remove nahi).
+
+Two sub-tabs inside:
+
+**1. Video Library**
+   - Upload / link videos (mp4 URL, YouTube, Instagram embed, or direct upload via existing `useSimpleUpload`)
+   - Per video: title, thumbnail (auto-generated or uploaded), view count (manual or auto from analytics), attached product (search picker — reuses PlacementsView product search), CTA text/link override, tags.
+
+**2. Sections**
+   - List of named sections (e.g. "Watch & Shop", "Customer Video Reviews", "How to Use").
+   - Per section config:
+     - Heading + subheading
+     - Layout (reel-carousel / grid / single-feature)
+     - Pick videos from library (drag to reorder)
+     - **Placement** (multi-select, exactly like PlacementsView pattern):
+       - Homepage (with position: top / after-products / bottom / custom index)
+       - All product pages / specific products
+       - All category pages / specific categories
+       - Custom pages (PagesTab)
+       - Blog index / specific blog posts
+     - Enabled toggle, schedule (start/end date — optional), device visibility (desktop/mobile/both).
+
+**Multiple sections on same page with different headings** → just create 2 sections with overlapping placement and an order field — renderer sorts and stacks them.
+
+---
+
+## Data model (new table)
+
+```text
+public.video_sections
+  id, heading, subheading, layout, enabled,
+  placements jsonb   -- [{type:'home'|'product'|'category'|'page'|'blog', ids?:[], position:int}]
+  videos jsonb       -- [{id, src, type:'mp4'|'youtube'|'instagram',
+                         thumbnail, title, views, product_id?, cta?}]
+  visibility jsonb   -- {desktop, mobile, startAt?, endAt?}
+  sort_order int, created_at, updated_at
 ```
-All seeded into `permissions` table + `role_default_permissions` (admin = granted, moderator = view-only, customer = none). Auto-show in `UserPermissionsPanel` (existing UI auto-renders new codes).
 
-### Frontend Gating
-- `<FeatureFlag flag="whatsapp_header">...</FeatureFlag>` wrapper component reading from a cached `useFeatureFlags()` hook (single query, 5-min cache).
-- Each feature component checks its flag before rendering — zero JS shipped if off (lazy-loaded).
-
-### Tab Permissions
-- Update `src/pages/admin/tab-permissions.ts` with 5 new tabs.
-- Update `AdminPage.tsx` sidebar with new tab entries (under correct categories).
-
-### Lite-mode
-- All 5 features respect `navigator.connection.saveData` and skip animations/realtime/heavy assets accordingly.
+One table is enough — `videos` is denormalized JSON for simple CRUD; product attach is just an id reference to existing products. Standard `GRANT` + RLS (admin write, public read) following project's user-roles convention.
 
 ---
 
-## Build Order (suggested)
+## Rendering glue (drop-in, non-breaking)
 
-1. **Migration** — create `feature_flags` + per-feature tables, seed permissions, seed default flags = OFF (safe rollout).
-2. **`useFeatureFlags` hook + `<FeatureFlag>` component + `featureFlags.functions.ts`** (CRUD).
-3. **Feature 1: WhatsApp Channels** (smallest, validates pattern).
-4. **Feature 3: Urgency Widgets** (most reusable infra).
-5. **Feature 2: Variants Pro UI** (extends existing).
-6. **Feature 5: Quick Checkout** (touches cart drawer + checkout).
-7. **Feature 4: Mega Menu** (largest UI build).
-8. **Verification pass** — har feature ka ON/OFF test, permission gate test, mobile responsive test.
+New component `src/components/video-sections/VideoSections.tsx`:
+
+```tsx
+<VideoSections placement="home" position="after-products" />
+<VideoSections placement="product" id={product.id} />
+<VideoSections placement="category" id={category.id} />
+<VideoSections placement="page" id={page.id} />
+```
+
+- Fetches all sections whose `placements` match → renders in `sort_order`.
+- Renders nothing if zero matches (zero visual change for pages where admin hasn't placed anything).
+
+Drop calls into (surgical, additive only):
+- `src/pages/Home.tsx` — 2-3 placement slots (top / after-products / bottom)
+- `src/pages/ProductPage.tsx` — after product info, after reviews
+- `src/pages/CategoryPage.tsx` — top, bottom
+- `src/pages/BlogPostPage.tsx` — bottom
+- Custom page renderer (`p.$slug.tsx`) — supports placements
+
+No existing section is modified or removed.
 
 ---
 
-## Out of scope (not in this plan)
-- Marketplace logos footer (small, can add anytime — 5 min)
-- Empty cart upsell (separate request)
-- Hindi infographics on PDP images (content task, not code)
-- Rating-count filter (small enhancement to existing filter)
+## Files (new + minimal edits)
+
+**New**
+- `supabase/migrations/<ts>_video_sections.sql` — table + GRANT + RLS
+- `src/pages/admin/tabs/VideoSectionsTab.tsx` — admin UI (library + sections + placements)
+- `src/components/video-sections/VideoSections.tsx` — public renderer
+- `src/components/video-sections/ReelCarousel.tsx` — carousel layout
+- `src/components/video-sections/ReelPlayer.tsx` — fullscreen swipeable player
+- `src/components/video-sections/GridLayout.tsx` + `FeatureLayout.tsx`
+- `src/lib/video-sections.functions.ts` — `listSectionsForPlacement`, `getAllSections`, `upsertSection`, `deleteSection`, `incrementView`
+
+**Edited (additive only)**
+- `src/pages/admin/AdminPage.tsx` — add "Video Sections" tab entry
+- `src/pages/Home.tsx`, `ProductPage.tsx`, `CategoryPage.tsx`, `BlogPostPage.tsx`, `p.$slug.tsx` — insert `<VideoSections .../>` slots
+
+**Untouched**
+- Existing dashboard, analytics, homepage builder, product reviews, all other admin tabs.
+- Lovable-independence work already done — new code uses no Lovable runtime.
 
 ---
 
-**Bhai bata — yeh order theek hai ya kisi feature ko pehle banau? Ya saare 5 ek saath ek-ek karke chalu kar du?**
+## Technical notes
+
+- Reuses existing patterns: PlacementsView's product picker, useSimpleUpload, `createServerFn` + `requireSupabaseAuth` for admin writes, public list via server fn (no auth).
+- View counts: stored as displayed number (admin-editable); optional auto-track via existing `track-event` → `site_events` (new event type `video_view`).
+- View tracking ties into the analytics dashboard built last turn — "most-played video" KPI auto-available.
+- Mobile-first responsive; lazy-load videos (`preload="none"`, intersection observer for autoplay-on-view of muted previews).
+- No Lovable dependency anywhere in new code.
+
+---
+
+## Out of scope (call out)
+
+- TikTok/Instagram OAuth import — admin manually pastes URL/uploads file.
+- Live-streaming.
+- AI-generated captions.
+
+Approve → I implement end-to-end, then verify with a build check and admin walkthrough.

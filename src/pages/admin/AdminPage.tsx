@@ -79,6 +79,7 @@ import QuickCheckoutTab from './tabs/QuickCheckoutTab';
 import VariantsProTab from './tabs/VariantsProTab';
 import VerificationTab from './tabs/VerificationTab';
 import GrowthBoostersTab from './tabs/GrowthBoostersTab';
+import VideoSectionsTab from './tabs/VideoSectionsTab';
 
 import VariantsManager, { syncVariantsToDb, variantsToJson, type VariantRow } from './components/VariantsManager';
 import { useCategoryNames } from '@/hooks/useCategories';
@@ -98,7 +99,7 @@ AdminAPI.interceptors.request.use(config => {
   return config;
 });
 
-type Tab = 'dashboard' | 'analytics' | 'products' | 'productauth' | 'categories' | 'brands' | 'flavors' | 'sizes' | 'bulkimport' | 'inventory' | 'accounting' | 'orders' | 'abandoned' | 'subscriptions' | 'campaigns' | 'giftcards' | 'chatbot' | 'loyalty' | 'referrals' | 'wholesale' | 'productqa' | 'settings' | 'site' | 'about' | 'navigation' | 'homepage' | 'footer' | 'coupons' | 'offers' | 'notifications' | 'communications' | 'messaging' | 'mailsystem' | 'popups' | 'dimensions' | 'blog' | 'faq' | 'reviews' | 'reviewmod' | 'contact' | 'ai' | 'shipping' | 'automation' | 'reconciliation' | 'returns' | 'ordermodify' | 'users' | 'pages' | 'sitemap' | 'payments' | 'wallet' | 'security' | 'marketing' | 'seocommand' | 'seodebug' | 'auditlog' | 'support' | 'backup' | 'roas' | 'bulkorders' | 'experiments' | 'health' | 'superadmin' | 'backgrounds' | 'whatsapp_channels' | 'urgency' | 'quick_checkout' | 'variants_pro' | 'verification' | 'growth_boosters';
+type Tab = 'dashboard' | 'analytics' | 'products' | 'productauth' | 'categories' | 'brands' | 'flavors' | 'sizes' | 'bulkimport' | 'inventory' | 'accounting' | 'orders' | 'abandoned' | 'subscriptions' | 'campaigns' | 'giftcards' | 'chatbot' | 'loyalty' | 'referrals' | 'wholesale' | 'productqa' | 'settings' | 'site' | 'about' | 'navigation' | 'homepage' | 'footer' | 'coupons' | 'offers' | 'notifications' | 'communications' | 'messaging' | 'mailsystem' | 'popups' | 'dimensions' | 'blog' | 'faq' | 'reviews' | 'reviewmod' | 'contact' | 'ai' | 'shipping' | 'automation' | 'reconciliation' | 'returns' | 'ordermodify' | 'users' | 'pages' | 'sitemap' | 'payments' | 'wallet' | 'security' | 'marketing' | 'seocommand' | 'seodebug' | 'auditlog' | 'support' | 'backup' | 'roas' | 'bulkorders' | 'experiments' | 'health' | 'superadmin' | 'backgrounds' | 'whatsapp_channels' | 'urgency' | 'quick_checkout' | 'variants_pro' | 'verification' | 'growth_boosters' | 'videosections';
 type ModalTab = 'details' | 'reviews';
 type ProductSubTab = 'basic' | 'variants' | 'media' | 'content' | 'benefits' | 'shipping' | 'seo' | 'pixels';
 
@@ -1863,6 +1864,7 @@ export default function AdminPage() {
         { id: 'pages', icon: <Layers size={16} />, label: 'Pages', desc: 'Custom pages for nav dropdowns' },
         { id: 'blog', icon: <BookOpen size={16} />, label: 'Blog Posts', desc: 'Articles' },
         { id: 'about', icon: <FileText size={16} />, label: 'About Page', desc: 'Hero, story, founder, CTA' },
+        { id: 'videosections', icon: <Video size={16} />, label: 'Video Sections', desc: 'Shoppable Reels carousels — place on any page' },
         { id: 'sitemap', icon: <Link2 size={16} />, label: 'Site Map & Flow', desc: 'Tree of every link, page & product' },
         { id: 'backgrounds', icon: <Image size={16} />, label: 'Page Backgrounds', desc: 'Per-page background image + opacity' },
       ],
@@ -1973,6 +1975,7 @@ export default function AdminPage() {
             {tab === 'blog'         && <BlogTab />}
             {tab === 'faq'          && <FAQTab />}
             {tab === 'homepage'     && <HomepageTab />}
+            {tab === 'videosections' && <VideoSectionsTab />}
             {tab === 'navigation'   && <NavigationTab />}
             {tab === 'footer'       && <FooterTab />}
             {tab === 'dimensions'   && <DimensionsTab />}

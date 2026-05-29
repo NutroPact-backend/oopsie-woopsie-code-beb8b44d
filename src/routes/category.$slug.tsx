@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cartStore';
 import { trackAddToCart } from '@/lib/analytics';
 import API from '@/lib/api';
 import { getCategorySeo } from '@/lib/categories.functions';
+import VideoSections from '@/components/video-sections/VideoSections';
 
 interface Product {
   _id: string; name: string; slug: string; price: number; comparePrice: number;
@@ -124,6 +125,7 @@ function CategoryPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <VideoSections placement="category" id={(cat as any)?.id || (cat as any)?._id || slug} />
       {/* Hero */}
       {cat && (
         <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-orange-50 to-amber-50 mb-8 p-6 sm:p-10">

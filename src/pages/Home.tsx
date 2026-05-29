@@ -6,6 +6,7 @@ import { formatPrice, calculateDiscount } from '@/lib/utils';
 import { useSEO } from '@/lib/useSEO';
 import { isLiteMode } from '@/lib/lite';
 import QuickBuyButtons from '@/components/QuickBuyButtons';
+import VideoSections from '@/components/video-sections/VideoSections';
 
 const RHYTHMS = [
   { duration: 6,   delay: 0   },
@@ -479,6 +480,7 @@ export default function Home() {
 
   return (
     <div className="overflow-x-hidden">
+      <VideoSections placement="home" />
       {sections.map((sec: any, idx: number) => {
         const key = sec._id || idx;
         if (sec.type === 'heroSlider')      return <HeroSlider       key={key} sec={sec} />;

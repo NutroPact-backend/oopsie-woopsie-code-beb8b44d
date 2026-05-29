@@ -22,6 +22,7 @@ import ProductQA from '@/components/product/ProductQA';
 import UrgencyStack from '@/components/product/UrgencyStack';
 // (Hindi-only infographics removed — replaced by site-wide multi-language preference)
 import VariantsProPicker from '@/components/product/VariantsProPicker';
+import VideoSections from '@/components/video-sections/VideoSections';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import API from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
@@ -1342,6 +1343,8 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+
+      <VideoSections placement="product" id={product._id || product.id} />
 
       <StickyATCBar product={product} price={price} selectedFlavor={selectedFlavor} selectedSize={selectedSize} onAdd={addToCart} onBuy={buyNow} added={added} stock={stock} />
     </div>
