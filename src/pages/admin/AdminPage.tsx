@@ -9,6 +9,7 @@ import {
   Copy, MoreVertical, ExternalLink, Check, Sparkles, ShieldCheck, Activity
 } from 'lucide-react';
 import UsersTab from './tabs/UsersTab';
+import Customer360Tab from './tabs/Customer360Tab';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';
 import axios from 'axios';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
