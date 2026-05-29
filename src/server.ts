@@ -83,7 +83,10 @@ function withSecurityHeaders(response: Response, request: Request): Response {
   headers.set("X-XSS-Protection", "0"); // modern browsers ignore; explicit off prevents legacy bug
 
   if (isHtml) {
-    const supabaseUrl = (globalThis as any).process?.env?.SUPABASE_URL || "";
+    const supabaseUrl =
+      (import.meta as any).env?.VITE_SUPABASE_URL ||
+      (globalThis as any).process?.env?.SUPABASE_URL ||
+      "";
     let supaOrigin = "";
     try { supaOrigin = supabaseUrl ? new URL(supabaseUrl).origin : ""; } catch {}
 
