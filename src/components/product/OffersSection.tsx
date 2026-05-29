@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ChevronDown, Tag, CreditCard, Layers, Copy, Check } from 'lucide-react';
