@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.tg_single_default_address() FROM PUBLIC, anon, authenticated;

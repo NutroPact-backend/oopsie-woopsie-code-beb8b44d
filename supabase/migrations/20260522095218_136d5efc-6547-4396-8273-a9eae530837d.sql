@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS order_tracking_order_number_uidx ON public.order_tracking (order_number);

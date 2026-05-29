@@ -1,29 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
+import Home from "@/pages/Home";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "NutroPact — Premium Nutrition & Supplements" },
+      { name: "description", content: "Shop premium nutrition, protein, creatine, pre-workout, and wellness supplements crafted for results. Lab-tested, authentic, free delivery above ₹999." },
+      { property: "og:title", content: "NutroPact — Premium Nutrition & Supplements" },
+      { property: "og:description", content: "Lab-tested protein, creatine, pre-workout, and mass gainers. Premium supplements for serious athletes across India." },
+      { property: "og:url", content: "/" },
     ],
+    links: [{ rel: "canonical", href: "/" }],
+    // Organization, WebSite, and Store JSON-LD live in __root.tsx — no duplicates here.
   }),
-  component: Index,
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}

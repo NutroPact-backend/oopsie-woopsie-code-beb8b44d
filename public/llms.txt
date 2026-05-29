@@ -1,0 +1,21 @@
+# NutroPact
+
+> NutroPact is an India-based premium nutrition and supplements brand selling lab-tested whey protein, creatine, pre-workout, mass gainers, BCAA, and vitamins with fast tracked delivery and a 7-day return policy.
+
+## Pages
+
+- [Home](/): Brand intro, featured products, and key categories.
+- [All Products](/products): Full catalog of NutroPact supplements with filters by category.
+- [Our Story](/about): NutroPact's mission, sourcing, and quality testing approach.
+- [Contact](/contact): Customer support email, phone, and contact form.
+- [Track Order](/track-order): Look up the status of an existing order.
+- [Testimonials](/testimonials): Verified customer reviews from across India.
+- [FAQ](/faq): Common questions on products, shipping, returns, and authenticity.
+- [Blog](/blog): Nutrition, training, and supplement science articles.
+
+## Optional
+
+- [Shipping & Delivery](/shipping): Delivery timelines, charges, and tracking.
+- [Refund Policy](/refund): 7-day return and refund process.
+- [Privacy Policy](/privacy): How NutroPact handles personal data.
+- [Terms of Service](/terms): Terms and conditions for shopping with NutroPact.
