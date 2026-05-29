@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useLocale } from "./i18n";
 import { getContentTranslations } from "./content-translations.functions";
+import { dictionaries } from "./i18n.dict";
 
 export type TItem = {
   entityType: string;
@@ -74,4 +75,96 @@ export function useContentTBatch(items: TItem[]) {
 export function useContentT(entityType: string, entityId: string, field: string, source: string) {
   const get = useContentTBatch([{ entityType, entityId, field, source }]);
   return get(entityType, entityId, field);
+}
+
+// ───────── Auto-translate arbitrary English UI strings ─────────
+//
+// Use for hardcoded English strings in components when you don't want
+// to add a key to i18n.dict.ts. First render returns the source string;
+// background AI fills the cache, and subsequent renders (or visitors)
+// see the translated version. Length-capped to UI strings (<200 chars).
+//
+//   <T>Add to Cart</T>
+//   const label = useAutoT("Continue shopping");
+
+function djb2(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+// In-memory dedupe: many <T> instances with same text share one server call.
+const autoCache: Record<string, string> = {};
+const inflight = new Map<string, Promise<Record<string, string>>>();
+
+function autoTranslate(text: string, locale: string, call: ReturnType<typeof useServerFn<typeof getContentTranslations>>) {
+  // En → no work; reuse dict if developer happens to have keyed this string.
+  if (locale === "en") return Promise.resolve({ [text]: text });
+  const k = `${locale}::${text}`;
+  if (autoCache[k]) return Promise.resolve({ [text]: autoCache[k] });
+  const existing = inflight.get(k);
+  if (existing) return existing;
+
+  const id = djb2(text);
+  const p = call({
+    data: {
+      locale,
+      items: [{ entityType: "ui_string", entityId: id, field: "text", source: text }],
+    },
+  })
+    .then((r) => {
+      const translated = r?.translations?.[`ui_string:${id}:text`] || text;
+      autoCache[k] = translated;
+      return { [text]: translated };
+    })
+    .finally(() => { inflight.delete(k); });
+  inflight.set(k, p);
+  return p;
+}
+
+export function useAutoT(text: string): string {
+  const [loc] = useLocale();
+  const call = useServerFn(getContentTranslations);
+
+  // Synchronous shortcuts: en, empty, or already-cached / dict-keyed.
+  const initial = useMemo(() => {
+    if (!text) return text;
+    if (loc === "en") return text;
+    const k = `${loc}::${text}`;
+    if (autoCache[k]) return autoCache[k];
+    // If the developer happens to have keyed this exact English source in the
+    // dict already, prefer that (instant, reviewed copy).
+    const dict = (dictionaries as any)[loc];
+    if (dict) {
+      for (const key in dict) {
+        if ((dictionaries.en as any)[key] === text && dict[key]) return dict[key];
+      }
+    }
+    return text;
+  }, [loc, text]);
+
+  const [out, setOut] = useState(initial);
+
+  useEffect(() => { setOut(initial); }, [initial]);
+
+  useEffect(() => {
+    if (!text || loc === "en") return;
+    const k = `${loc}::${text}`;
+    if (autoCache[k]) { setOut(autoCache[k]); return; }
+    // Skip very long strings (use proper dict key instead).
+    if (text.length > 200) return;
+    let cancelled = false;
+    autoTranslate(text, loc, call).then((map) => {
+      if (!cancelled && map[text]) setOut(map[text]);
+    }).catch(() => { /* keep source */ });
+    return () => { cancelled = true; };
+  }, [loc, text]);
+
+  return out;
+}
+
+/** Drop-in <T>English text</T> wrapper. Auto-translates on render. */
+export function T({ children }: { children: string }) {
+  const out = useAutoT(typeof children === "string" ? children : String(children ?? ""));
+  return <>{out}</>;
 }
