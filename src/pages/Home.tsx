@@ -486,6 +486,10 @@ export default function Home() {
 
   return (
     <div className="overflow-x-hidden">
+      {/* Visually hidden brand H1 — gives the homepage a single, descriptive
+          top-level heading for crawlers and screen readers without altering
+          the existing CMS-driven hero design. */}
+      <h1 className="sr-only">NutroPact — Premium Nutrition &amp; Supplements</h1>
       <VideoSections placement="home" />
       {sections.map((sec: any, idx: number) => {
         const key = sec._id || idx;
