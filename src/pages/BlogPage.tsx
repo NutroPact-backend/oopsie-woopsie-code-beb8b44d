@@ -37,8 +37,8 @@ function PostCard({ post, featured = false }: { post: any; featured?: boolean })
               <span className="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full"><T>{post.category}</T></span>
             </div>
             <h2 className="text-white text-2xl font-black leading-tight mb-3 group-hover:text-orange-300 transition-colors"><T>{post.title}</T></h2>
-            <p className="text-gray-300 text-sm line-clamp-2 mb-4"><T>{post.excerpt}</T></p>
-            <div className="flex items-center gap-4 text-gray-400 text-xs">
+            <p className="text-gray-500 text-sm line-clamp-2 mb-4"><T>{post.excerpt}</T></p>
+            <div className="flex items-center gap-4 text-gray-500 text-xs">
               <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime} <T>min read</T></span>
               <span>{timeAgo(post.createdAt)}</span>
               <span className="flex items-center gap-1 ml-auto text-orange-400 font-bold group-hover:translate-x-1 transition-transform"><T>Read Article</T> <ArrowRight size={14} /></span>
@@ -63,7 +63,7 @@ function PostCard({ post, featured = false }: { post: any; featured?: boolean })
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-center gap-2 mb-3">
             <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-full"><T>{post.category}</T></span>
-            <span className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> {post.readTime} <T>min</T></span>
+            <span className="text-xs text-gray-500 flex items-center gap-1"><Clock size={11} /> {post.readTime} <T>min</T></span>
           </div>
           <h3 className="font-black text-gray-900 text-base leading-snug mb-2 group-hover:text-orange-600 transition-colors line-clamp-2 flex-1"><T>{post.title}</T></h3>
           <p className="text-gray-500 text-sm line-clamp-2 mb-4"><T>{post.excerpt}</T></p>
@@ -72,7 +72,7 @@ function PostCard({ post, featured = false }: { post: any; featured?: boolean })
               <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-black">{post.author?.[0] || 'N'}</div>
               <span className="text-xs text-gray-500 font-medium">{post.author}</span>
             </div>
-            <span className="text-xs text-gray-400">{timeAgo(post.createdAt)}</span>
+            <span className="text-xs text-gray-500">{timeAgo(post.createdAt)}</span>
           </div>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function BlogPage() {
 
       {/* Search */}
       <div className="relative max-w-xl mx-auto mb-10">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -121,7 +121,7 @@ export default function BlogPage() {
           className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-orange-400 text-sm"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"><T>Clear</T></button>
+          <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 text-xs font-bold"><T>Clear</T></button>
         )}
       </div>
 
@@ -140,7 +140,7 @@ export default function BlogPage() {
           {[...Array(6)].map((_, i) => <div key={i} className="h-72 rounded-2xl bg-gray-100 animate-pulse" />)}
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-24 text-gray-400">
+        <div className="text-center py-24 text-gray-500">
           <BookOpen size={48} className="mx-auto mb-4 opacity-30" />
           <p className="font-bold text-gray-500 text-lg"><T>No articles yet</T></p>
           <p className="text-sm"><T>Check back soon for expert supplement guides</T></p>
@@ -160,7 +160,7 @@ export default function BlogPage() {
               {filtered.map(post => <PostCard key={post._id} post={post} />)}
             </div>
           ) : (
-            <div className="text-center py-20 text-gray-400">
+            <div className="text-center py-20 text-gray-500">
               <Search size={40} className="mx-auto mb-3 opacity-30" />
               <p className="font-bold text-gray-500"><T>No articles found</T></p>
               <p className="text-sm mt-1"><T>Try a different search or category</T></p>

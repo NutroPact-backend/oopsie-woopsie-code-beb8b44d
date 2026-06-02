@@ -71,16 +71,16 @@ function ProductCard({ product }: { product: Product }) {
             : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-gray-200">NP</div>}
         </div>
         <div className="p-4 pb-2">
-          <p className="text-xs text-gray-400 font-medium mb-1"><T>{product.category}</T></p>
+          <p className="text-xs text-gray-500 font-medium mb-1"><T>{product.category}</T></p>
           <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem]"><T>{product.name}</T></h3>
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-yellow-500 text-xs">{'★'.repeat(Math.round(product.ratings || 0))}</span>
-            <span className="text-xs text-gray-400">({product.numReviews || 0})</span>
+            <span className="text-xs text-gray-500">({product.numReviews || 0})</span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-black text-lg text-gray-900">{formatPrice(product.price)}</span>
             {product.comparePrice > product.price && (
-              <span className="text-sm text-gray-400 line-through">{formatPrice(product.comparePrice)}</span>
+              <span className="text-sm text-gray-500 line-through">{formatPrice(product.comparePrice)}</span>
             )}
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function ProductsPage() {
         <div className="text-center py-24">
           <p className="text-5xl mb-4">📦</p>
           <p className="text-xl font-bold text-gray-600"><T>No products found</T></p>
-          <p className="text-gray-400 mt-2"><T>Try a different category or rating filter</T></p>
+          <p className="text-gray-500 mt-2"><T>Try a different category or rating filter</T></p>
           <button onClick={() => { setActiveCat(''); setMinRating(0); }} className="mt-6 bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition">
             <T>View All Products</T>
           </button>

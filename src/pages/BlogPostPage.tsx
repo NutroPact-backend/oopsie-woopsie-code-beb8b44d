@@ -41,7 +41,7 @@ function RelatedCard({ post }: { post: any }) {
         <div className="flex-1 min-w-0">
           <span className="text-xs text-orange-600 font-bold">{post.category}</span>
           <p className="text-sm font-bold text-gray-800 group-hover:text-orange-600 transition-colors line-clamp-2 mt-0.5">{post.title}</p>
-          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={10} /> {post.readTime} min read</p>
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1"><Clock size={10} /> {post.readTime} min read</p>
         </div>
       </div>
     </Link>
@@ -93,7 +93,7 @@ export default function BlogPostPage() {
       <div className="text-center py-32">
         <BookOpen size={48} className="mx-auto text-gray-200 mb-4" />
         <h2 className="text-2xl font-black text-gray-700 mb-2">Article not found</h2>
-        <p className="text-gray-400 mb-6">This article may have been moved or deleted.</p>
+        <p className="text-gray-500 mb-6">This article may have been moved or deleted.</p>
         <Link href={`${base}/blog`}><button className="bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition">Browse All Articles</button></Link>
       </div>
     );
@@ -105,7 +105,7 @@ export default function BlogPostPage() {
         {/* Main content */}
         <article className="flex-1 min-w-0">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-gray-400 mb-8">
+          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link href={`${base}/blog`}><span className="hover:text-orange-500 transition-colors cursor-pointer font-medium">Blog</span></Link>
             <ChevronRight size={14} />
             <span className="text-orange-500 font-medium">{post.category}</span>
@@ -126,14 +126,14 @@ export default function BlogPostPage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-800">{post.author}</p>
-                <p className="text-xs text-gray-400">{timeAgo(post.createdAt)}</p>
+                <p className="text-xs text-gray-500">{timeAgo(post.createdAt)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-400 ml-auto">
+            <div className="flex items-center gap-1 text-sm text-gray-500 ml-auto">
               <Clock size={14} />
               <span>{post.readTime} min read</span>
             </div>
-            <button onClick={share} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-orange-500 transition-colors font-medium">
+            <button onClick={share} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-500 transition-colors font-medium">
               {copied ? <><Check size={14} /> Copied!</> : <><Share2 size={14} /> Share</>}
             </button>
           </div>

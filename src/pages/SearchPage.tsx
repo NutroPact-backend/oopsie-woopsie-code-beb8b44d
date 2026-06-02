@@ -129,7 +129,7 @@ export default function SearchPage() {
                     <h3 className="font-bold text-gray-800 text-sm line-clamp-2 group-hover:text-orange-500 transition">{product.name}</h3>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="font-black text-gray-900">{formatPrice(product.price)}</span>
-                      {product.comparePrice > product.price && <span className="text-gray-400 line-through text-sm">{formatPrice(product.comparePrice)}</span>}
+                      {product.comparePrice > product.price && <span className="text-gray-500 line-through text-sm">{formatPrice(product.comparePrice)}</span>}
                     </div>
                     <QuickBuyButtons product={product} size="sm" className="mt-3" />
                   </div>

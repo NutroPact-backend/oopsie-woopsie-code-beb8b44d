@@ -70,7 +70,7 @@ export default function ContactPage() {
             <MessageCircle size={28} className="text-orange-400" />
           </div>
           <h1 className="text-4xl font-black mb-3">Get in Touch</h1>
-          <p className="text-gray-400 text-lg max-w-lg mx-auto">Have a question or need help? We're here for you. Our team typically responds within 2–4 hours.</p>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">Have a question or need help? We're here for you. Our team typically responds within 2–4 hours.</p>
         </div>
       </div>
 
@@ -84,9 +84,9 @@ export default function ContactPage() {
                 {m.icon}
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">{m.label}</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-0.5">{m.label}</p>
                 <p className="font-bold text-gray-900 text-sm leading-snug">{m.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{m.sub}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{m.sub}</p>
               </div>
             </a>
           ))}
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     <Send size={16} />
                     {sending ? 'Sending...' : 'Send Message'}
                   </button>
-                  <p className="text-xs text-gray-400 text-center">By submitting you agree to our privacy policy. We'll never share your details.</p>
+                  <p className="text-xs text-gray-500 text-center">By submitting you agree to our privacy policy. We'll never share your details.</p>
                 </form>
               )}
             </div>
@@ -185,7 +185,7 @@ export default function ContactPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-3">All timings in IST. WhatsApp responses available 24/7.</p>
+              <p className="text-xs text-gray-500 mt-3">All timings in IST. WhatsApp responses available 24/7.</p>
             </div>
 
             {/* WhatsApp CTA */}

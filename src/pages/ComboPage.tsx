@@ -202,7 +202,7 @@ export default function ComboPage() {
           <div className="sticky top-0 z-20 -mx-4 sm:-mx-0 px-4 sm:px-0 py-3 bg-stone-50/95 backdrop-blur border-b border-stone-200">
             <div className="flex gap-2.5">
               <div className="relative flex-1">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   type="search" value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="Search products to add…"
@@ -277,11 +277,11 @@ export default function ComboPage() {
                       )}
                     </Link>
                     <div className="p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{p.category}</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-500">{p.category}</p>
                       <p className="text-sm font-black text-gray-900 line-clamp-2 leading-tight mt-1 min-h-[36px]">{p.name}</p>
                       <div className="flex items-baseline gap-1.5 mt-1.5">
                         <p className="text-base font-black text-gray-900">{formatPrice(Number(p.price))}</p>
-                        {hasDiscount && <p className="text-xs text-gray-400 line-through">{formatPrice(compare)}</p>}
+                        {hasDiscount && <p className="text-xs text-gray-500 line-through">{formatPrice(compare)}</p>}
                       </div>
                       {q === 0 ? (
                         <button onClick={() => inc(p.id)}
@@ -460,7 +460,7 @@ function ComboSummary(props: {
                 <Layers size={20} className="text-stone-400" />
               </div>
               <p className="text-sm font-bold text-gray-600">Your combo is empty</p>
-              <p className="text-xs text-gray-400 mt-0.5">Add 2 or more items to unlock discount.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Add 2 or more items to unlock discount.</p>
             </div>
           ) : (
             <ul className="space-y-2.5 max-h-[280px] overflow-auto pr-1 -mr-1">
@@ -510,7 +510,7 @@ function ComboSummary(props: {
             <div className="flex justify-between items-baseline pt-2 border-t border-stone-100">
               <span className="font-black text-gray-900">Total</span>
               <div className="text-right">
-                {discount > 0 && <span className="text-xs text-gray-400 line-through mr-2 tabular-nums">{formatPrice(subtotal)}</span>}
+                {discount > 0 && <span className="text-xs text-gray-500 line-through mr-2 tabular-nums">{formatPrice(subtotal)}</span>}
                 <span className="font-black text-xl text-orange-600 tabular-nums">{formatPrice(total)}</span>
               </div>
             </div>
@@ -523,7 +523,7 @@ function ComboSummary(props: {
             className="w-full h-12 rounded-2xl bg-orange-500 hover:bg-orange-600 disabled:bg-stone-200 disabled:text-stone-400 text-white font-black text-sm flex items-center justify-center gap-2 transition shadow-sm">
             <ShoppingCart size={16} /> {itemCount === 0 ? 'Pick items to continue' : 'Add combo & checkout'}
           </button>
-          <Link to="/products" className="mt-2 block text-center text-[11px] font-bold text-gray-400 hover:text-orange-500 transition">
+          <Link to="/products" className="mt-2 block text-center text-[11px] font-bold text-gray-500 hover:text-orange-500 transition">
             ← Browse full catalog
           </Link>
         </div>
@@ -532,7 +532,7 @@ function ComboSummary(props: {
       {/* Active rules — info card */}
       {rules.length > 0 && !embedded && (
         <div className="rounded-3xl bg-white border border-stone-200 p-5">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-3">Active combo deals</p>
+          <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-3">Active combo deals</p>
           <ul className="space-y-3 text-xs">
             {rules.map(r => (
               <li key={r.id} className="flex items-start gap-2.5">
