@@ -236,7 +236,7 @@ function IpAllowlistCard({ rows, fns, myIp, onRefresh }: any) {
         {myIp && <button onClick={() => setCidr(myIp + "/32")} className="ml-2 text-orange-600 font-bold hover:underline">Use mine</button>}
       </p>
       <div className="flex gap-2 mb-4">
-        <input value={cidr} onChange={(e) => setCidr(e.target.value)} placeholder="e.g. 1.2.3.4/32 or 10.0.0.0/24"
+        <input value={cidr} onChange={(e) => setCidr(e.target.value)} placeholder="e.g. 1.2.3.4/32 or single IP"
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono" />
         <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label (office, home...)"
           className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm" />
