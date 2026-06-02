@@ -42,7 +42,7 @@ const SUPABASE_ORIGIN = (() => {
 // Canonical production origin — used for absolute og/twitter images and
 // JSON-LD URLs so social crawlers and search engines resolve them on every
 // preview/production domain.
-const SITE_ORIGIN = "https://oopsie-woopsie-code.lovable.app";
+const SITE_ORIGIN = "https://www.nutropact.com";
 const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg`;
 
 function NotFoundComponent() {
@@ -224,7 +224,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
         { name: "apple-mobile-web-app-title", content: "NutroPact" },
-        { name: "google-site-verification", content: "wtVrVs3JYwKkRZzsK17AYXKLfx5vxGArzyW2Hd-uHVg" },
         ...metaExtras,
         { name: "twitter:title", content: "NutroPact — Premium Nutrition" },
         { name: "twitter:description", content: "Premium nutrition and supplements crafted for performance and wellness." },
