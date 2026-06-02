@@ -129,6 +129,8 @@ function HeroSlider({ sec }: { sec: any }) {
         <div className="hp-hero-dots">
           {slides.map((_: any, i: number) => (
             <button key={i} onClick={() => { setCur(i); clearInterval(ref.current); }}
+              aria-label={`Go to slide ${i + 1}`}
+              aria-current={i === cur ? 'true' : undefined}
               className={`hp-hero-dot ${i === cur ? 'hp-hero-dot--active' : ''}`} />
           ))}
         </div>
@@ -136,8 +138,10 @@ function HeroSlider({ sec }: { sec: any }) {
       {hs.showArrows !== false && slides.length > 1 && (
         <>
           <button className="hp-hero-arrow hp-hero-arrow--prev"
+            aria-label="Previous slide"
             onClick={() => setCur(p => (p - 1 + slides.length) % slides.length)}>&#8249;</button>
           <button className="hp-hero-arrow hp-hero-arrow--next"
+            aria-label="Next slide"
             onClick={() => setCur(p => (p + 1) % slides.length)}>&#8250;</button>
         </>
       )}
