@@ -351,7 +351,7 @@ export default function CheckoutPage() {
                       maxLength={field.name === 'pincode' ? 6 : undefined}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition text-sm" required />
                     {field.name === 'pincode' && pincodeCheck.status !== 'idle' && (
-                      <p className={`text-xs mt-1 px-1 ${pincodeCheck.status === 'ok' ? 'text-green-600' : pincodeCheck.status === 'fail' ? 'text-red-500' : 'text-gray-400'}`}>
+                      <p className={`text-xs mt-1 px-1 ${pincodeCheck.status === 'ok' ? 'text-green-600' : pincodeCheck.status === 'fail' ? 'text-red-500' : 'text-gray-500'}`}>
                         {pincodeCheck.status === 'checking' ? 'Checking serviceability…' : pincodeCheck.message}
                       </p>
                     )}
@@ -512,7 +512,7 @@ export default function CheckoutPage() {
                   {loading ? 'Processing...' : selectedPayment === 'cod' ? 'Place Order (COD)' : `Pay ${formatPrice(grandTotal)}`}
                 </button>
               </form>
-              <p className="text-xs text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
+              <p className="text-xs text-gray-500 text-center mt-2 flex items-center justify-center gap-1">
                 <Shield size={12} /> 100% Secure & Encrypted Payment
               </p>
             </div>

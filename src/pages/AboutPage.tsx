@@ -170,7 +170,7 @@ export default function AboutPage() {
         <div className="rounded-3xl border border-gray-100 p-8 sm:p-10 bg-gray-900 text-white">
           <p className="text-xs font-bold tracking-[0.2em] text-orange-400 mb-3"><T>02 — VISION</T></p>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight"><T>{p.visionTitle}</T></h2>
-          <p className="mt-4 text-gray-300 leading-relaxed"><T>{p.visionText}</T></p>
+          <p className="mt-4 text-gray-500 leading-relaxed"><T>{p.visionText}</T></p>
         </div>
       </section>
 
@@ -287,7 +287,7 @@ export default function AboutPage() {
               </blockquote>
               <div className="mt-6">
                 <p className="font-black tracking-tight">{p.founderName}</p>
-                <p className="text-sm text-gray-400"><T>{p.founderRole}</T></p>
+                <p className="text-sm text-gray-500"><T>{p.founderRole}</T></p>
               </div>
             </div>
           </div>

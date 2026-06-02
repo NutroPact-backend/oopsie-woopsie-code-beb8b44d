@@ -111,7 +111,7 @@ function CouponPanel({ subtotal, applied, onApply, onRemove }: {
     <div className="space-y-2">
       <div className="flex gap-2">
         <div className="flex-1 relative">
-          <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Enter coupon code"
             className="w-full pl-9 pr-3 h-10 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-400 uppercase" />
         </div>
@@ -128,7 +128,7 @@ function CouponPanel({ subtotal, applied, onApply, onRemove }: {
             const ok = save > 0;
             return (
               <button key={c.code} onClick={() => apply(c.code)} disabled={!ok}
-                className={`group text-[11px] font-bold px-2.5 py-1.5 rounded-lg border inline-flex items-center gap-1 transition ${ok ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100' : 'border-gray-200 bg-gray-50 text-gray-400'}`}
+                className={`group text-[11px] font-bold px-2.5 py-1.5 rounded-lg border inline-flex items-center gap-1 transition ${ok ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100' : 'border-gray-200 bg-gray-50 text-gray-500'}`}
                 title={c.label || ''}>
                 <Sparkles size={10} /> {c.code}
                 {ok && <span className="text-green-600">-{formatPrice(save)}</span>}
@@ -233,7 +233,7 @@ function SavedForLater() {
           <div key={it.id} className="bg-white border border-gray-100 rounded-xl p-3 flex gap-3">
             <Link to="/products/$slug" params={{ slug: it.slug }} className="shrink-0">
               <div className="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden">
-                {it.image ? <img src={it.image} alt={it.name} width={64} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-xs font-black text-gray-300">NP</div>}
+                {it.image ? <img src={it.image} alt={it.name} width={64} height={64} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full grid place-items-center text-xs font-black text-gray-500">NP</div>}
               </div>
             </Link>
             <div className="flex-1 min-w-0">
@@ -242,7 +242,7 @@ function SavedForLater() {
               <div className="flex gap-1 mt-1.5">
                 <button onClick={() => { addItem({ id: it.id, name: it.name, price: it.price, image: it.image, flavor: '', size: '', quantity: 1, category: it.category, pixels: it.pixels }); remove(it.id); }}
                   className="text-[10px] font-black px-2 py-1 rounded-md bg-gray-900 text-white hover:bg-gray-700 transition">Move to cart</button>
-                <button onClick={() => remove(it.id)} aria-label="Remove from saved" className="text-gray-400 hover:text-red-500"><X size={12} /></button>
+                <button onClick={() => remove(it.id)} aria-label="Remove from saved" className="text-gray-500 hover:text-red-500"><X size={12} /></button>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function CartPage() {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight"><T>Your Cart</T></h1>
           <p className="text-sm text-gray-500 mt-0.5">{count()} item{count() !== 1 ? 's' : ''} • Review before checkout</p>
         </div>
-        <button onClick={clearCart} className="text-xs text-gray-400 hover:text-red-500 font-semibold hidden sm:inline"><T>Clear cart</T></button>
+        <button onClick={clearCart} className="text-xs text-gray-500 hover:text-red-500 font-semibold hidden sm:inline"><T>Clear cart</T></button>
       </div>
 
       {recovered && (
@@ -410,7 +410,7 @@ export default function CartPage() {
                   {(item.flavor || item.size) && (
                     <p className="text-gray-500 text-xs mt-0.5">{[item.flavor, item.size].filter(Boolean).join(' • ')}</p>
                   )}
-                  <p className="font-black text-sm sm:text-base mt-1">{formatPrice(item.price)} <span className="text-xs text-gray-400 font-normal">each</span></p>
+                  <p className="font-black text-sm sm:text-base mt-1">{formatPrice(item.price)} <span className="text-xs text-gray-500 font-normal">each</span></p>
 
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-auto pt-2">
                     <div className="inline-flex items-center border border-gray-200 rounded-full overflow-hidden">
@@ -427,7 +427,7 @@ export default function CartPage() {
                       <Heart size={12} /> <T>Save for later</T>
                     </button>
                     <button onClick={() => removeItem(item.id, item.flavor, item.size)}
-                      className="text-[11px] sm:text-xs font-bold text-gray-400 hover:text-red-500 inline-flex items-center gap-1">
+                      className="text-[11px] sm:text-xs font-bold text-gray-500 hover:text-red-500 inline-flex items-center gap-1">
                       <Trash2 size={12} /> Remove
                     </button>
                   </div>
@@ -450,7 +450,7 @@ export default function CartPage() {
               <div key={label} className="bg-white border border-gray-100 rounded-xl p-2 sm:p-3 text-center">
                 <Icon size={16} className="mx-auto text-orange-500" />
                 <p className="text-[11px] sm:text-xs font-black mt-1">{label}</p>
-                <p className="text-[10px] text-gray-400 hidden sm:block">{sub}</p>
+                <p className="text-[10px] text-gray-500 hidden sm:block">{sub}</p>
               </div>
             ))}
           </div>
@@ -477,7 +477,7 @@ export default function CartPage() {
               <div className="flex justify-between text-base sm:text-lg font-black border-t border-gray-100 pt-3">
                 <span>Total</span><span>{formatPrice(grandTotal)}</span>
               </div>
-              <p className="text-[11px] text-gray-400 text-right">Inclusive of all taxes</p>
+              <p className="text-[11px] text-gray-500 text-right">Inclusive of all taxes</p>
               {discount > 0 && (
                 <p className="text-xs text-green-700 font-bold bg-green-50 rounded-lg px-2 py-1 text-center">You saved {formatPrice(discount)} on this order 🎉</p>
               )}

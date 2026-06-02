@@ -331,7 +331,7 @@ function FeaturedProducts({ sec, products }: { sec: any; products: any[] }) {
                 <h3 className="font-bold text-gray-800 text-sm line-clamp-2 group-hover:text-orange-500 transition"><T>{p.name}</T></h3>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="font-black text-gray-900">{formatPrice(p.price)}</span>
-                  {p.comparePrice > p.price && <span className="text-gray-400 line-through text-sm">{formatPrice(p.comparePrice)}</span>}
+                  {p.comparePrice > p.price && <span className="text-gray-500 line-through text-sm">{formatPrice(p.comparePrice)}</span>}
                 </div>
                 <QuickBuyButtons product={p} size="sm" className="mt-3" />
               </div>

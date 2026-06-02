@@ -13,7 +13,7 @@ function StarBar({ count, total, label }: { count: number; total: number; label:
       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
         <div className="h-2 bg-yellow-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-6 text-gray-400">{count}</span>
+      <span className="w-6 text-gray-500">{count}</span>
     </div>
   );
 }
@@ -31,7 +31,7 @@ function ReviewCard({ r }: { r: any }) {
             <p className="font-bold text-sm">{r.name}</p>
             {r.verified && <BadgeCheck size={13} className="text-emerald-500 fill-emerald-500 stroke-white shrink-0" />}
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             {r.variant && <span className="mr-2 text-orange-500 font-medium">{r.variant}</span>}
             {r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : ''}
           </p>
@@ -70,7 +70,7 @@ function ReviewCard({ r }: { r: any }) {
           </Link>
         ) : <span />}
         {(r.helpful || 0) > 0 && (
-          <span className="text-xs text-gray-400 flex items-center gap-1">
+          <span className="text-xs text-gray-500 flex items-center gap-1">
             <ThumbsUp size={11} /> {r.helpful} helpful
           </span>
         )}
@@ -124,23 +124,23 @@ export default function TestimonialsPage() {
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-orange-400 font-bold text-sm uppercase tracking-widest mb-3">Verified Reviews</p>
           <h1 className="text-5xl font-black mb-3">What Our Customers Say</h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">Real results from real athletes. Every review is from a genuine customer.</p>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">Real results from real athletes. Every review is from a genuine customer.</p>
           {!loading && (
             <div className="flex items-center justify-center gap-8 mt-10 flex-wrap">
               <div className="text-center">
                 <p className="text-6xl font-black text-orange-400">{avgRating}</p>
                 <div className="flex justify-center text-yellow-400 text-xl mt-1">{'★'.repeat(Math.round(Number(avgRating)))}</div>
-                <p className="text-gray-400 text-sm mt-1">Average Rating</p>
+                <p className="text-gray-500 text-sm mt-1">Average Rating</p>
               </div>
               <div className="w-px h-20 bg-gray-700" />
               <div className="text-center">
                 <p className="text-6xl font-black text-orange-400">{reviews.length}</p>
-                <p className="text-gray-400 text-sm mt-1">Total Reviews</p>
+                <p className="text-gray-500 text-sm mt-1">Total Reviews</p>
               </div>
               <div className="w-px h-20 bg-gray-700" />
               <div className="text-center">
                 <p className="text-6xl font-black text-orange-400">{reviews.filter(r => r.images?.length || r.video).length}</p>
-                <p className="text-gray-400 text-sm mt-1">Photo/Video Reviews</p>
+                <p className="text-gray-500 text-sm mt-1">Photo/Video Reviews</p>
               </div>
             </div>
           )}
@@ -208,7 +208,7 @@ export default function TestimonialsPage() {
                 {[...Array(6)].map((_, i) => <div key={i} className="h-52 bg-gray-100 rounded-2xl animate-pulse" />)}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border">
+              <div className="text-center py-20 text-gray-500 bg-white rounded-2xl border">
                 <Star size={40} className="mx-auto mb-3 opacity-20" />
                 <p className="font-semibold text-lg">No reviews match this filter</p>
                 <button onClick={() => { setStarFilter(0); setWithMedia(false); setSelectedProduct('all'); }}

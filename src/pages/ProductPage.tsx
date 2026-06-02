@@ -249,7 +249,7 @@ function ReviewCard({ review, onHelpful, productId }: { review: any; onHelpful: 
               <meta itemProp="ratingValue" content={String(review.rating)} />
             </span>
             {review.variant && <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">{review.variant}</span>}
-            {review.createdAt && <span className="text-xs text-gray-400" itemProp="datePublished">{new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+            {review.createdAt && <span className="text-xs text-gray-500" itemProp="datePublished">{new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
           </div>
         </div>
       </div>
@@ -273,7 +273,7 @@ function ReviewCard({ review, onHelpful, productId }: { review: any; onHelpful: 
         </div>
       )}
       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
-        <button onClick={onHelpful} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition">
+        <button onClick={onHelpful} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-600 transition">
           <ThumbsUp size={13} /> Helpful {review.helpful > 0 && `(${review.helpful})`}
         </button>
       </div>
@@ -363,7 +363,7 @@ function DeliveryChecker({ pincode, shippingInfo, pincodeError, productPrice, on
             </div>
             <Truck size={28} className={`${shippingInfo.color} opacity-30 shrink-0 mt-1`} />
           </div>
-          <p className="text-xs text-gray-400 mt-2 border-t border-black/5 pt-2">
+          <p className="text-xs text-gray-500 mt-2 border-t border-black/5 pt-2">
             {dispatchToday
               ? '⚡ Order before 2 PM today for same-day dispatch'
               : '📦 Order now — dispatched next business day'}
@@ -393,7 +393,7 @@ function StickyATCBar({ product, price, selectedFlavor, selectedSize, onAdd, onB
             {product.images?.[0] && <img src={product.images[0]} alt="" className="w-10 h-10 object-cover rounded-lg bg-gray-100 shrink-0"  loading="lazy" decoding="async"/>}
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm truncate">{product.name}</p>
-              <p className="text-xs text-gray-400">{[selectedFlavor, selectedSize].filter(Boolean).join(' · ')}</p>
+              <p className="text-xs text-gray-500">{[selectedFlavor, selectedSize].filter(Boolean).join(' · ')}</p>
             </div>
             <p className="font-black text-orange-500 shrink-0">{formatPrice(price)}</p>
             <button onClick={onAdd} disabled={stock === 0}
@@ -728,7 +728,7 @@ export default function ProductPage() {
 
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-2">
-        <nav className="text-sm text-gray-400 flex flex-wrap items-center gap-1" aria-label="Breadcrumb">
+        <nav className="text-sm text-gray-500 flex flex-wrap items-center gap-1" aria-label="Breadcrumb">
           <Link to="/" className="hover:text-gray-700 transition">Home</Link><span>›</span>
           <Link to="/products" className="hover:text-gray-700 transition">Products</Link><span>›</span>
           <span className="text-gray-600 truncate max-w-xs">{product.name}</span>
@@ -824,7 +824,7 @@ export default function ProductPage() {
               <div className="flex flex-wrap items-baseline gap-3 mb-1">
                 <span className="text-5xl font-black text-gray-900 tracking-tight">{formatPrice(price)}</span>
                 {product.comparePrice > price && (
-                  <span className="text-xl text-gray-400 line-through font-medium">{formatPrice(product.comparePrice)}</span>
+                  <span className="text-xl text-gray-500 line-through font-medium">{formatPrice(product.comparePrice)}</span>
                 )}
                 {discount > 0 && (
                   <span className="text-sm font-black text-white px-2.5 py-1 rounded-full" style={{ backgroundColor: '#16a34a' }}>
@@ -832,7 +832,7 @@ export default function ProductPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400 mt-1">Inclusive of all taxes. Free delivery above ₹999</p>
+              <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes. Free delivery above ₹999</p>
               {product.offerText && <p className="text-sm font-semibold text-orange-500 mt-1.5">🎉 {product.offerText}</p>}
             </div>
 
@@ -998,7 +998,7 @@ export default function ProductPage() {
                       <span className="text-xl shrink-0">{b.icon}</span>
                       <div>
                         <p className="font-black text-xs text-gray-900 leading-tight">{b.title}</p>
-                        <p className="text-xs text-gray-400 mt-0.5 leading-snug">{b.desc}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-snug">{b.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -1017,7 +1017,7 @@ export default function ProductPage() {
               {product.nutritionHighlights.map((n: any, i: number) => (
                 <div key={i} className="text-center">
                   <p className="text-2xl font-black text-orange-400">{n.value}</p>
-                  <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-wider">{n.label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 uppercase tracking-wider">{n.label}</p>
                 </div>
               ))}
             </div>
@@ -1115,7 +1115,7 @@ export default function ProductPage() {
                     {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-2" loading="lazy"  decoding="async"/> : <span className="text-4xl font-black text-gray-200">NP</span>}
                   </div>
                   <div className="p-3 flex flex-col flex-1">
-                    <p className="text-xs text-gray-400">{p.category}</p>
+                    <p className="text-xs text-gray-500">{p.category}</p>
                     <p className="font-semibold text-sm leading-tight line-clamp-2 mt-0.5">{p.name}</p>
                     <p className="font-black mt-1.5">{formatPrice(p.price)}</p>
                     <QuickBuyButtons product={p} size="sm" className="mt-2" />
@@ -1137,7 +1137,7 @@ export default function ProductPage() {
         <div className="flex items-end justify-between mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">Reviews</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{product.numReviews || 0} verified rating{product.numReviews === 1 ? '' : 's'}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{product.numReviews || 0} verified rating{product.numReviews === 1 ? '' : 's'}</p>
           </div>
           <a href="#write-review" onClick={() => setShowWriteReview(true)}
             className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-400 rounded-full px-3 py-1.5 transition">
@@ -1175,7 +1175,7 @@ export default function ProductPage() {
                   <Pencil size={14} className="text-orange-500" />
                   {showWriteReview ? 'Hide review form' : 'Write a review'}
                 </span>
-                <ChevronDown size={16} className={`text-gray-400 transition-transform ${showWriteReview ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-gray-500 transition-transform ${showWriteReview ? 'rotate-180' : ''}`} />
               </button>
               {showWriteReview && (<div className="px-6 pb-6 pt-1">
               {reviewSuccess && <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-3 text-sm text-green-700 font-semibold">✓ Review submitted! Thank you.</div>}
@@ -1185,7 +1185,7 @@ export default function ProductPage() {
                     <img src={user.avatar || (user as any).profilePicture || `https://i.pravatar.cc/40?u=${encodeURIComponent(user.name || user.email || 'user')}`} alt="" className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"  loading="lazy" decoding="async"/>
                     <div>
                       <p className="font-bold text-sm text-gray-900">{user.name || (user as any).username || 'You'}</p>
-                      <p className="text-xs text-gray-400">Reviewing as your account</p>
+                      <p className="text-xs text-gray-500">Reviewing as your account</p>
                     </div>
                   </div>
                 ) : (
@@ -1260,7 +1260,7 @@ export default function ProductPage() {
                       }} />
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-1.5">Upload a video from your device (MP4, MOV, etc.)</p>
+                  <p className="text-xs text-gray-500 mt-1.5">Upload a video from your device (MP4, MOV, etc.)</p>
                 </div>
                 <button onClick={submitReview} disabled={reviewSaving}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-black text-sm transition disabled:opacity-50">
@@ -1316,7 +1316,7 @@ export default function ProductPage() {
               <div className="text-center py-16 bg-gray-50 rounded-2xl">
                 <p className="text-4xl mb-3">💬</p>
                 <p className="font-bold text-gray-600">No reviews yet{starFilter ? ' for this rating' : ''}</p>
-                <p className="text-sm text-gray-400 mt-1">Be the first to share your experience!</p>
+                <p className="text-sm text-gray-500 mt-1">Be the first to share your experience!</p>
               </div>
             ) : (
               <div className="space-y-4">

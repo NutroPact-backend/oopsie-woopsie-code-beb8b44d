@@ -141,14 +141,14 @@ export default function FAQPage() {
 
       {/* Search */}
       <div className="relative max-w-xl mx-auto mb-10">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
         <input
           value={search}
           onChange={e => { setSearch(e.target.value); setActiveCategory('All'); }}
           placeholder="Search your question..."
           className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:border-orange-400 text-sm"
         />
-        {search && <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold hover:text-gray-600"><T>Clear</T></button>}
+        {search && <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold hover:text-gray-600"><T>Clear</T></button>}
       </div>
 
       {/* Category tabs */}
@@ -166,7 +166,7 @@ export default function FAQPage() {
 
       {/* Results count when searching */}
       {search && (
-        <p className="text-center text-sm text-gray-400 mb-6">
+        <p className="text-center text-sm text-gray-500 mb-6">
           {filtered.length === 0 ? <T>No results found</T> : <T>{`${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${search}"`}</T>}
         </p>
       )}
@@ -176,7 +176,7 @@ export default function FAQPage() {
         <div className="text-center py-16">
           <Search size={40} className="mx-auto text-gray-200 mb-4" />
           <p className="text-gray-500 font-bold text-lg"><T>No matching questions</T></p>
-          <p className="text-gray-400 text-sm mt-1"><T>Try different keywords or browse all categories</T></p>
+          <p className="text-gray-500 text-sm mt-1"><T>Try different keywords or browse all categories</T></p>
           <button onClick={() => { setSearch(''); setActiveCategory('All'); }} className="mt-4 px-4 py-2 bg-orange-100 text-orange-700 font-bold rounded-xl text-sm hover:bg-orange-200 transition"><T>Clear filters</T></button>
         </div>
       ) : (
@@ -203,7 +203,7 @@ export default function FAQPage() {
                         onClick={() => setOpen(open === item.id ? null : item.id)}
                         className="w-full flex justify-between items-center px-6 py-4 text-left hover:bg-gray-50 transition">
                         <span className={`font-semibold text-sm leading-relaxed pr-4 ${open === item.id ? 'text-orange-600' : 'text-gray-800'}`}><T>{item.q}</T></span>
-                        <ChevronDown size={18} className={`flex-shrink-0 text-gray-400 transition-transform duration-300 ${open === item.id ? 'rotate-180 text-orange-500' : ''}`} />
+                        <ChevronDown size={18} className={`flex-shrink-0 text-gray-500 transition-transform duration-300 ${open === item.id ? 'rotate-180 text-orange-500' : ''}`} />
                       </button>
                       <div className={`overflow-hidden transition-all duration-300 ${open === item.id ? 'max-h-96' : 'max-h-0'}`}>
                         <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed border-t border-orange-100 pt-4 bg-orange-50/30">
@@ -225,7 +225,7 @@ export default function FAQPage() {
           <MessageCircle size={24} className="text-orange-400" />
         </div>
         <h3 className="text-2xl font-black mb-2"><T>Still have questions?</T></h3>
-        <p className="text-gray-400 mb-6 max-w-sm mx-auto"><T>Our team typically responds within 2 hours on business days.</T></p>
+        <p className="text-gray-500 mb-6 max-w-sm mx-auto"><T>Our team typically responds within 2 hours on business days.</T></p>
         <Link href={`${base}/contact`}>
           <button className="bg-orange-500 text-white px-8 py-3.5 rounded-xl font-black hover:bg-orange-600 transition text-sm"><T>Contact Support</T></button>
         </Link>
