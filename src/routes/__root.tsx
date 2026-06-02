@@ -39,6 +39,12 @@ const SUPABASE_ORIGIN = (() => {
   try { return new URL(import.meta.env.VITE_SUPABASE_URL).origin; } catch { return ""; }
 })();
 
+// Canonical production origin — used for absolute og/twitter images and
+// JSON-LD URLs so social crawlers and search engines resolve them on every
+// preview/production domain.
+const SITE_ORIGIN = "https://oopsie-woopsie-code.lovable.app";
+const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -103,10 +109,10 @@ const WEBSITE_JSONLD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "NutroPact",
-  url: "/",
+  url: SITE_ORIGIN,
   potentialAction: {
     "@type": "SearchAction",
-    target: "/search?q={search_term_string}",
+    target: `${SITE_ORIGIN}/search?q={search_term_string}`,
     "query-input": "required name=search_term_string",
   },
 });
@@ -124,8 +130,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     if (cfg.yandex_verification) metaExtras.push({ name: "yandex-verification", content: cfg.yandex_verification });
     if (cfg.og_site_name) metaExtras.push({ property: "og:site_name", content: cfg.og_site_name });
     if (cfg.og_default_image) {
-      metaExtras.push({ property: "og:image", content: cfg.og_default_image });
-      metaExtras.push({ name: "twitter:image", content: cfg.og_default_image });
+      const absOg = /^https?:\/\//i.test(cfg.og_default_image)
+        ? cfg.og_default_image
+        : `${SITE_ORIGIN}${cfg.og_default_image.startsWith('/') ? '' : '/'}${cfg.og_default_image}`;
+      metaExtras.push({ property: "og:image", content: absOg });
+      metaExtras.push({ name: "twitter:image", content: absOg });
     }
     if (cfg.twitter_site_handle) metaExtras.push({ name: "twitter:site", content: cfg.twitter_site_handle });
     if (cfg.twitter_card_type) metaExtras.push({ name: "twitter:card", content: cfg.twitter_card_type });
@@ -176,11 +185,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const orgJsonLd = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Store",
-      "@id": "/#store",
+      "@id": `${SITE_ORIGIN}/#store`,
       name: cfg.org_legal_name || "NutroPact",
-      url: "/",
-      logo: cfg.og_default_image || "/favicon.svg",
-      image: cfg.og_default_image || "/favicon.svg",
+      url: SITE_ORIGIN,
+      logo: cfg.og_default_image || `${SITE_ORIGIN}/favicon.svg`,
+      image: cfg.og_default_image || `${SITE_ORIGIN}/favicon.svg`,
       description: "Premium lab-tested nutrition and supplements — whey protein, creatine, pre-workout, mass gainers, BCAA and vitamins.",
       telephone: phone,
       email,
@@ -218,12 +227,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...metaExtras,
         { name: "twitter:title", content: "NutroPact — Premium Nutrition" },
         { name: "twitter:description", content: "Premium nutrition and supplements crafted for performance and wellness." },
-        // OG image — uses brand cfg.og_default_image when set, else /og-image.png from public/.
-        // No hardcoded Lovable preview URL → fully portable to any domain.
-        { property: "og:image", content: cfg.og_default_image || "/og-image.jpg" },
-        { name: "twitter:image", content: cfg.og_default_image || "/og-image.jpg" },
-        { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9fdb44d7-764a-4750-a9b4-27f3a7cbdb79/id-preview-2639750b--7f1c3718-72f7-4329-a3db-26d099a317dc.lovable.app-1780087088668.png" },
-        { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9fdb44d7-764a-4750-a9b4-27f3a7cbdb79/id-preview-2639750b--7f1c3718-72f7-4329-a3db-26d099a317dc.lovable.app-1780087088668.png" },
+        // OG/Twitter image — absolute URL so social crawlers resolve it on
+        // every host. Overridden above when admin sets cfg.og_default_image.
+        { property: "og:image", content: DEFAULT_OG_IMAGE },
+        { name: "twitter:image", content: DEFAULT_OG_IMAGE },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
