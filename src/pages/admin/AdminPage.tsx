@@ -1879,6 +1879,7 @@ export default function AdminPage() {
       items: [
         { id: 'marketing', icon: <Zap size={16} />, label: 'Marketing & SEO Hub', desc: 'Pixels, CAPI, GSC, UTM builder, robots, OG defaults' },
         { id: 'seocommand', icon: <Sparkles size={16} />, label: 'SEO Command Center', desc: 'Semrush + GSC + AI on-page optimizer + technical crawler' },
+        { id: 'aiseo', icon: <Sparkles size={16} />, label: 'AI SEO Command Center', desc: '5-vector AEO/GEO/Entity/Reputation/Conversational audit + 90-day roadmap' },
         { id: 'seodebug', icon: <Globe size={16} />, label: 'SEO Debug', desc: 'Live view of meta tags, JSON-LD and pixels actually injected' },
       ],
     },
