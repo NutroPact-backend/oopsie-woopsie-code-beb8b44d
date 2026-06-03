@@ -27,12 +27,12 @@ export const Route = createFileRoute("/api/public/track-visit")({
             ...data.data,
             country,
           });
-          return new Response(null, { status: 204 });
+          return Response.json({ ok: true });
         } catch {
-          return new Response(null, { status: 204 });
+          return Response.json({ ok: true });
         }
       },
-      OPTIONS: () => new Response(null, { status: 204 }),
+      OPTIONS: () => new Response(null, { status: 200 }),
     },
   },
 });
