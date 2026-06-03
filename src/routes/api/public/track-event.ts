@@ -28,9 +28,9 @@ export const Route = createFileRoute("/api/public/track-event")({
             ...parsed.data,
             country,
           });
-          return new Response("ok", { status: 204 });
+          return new Response(null, { status: 204 });
         } catch {
-          return new Response("ok", { status: 204 });
+          return new Response(null, { status: 204 });
         }
       },
       OPTIONS: () => new Response(null, { status: 204 }),
