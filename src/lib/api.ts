@@ -75,10 +75,13 @@ const GET: Record<string, Handler> = {
     return camelize(data?.config ?? {});
   },
   "/homepage/testimonials": async () => {
-    // Manual reviews admin enabled for homepage + customer reviews with rating >= 4 (top-rated)
+    // Manual reviews for homepage + customer reviews with rating >= 4 (top-rated).
+    // Some projects still use the older global_reviews schema without show_on_home,
+    // so we rely on stable approval/featured fields instead of the newer flag.
     const [manual, productReviews, productsList] = await Promise.all([
       supabase.from("global_reviews").select("*")
-        .eq("show_on_home", true)
+        .eq("is_approved", true)
+        .eq("is_featured", true)
         .order("pinned", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(30),
