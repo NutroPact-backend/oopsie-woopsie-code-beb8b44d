@@ -67,7 +67,21 @@ export function AutoTilt3D() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
     const wired = new WeakMap<HTMLElement, () => void>();
+    // Selectors we want to auto-promote to 3D-tilt targets across the site.
+    // Kept conservative so we don't tilt inputs, nav, or hero text.
+    const AUTO_SELECTORS = [
+      "[data-product-card]",
+      ".product-card",
+      ".hp-product-card",
+      "[data-3d]",
+      ".feature-card-3d",
+    ].join(",");
+
     const sweep = () => {
+      // auto-tag known card patterns
+      document.querySelectorAll<HTMLElement>(AUTO_SELECTORS).forEach((el) => {
+        if (!el.hasAttribute("data-tilt")) el.setAttribute("data-tilt", "");
+      });
       document.querySelectorAll<HTMLElement>("[data-tilt]:not([data-tilt-wired])").forEach((el) => {
         const max = Number(el.dataset.tiltMax || 12);
         const cleanup = attach(el, max);
