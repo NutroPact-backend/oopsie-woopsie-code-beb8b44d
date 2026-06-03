@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/public/ai-context')({
           const [cats, prods, faqs] = await Promise.all([
             supabaseAdmin.from('categories').select('slug,name,description').limit(50),
             supabaseAdmin.from('products')
-              .select('slug,name,short_description,price,sale_price,brand,rating,review_count,in_stock,updated_at')
+              .select('slug,name,short_description,price,compare_price,rating,review_count,stock,updated_at')
               .eq('is_active', true).order('updated_at', { ascending: false }).limit(100),
             supabaseAdmin.from('faqs').select('question,answer,category').eq('is_active', true).order('sort_order').limit(40).then((r:any)=>r, () => ({ data: [] })),
           ]);
@@ -70,11 +70,11 @@ export const Route = createFileRoute('/api/public/ai-context')({
               name: p.name,
               slug: p.slug,
               url: `${BASE}/products/${p.slug}`,
-              brand: p.brand || 'NutroPact',
-              price_inr: p.sale_price ?? p.price ?? null,
-              list_price_inr: p.price ?? null,
+              brand: 'NutroPact',
+              price_inr: p.price ?? null,
+              list_price_inr: p.compare_price ?? null,
               currency: 'INR',
-              in_stock: p.in_stock !== false,
+              in_stock: (p.stock ?? 0) > 0,
               rating: p.rating ?? null,
               review_count: p.review_count ?? null,
               summary: strip(p.short_description, 400),

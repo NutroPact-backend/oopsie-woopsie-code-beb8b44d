@@ -23,7 +23,7 @@ async function build(): Promise<string> {
   const [cats, prods, faqs, posts] = await Promise.all([
     supabaseAdmin.from('categories').select('slug,name,description').limit(50),
     supabaseAdmin.from('products')
-      .select('slug,name,short_description,description,price,sale_price,category_id,brand,rating,review_count,in_stock')
+      .select('slug,name,short_description,description,price,compare_price,category_id,stock,rating,review_count')
       .eq('is_active', true).order('updated_at', { ascending: false }).limit(120),
     supabaseAdmin.from('faqs').select('question,answer,category').eq('is_active', true).order('sort_order').limit(60).then((r:any)=>r, () => ({ data: [] })),
     supabaseAdmin.from('blog_posts').select('slug,title,excerpt,updated_at').eq('published', true).order('updated_at', { ascending: false }).limit(30),
@@ -64,9 +64,8 @@ async function build(): Promise<string> {
     for (const p of prods.data) {
       out.push(`### ${p.name}`);
       const meta: string[] = [];
-      if (p.brand) meta.push(`Brand: ${p.brand}`);
-      if (p.price != null) meta.push(`Price: ${inr(p.sale_price ?? p.price)}${p.sale_price && p.sale_price < p.price ? ` (was ${inr(p.price)})` : ''}`);
-      meta.push(p.in_stock === false ? 'Stock: Out of stock' : 'Stock: In stock');
+      if (p.price != null) meta.push(`Price: ${inr(p.price)}${p.compare_price && Number(p.compare_price) > Number(p.price) ? ` (MRP ${inr(p.compare_price)})` : ''}`);
+      meta.push((p.stock ?? 0) > 0 ? 'Stock: In stock' : 'Stock: Out of stock');
       if (p.rating) meta.push(`Rating: ${p.rating}/5${p.review_count ? ` (${p.review_count} reviews)` : ''}`);
       out.push(meta.join(' · '));
       const desc = clean(p.short_description || p.description, 600);
