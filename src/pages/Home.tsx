@@ -386,6 +386,7 @@ function TestimonialsMarquee({ sec, testimonials }: { sec: any; testimonials: an
 
 function legacySectionsFromHp(hp: any) {
   const sections: any[] = [];
+  const hasCustomSections = Array.isArray(hp.customSections) && hp.customSections.length > 0;
   if (hp.heroSlides?.length || hp.heroSettings) {
     sections.push({
       type: 'heroSlider', name: 'Hero Slider', order: 0, enabled: hp.heroEnabled !== false,
@@ -431,7 +432,7 @@ function legacySectionsFromHp(hp: any) {
       featuredSettings: { count: hp.featuredCount || 4, category: '' },
     });
   }
-  if (hp.testimonialsEnabled !== false) {
+  if (hp.testimonialsEnabled && !hasCustomSections) {
     sections.push({
       type: 'testimonials', name: 'Testimonials', order: 99, enabled: true, bgColor: '#f9fafb',
       heading: { text: hp.testimonialsTitle || 'What Our Customers Say', desktopSize: 28, mobileSize: 22, weight: '900', color: '#111111', align: 'center', marginBottom: 8 },
@@ -458,6 +459,7 @@ function mergeSectionsWithLegacy(existingSections: any[], hp: any) {
 
 export default function Home() {
   const [hp, setHp] = useState<any>(null);
+  const [hpResolved, setHpResolved] = useState(false);
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
@@ -468,21 +470,29 @@ export default function Home() {
   });
 
   useEffect(() => {
-    API.get('/homepage').then(r => setHp(r.data)).catch(() => setHp({}));
+    API.get('/homepage')
+      .then(r => setHp(r.data))
+      .catch(() => setHp({}))
+      .finally(() => setHpResolved(true));
     API.get('/homepage/testimonials').then(r => setTestimonials(r.data)).catch(() => {});
     API.get('/products').then(r => setProducts(r.data || [])).catch(() => {});
   }, []);
 
-  if (!hp) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full" />
-    </div>
-  );
-
-  const rawSections = hp.sections?.length ? mergeSectionsWithLegacy(hp.sections, hp) : legacySectionsFromHp(hp);
+  const homeData = hp ?? {};
+  const rawSections = homeData.sections?.length ? mergeSectionsWithLegacy(homeData.sections, homeData) : legacySectionsFromHp(homeData);
   const sections = rawSections
     .filter((s: any) => s.enabled !== false)
     .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+  const hasSections = sections.some((sec: any) => {
+    if (sec.type === 'heroSlider') return Array.isArray(sec.slides) && sec.slides.length > 0;
+    if (sec.type === 'goalTiles') return Array.isArray(sec.tiles) && sec.tiles.length > 0;
+    if (sec.type === 'banner') return Boolean(sec.banner?.image || sec.image || sec.heading?.text || sec.title || sec.subheading?.text || sec.subtitle || sec.btnText);
+    if (sec.type === 'text') return Boolean(sec.textContent || sec.content || sec.heading?.text || sec.title || sec.subheading?.text || sec.subtitle);
+    if (sec.type === 'trustbar') return Array.isArray(sec.trustbarSettings?.items) && sec.trustbarSettings.items.length > 0;
+    if (sec.type === 'featuredProducts') return products.length > 0;
+    if (sec.type === 'reviews' || sec.type === 'testimonials') return testimonials.length > 0;
+    return false;
+  });
 
   return (
     <div className="overflow-x-hidden">
@@ -491,6 +501,23 @@ export default function Home() {
           the existing CMS-driven hero design. */}
       <h1 className="sr-only">NutroPact — Premium Nutrition &amp; Supplements</h1>
       <VideoSections placement="home" />
+      {!hasSections && (
+        <section className="px-4 py-16 md:px-8 md:py-24">
+          <div className="mx-auto flex min-h-[50vh] max-w-6xl items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.08em] text-orange-500">NutroPact</p>
+              <h2 className="mt-4 text-3xl font-bold text-gray-900 md:text-5xl">Premium nutrition, now loading with a safe fallback</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
+                Homepage content abhi configured nahi hai, isliye site blank nahi chhodi. Aap products aur core pages browse kar sakte ho.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Link href="/products" className="hp-btn-primary inline-block"><T>Shop Products</T></Link>
+                <Link href="/our-story" className="hp-btn-secondary inline-block"><T>Our Story</T></Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {sections.map((sec: any, idx: number) => {
         const key = sec._id || idx;
         if (sec.type === 'heroSlider')      return <HeroSlider       key={key} sec={sec} />;
