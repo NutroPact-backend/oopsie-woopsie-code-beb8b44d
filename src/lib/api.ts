@@ -71,7 +71,7 @@ const GET: Record<string, Handler> = {
     return camelize(data ?? []);
   },
   "/homepage": async () => {
-    const { data } = await supabase.from("homepage_config").select("config").eq("key", "default").maybeSingle();
+    const { data } await supabase.from("homepage_config").select("config").eq("section_key", "default").maybeSingle();
     return camelize(data?.config ?? {});
   },
   "/homepage/testimonials": async () => {
@@ -294,7 +294,7 @@ async function dynamicGet(path: string): Promise<any> {
       return camelize(data ?? []);
     }
     if (path === "/admin/homepage") {
-      const { data } = await supabase.from("homepage_config").select("config").eq("key", "default").maybeSingle();
+      const { data } = await supabase.from("homepage_config").select("config").eq("section_key", "default").maybeSingle();
       return camelize(data?.config ?? {});
     }
     if (path === "/admin/settings") {
@@ -758,7 +758,7 @@ function snakeify(obj: any): any {
 async function dynamicPut(path: string, body: any): Promise<any> {
   if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
   if (path === "/admin/homepage") {
-    await supabase.from("homepage_config").upsert({ key: "default", config: body });
+    await supabase.from("homepage_config").upsert({ section_key: "default", config: body }, { onConflict: "section_key" });
     return body;
   }
   if (path === "/admin/settings") {
