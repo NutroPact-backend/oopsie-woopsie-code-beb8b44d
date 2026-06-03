@@ -16,7 +16,7 @@ export const getMarketingPublic = createServerFn({ method: 'GET' })
   .handler(async () => {
     const { data } = await supabaseAdmin
       .from('marketing_settings')
-      .select('gsc_verification,bing_verification,pinterest_verification,yandex_verification,pinterest_tag_id,linkedin_partner_id,twitter_pixel_id,reddit_pixel_id,quora_pixel_id,og_site_name,og_default_image,twitter_site_handle,twitter_card_type,hreflang,org_legal_name,org_phone,org_address,org_same_as,ab_experiments')
+      .select('gsc_verification,bing_verification,pinterest_verification,yandex_verification,pinterest_tag_id,linkedin_partner_id,twitter_pixel_id,reddit_pixel_id,quora_pixel_id,og_site_name,og_default_image,twitter_site_handle,twitter_card_type,hreflang,org_legal_name,org_phone,org_address,org_same_as,ab_experiments,org_email,org_slogan,org_founding_date,org_opening_hours,ai_brand_description,ai_mission,ai_usps,ai_facts,ai_founder,ai_policy_text,ai_allow_training,ai_allow_inference,llms_intro,llms_extra_sections,geo_latitude,geo_longitude,geo_service_areas,geo_price_range,speakable_enabled')
       .eq('key', 'default').maybeSingle();
     return { config: data || {} };
   });

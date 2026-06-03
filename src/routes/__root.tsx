@@ -224,6 +224,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       sameAs: Array.isArray(cfg.org_same_as) ? cfg.org_same_as : [],
     });
 
+    // Optional GEO enrichment for local SEO (lat/long + service areas)
+    if (cfg.geo_latitude != null && cfg.geo_longitude != null) {
+      try {
+        const j = JSON.parse(orgJsonLd);
+        j.geo = {
+          "@type": "GeoCoordinates",
+          latitude: Number(cfg.geo_latitude),
+          longitude: Number(cfg.geo_longitude),
+        };
+        if (Array.isArray(cfg.geo_service_areas) && cfg.geo_service_areas.length) {
+          j.areaServed = cfg.geo_service_areas.map((a: any) =>
+            typeof a === 'string' ? { "@type": "City", name: a } : a
+          );
+        }
+        if (cfg.geo_price_range) j.priceRange = cfg.geo_price_range;
+        // refresh stringified payload
+        // eslint-disable-next-line no-var
+        var orgJsonLdFinal = JSON.stringify(j);
+      } catch { var orgJsonLdFinal = orgJsonLd; }
+    } else {
+      var orgJsonLdFinal = orgJsonLd;
+    }
+
+    // Founder/Person schema — boosts EEAT signals for AI search
+    let founderJsonLd: string | null = null;
+    const f: any = cfg.ai_founder || {};
+    if (f && (f.name || f.bio)) {
+      founderJsonLd = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: f.name || "Founder",
+        jobTitle: f.title || "Founder",
+        description: f.bio || undefined,
+        image: f.image || undefined,
+        worksFor: { "@type": "Organization", name: cfg.org_legal_name || "NutroPact", url: SITE_ORIGIN },
+        sameAs: Array.isArray(f.same_as) ? f.same_as : undefined,
+      });
+    }
+
 
     return {
       meta: [
@@ -266,8 +305,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...linkExtras,
       ],
       scripts: [
-        { type: "application/ld+json", children: orgJsonLd },
+        { type: "application/ld+json", children: orgJsonLdFinal },
         { type: "application/ld+json", children: WEBSITE_JSONLD },
+        ...(founderJsonLd ? [{ type: "application/ld+json", children: founderJsonLd }] : []),
         ...scriptExtras,
       ],
     };

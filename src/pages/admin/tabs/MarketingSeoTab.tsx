@@ -8,12 +8,12 @@ import {
 } from '@/lib/marketing.functions';
 import {
   Save, Plus, Trash2, ExternalLink, Copy, Check, AlertCircle,
-  BarChart3, Search, Pin, Link as LinkIcon, FileText, Globe, Layers, Zap,
+  BarChart3, Search, Pin, Link as LinkIcon, FileText, Globe, Layers, Zap, Bot, MapPin,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TabHelp } from './_TabHelp';
 
-type SubTab = 'pixels' | 'capi' | 'seo' | 'jsonld' | 'utm' | 'robots' | 'hreflang' | 'ab' | 'dashboard' | 'log';
+type SubTab = 'pixels' | 'capi' | 'seo' | 'jsonld' | 'aiSearch' | 'geo' | 'utm' | 'robots' | 'hreflang' | 'ab' | 'dashboard' | 'log';
 
 const SUBS: { id: SubTab; label: string; icon: any }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -21,6 +21,8 @@ const SUBS: { id: SubTab; label: string; icon: any }[] = [
   { id: 'capi', label: 'Conversions API', icon: Zap },
   { id: 'seo', label: 'OG & Twitter Defaults', icon: Search },
   { id: 'jsonld', label: 'Schema.org JSON-LD', icon: FileText },
+  { id: 'aiSearch', label: 'AI Search (AEO/LLM)', icon: Bot },
+  { id: 'geo', label: 'GEO / Local', icon: MapPin },
   { id: 'utm', label: 'UTM Builder', icon: LinkIcon },
   { id: 'robots', label: 'robots.txt', icon: FileText },
   { id: 'hreflang', label: 'Hreflang', icon: Globe },
@@ -77,6 +79,8 @@ export default function MarketingSeoTab() {
         {sub === 'capi' && <CapiPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'seo' && <OgPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'jsonld' && <JsonLdPanel cfg={cfg} patch={patch} saving={saving} />}
+        {sub === 'aiSearch' && <AISearchPanel cfg={cfg} patch={patch} saving={saving} />}
+        {sub === 'geo' && <GeoPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'utm' && <UtmPanel />}
         {sub === 'robots' && <RobotsPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'hreflang' && <HreflangPanel cfg={cfg} patch={patch} saving={saving} />}
@@ -436,5 +440,174 @@ function LogPanel() {
         </table>
       </div>
     </Card>
+  );
+}
+
+// ── AI Search (AEO / LLM / GEO) ──────────────────────────────────────────
+function AISearchPanel({ cfg, patch, saving }: any) {
+  const [s, setS] = useState(cfg);
+  useEffect(() => setS(cfg), [cfg]);
+  const set = (k: string, v: any) => setS({ ...s, [k]: v });
+  const usps: string[] = Array.isArray(s.ai_usps) ? s.ai_usps : [];
+  const facts: any[] = Array.isArray(s.ai_facts) ? s.ai_facts : [];
+  const founder: any = s.ai_founder || {};
+  const extras: any[] = Array.isArray(s.llms_extra_sections) ? s.llms_extra_sections : [];
+  return (
+    <>
+      <Card title="Brand snapshot for AI" desc="Powers /llms.txt, /api/public/ai-context — what ChatGPT / Perplexity / Claude / Gemini read about your brand.">
+        <div className="grid grid-cols-1 gap-3">
+          <Field label="One-line brand description" hint="Used as the blockquote in llms.txt and tagline in ai-context.json">
+            <Input value={s.ai_brand_description || ''} onChange={(e: any) => set('ai_brand_description', e.target.value)} placeholder="NutroPact is an India-based premium nutrition brand…" />
+          </Field>
+          <Field label="Mission statement" hint="Short paragraph — surfaced to AI assistants">
+            <textarea rows={2} value={s.ai_mission || ''} onChange={(e) => set('ai_mission', e.target.value)} className="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Make premium, lab-tested nutrition accessible to every Indian athlete." />
+          </Field>
+          <Field label="Unique selling points (one per line)" hint="Becomes 'differentiators' in ai-context + Brand pillars in llms.txt">
+            <textarea rows={5} value={usps.join('\n')} onChange={(e) => set('ai_usps', e.target.value.split('\n').map(x => x.trim()).filter(Boolean))} className="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Lab-tested authenticity with batch QR verification&#10;Transparent sourcing disclosures&#10;India-wide tracked shipping with COD" />
+          </Field>
+          <Field label="Custom intro paragraph for /llms.txt (optional)" hint="Plain markdown, inserted after the mission line">
+            <textarea rows={4} value={s.llms_intro || ''} onChange={(e) => set('llms_intro', e.target.value)} className="border rounded-lg px-3 py-2 text-xs font-mono w-full" />
+          </Field>
+        </div>
+        <div className="mt-4"><SaveBtn saving={saving} onClick={() => patch({ ai_brand_description: s.ai_brand_description, ai_mission: s.ai_mission, ai_usps: s.ai_usps, llms_intro: s.llms_intro })} /></div>
+      </Card>
+
+      <Card title="Key facts (Q&A) — answer-engine optimized" desc="Direct Q→A pairs that AI assistants quote verbatim. Surfaced in /llms.txt and ai-context.">
+        <div className="space-y-2">
+          {facts.map((f, i) => (
+            <div key={i} className="grid grid-cols-12 gap-2 items-start p-2 border rounded-lg">
+              <input placeholder="Question (e.g. Is NutroPact whey lab-tested?)" value={f.question || ''}
+                onChange={(e) => { const c = [...facts]; c[i] = { ...c[i], question: e.target.value }; set('ai_facts', c); }}
+                className="col-span-5 border rounded-lg px-3 py-2 text-sm" />
+              <input placeholder="Direct answer (1-2 sentences)" value={f.answer || ''}
+                onChange={(e) => { const c = [...facts]; c[i] = { ...c[i], answer: e.target.value }; set('ai_facts', c); }}
+                className="col-span-6 border rounded-lg px-3 py-2 text-sm" />
+              <button onClick={() => set('ai_facts', facts.filter((_, x) => x !== i))} className="text-red-500 col-span-1 justify-self-end"><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between mt-3">
+          <button onClick={() => set('ai_facts', [...facts, { question: '', answer: '' }])} className="inline-flex items-center gap-1 border rounded-lg px-3 py-2 text-sm"><Plus size={14} /> Add fact</button>
+          <SaveBtn saving={saving} onClick={() => patch({ ai_facts: facts.filter(f => f.question && f.answer) })} />
+        </div>
+      </Card>
+
+      <Card title="Founder / Person schema (EEAT)" desc="Adds Person JSON-LD sitewide — boosts trust and authorship signals for AI search.">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Name"><Input value={founder.name || ''} onChange={(e: any) => set('ai_founder', { ...founder, name: e.target.value })} placeholder="Lokesh Sharma" /></Field>
+          <Field label="Job title"><Input value={founder.title || ''} onChange={(e: any) => set('ai_founder', { ...founder, title: e.target.value })} placeholder="Founder & CEO" /></Field>
+          <Field label="Bio (1-2 sentences)" hint="Surfaced in Person schema description">
+            <textarea rows={3} value={founder.bio || ''} onChange={(e) => set('ai_founder', { ...founder, bio: e.target.value })} className="border rounded-lg px-3 py-2 text-sm w-full" />
+          </Field>
+          <Field label="Photo URL"><Input value={founder.image || ''} onChange={(e: any) => set('ai_founder', { ...founder, image: e.target.value })} placeholder="https://…/founder.jpg" /></Field>
+          <Field label="Profile URLs (sameAs, one per line)" hint="LinkedIn, Twitter, Wikipedia, etc.">
+            <textarea rows={3} value={Array.isArray(founder.same_as) ? founder.same_as.join('\n') : ''} onChange={(e) => set('ai_founder', { ...founder, same_as: e.target.value.split('\n').map(x => x.trim()).filter(Boolean) })} className="border rounded-lg px-3 py-2 text-xs font-mono w-full" />
+          </Field>
+        </div>
+        <div className="mt-4"><SaveBtn saving={saving} onClick={() => patch({ ai_founder: s.ai_founder })} /></div>
+      </Card>
+
+      <Card title="/ai.txt — AI crawler policy" desc="Spec from spawning.ai. Declares what AI systems may do with your content.">
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={s.ai_allow_training !== false} onChange={(e) => set('ai_allow_training', e.target.checked)} />
+            Allow AI model training
+          </label>
+          <label className="flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={s.ai_allow_inference !== false} onChange={(e) => set('ai_allow_inference', e.target.checked)} />
+            Allow AI inference / live answers (recommended)
+          </label>
+        </div>
+        <Field label="Custom /ai.txt body (optional — leave blank to auto-generate)" hint="Plain text, served at /ai.txt">
+          <textarea rows={10} value={s.ai_policy_text || ''} onChange={(e) => set('ai_policy_text', e.target.value)} className="border rounded-lg px-3 py-2 text-xs font-mono w-full" placeholder="# Brand AI Usage Policy&#10;User-Agent: *&#10;Allow: training&#10;Allow: inference" />
+        </Field>
+        <div className="flex items-center justify-between mt-3">
+          <a href="/ai.txt" target="_blank" rel="noreferrer" className="text-xs text-blue-600 inline-flex items-center gap-1"><ExternalLink size={12} /> View live /ai.txt</a>
+          <SaveBtn saving={saving} onClick={() => patch({ ai_policy_text: s.ai_policy_text, ai_allow_training: s.ai_allow_training !== false, ai_allow_inference: s.ai_allow_inference !== false })} />
+        </div>
+      </Card>
+
+      <Card title="Extra sections in /llms.txt" desc="Add custom H2 sections AI crawlers will index (e.g. press, awards, ingredient guides).">
+        <div className="space-y-3">
+          {extras.map((sec, si) => (
+            <div key={si} className="p-3 border rounded-lg">
+              <div className="flex gap-2 mb-2">
+                <input placeholder="Section title (e.g. Press & Awards)" value={sec.title || ''}
+                  onChange={(e) => { const c = [...extras]; c[si] = { ...c[si], title: e.target.value }; set('llms_extra_sections', c); }}
+                  className="border rounded-lg px-3 py-2 text-sm flex-1" />
+                <button onClick={() => set('llms_extra_sections', extras.filter((_, x) => x !== si))} className="text-red-500"><Trash2 size={14} /></button>
+              </div>
+              <div className="space-y-1 pl-3">
+                {(sec.links || []).map((l: any, li: number) => (
+                  <div key={li} className="flex gap-1">
+                    <input placeholder="Title" value={l.title || ''} onChange={(e) => { const c = [...extras]; const links = [...(c[si].links || [])]; links[li] = { ...links[li], title: e.target.value }; c[si] = { ...c[si], links }; set('llms_extra_sections', c); }} className="border rounded-lg px-2 py-1 text-xs w-40" />
+                    <input placeholder="/path or https://…" value={l.path || ''} onChange={(e) => { const c = [...extras]; const links = [...(c[si].links || [])]; links[li] = { ...links[li], path: e.target.value }; c[si] = { ...c[si], links }; set('llms_extra_sections', c); }} className="border rounded-lg px-2 py-1 text-xs w-56" />
+                    <input placeholder="Description" value={l.description || ''} onChange={(e) => { const c = [...extras]; const links = [...(c[si].links || [])]; links[li] = { ...links[li], description: e.target.value }; c[si] = { ...c[si], links }; set('llms_extra_sections', c); }} className="border rounded-lg px-2 py-1 text-xs flex-1" />
+                    <button onClick={() => { const c = [...extras]; c[si] = { ...c[si], links: (c[si].links || []).filter((_: any, x: number) => x !== li) }; set('llms_extra_sections', c); }} className="text-red-500 text-xs">×</button>
+                  </div>
+                ))}
+                <button onClick={() => { const c = [...extras]; c[si] = { ...c[si], links: [...(c[si].links || []), { title: '', path: '', description: '' }] }; set('llms_extra_sections', c); }} className="text-xs text-blue-600 inline-flex items-center gap-1"><Plus size={10} /> Add link</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between mt-3">
+          <button onClick={() => set('llms_extra_sections', [...extras, { title: '', links: [] }])} className="inline-flex items-center gap-1 border rounded-lg px-3 py-2 text-sm"><Plus size={14} /> Add section</button>
+          <SaveBtn saving={saving} onClick={() => patch({ llms_extra_sections: extras.filter(x => x.title) })} />
+        </div>
+      </Card>
+
+      <Card title="Live AI endpoints" desc="Verify what AI crawlers see — open in a new tab.">
+        <div className="flex flex-wrap gap-2 text-xs">
+          {[
+            ['/llms.txt', 'LLM summary'],
+            ['/llms-full.txt', 'Full LLM reference'],
+            ['/ai.txt', 'AI policy'],
+            ['/api/public/ai-context', 'AI Context JSON'],
+            ['/answers', 'Q&A hub'],
+            ['/rss.xml', 'RSS feed'],
+            ['/sitemap.xml', 'Sitemap'],
+            ['/robots.txt', 'robots.txt'],
+          ].map(([href, label]) => (
+            <a key={href} href={href} target="_blank" rel="noreferrer"
+              className="inline-flex items-center gap-1 border rounded-lg px-3 py-1.5 hover:bg-gray-50">
+              <ExternalLink size={11} /> {label}
+            </a>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+// ── GEO / local SEO ─────────────────────────────────────────────────────
+function GeoPanel({ cfg, patch, saving }: any) {
+  const [s, setS] = useState(cfg);
+  useEffect(() => setS(cfg), [cfg]);
+  const set = (k: string, v: any) => setS({ ...s, [k]: v });
+  const areas: string[] = Array.isArray(s.geo_service_areas) ? s.geo_service_areas : [];
+  const hours: string[] = Array.isArray(s.org_opening_hours) ? s.org_opening_hours : [];
+  return (
+    <>
+      <Card title="Geographic coordinates" desc="Adds geo coordinates to Store schema. Helps Google Maps + local AI answers.">
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Latitude" hint="e.g. 26.9124"><Input type="number" step="any" value={s.geo_latitude ?? ''} onChange={(e: any) => set('geo_latitude', e.target.value === '' ? null : Number(e.target.value))} /></Field>
+          <Field label="Longitude" hint="e.g. 75.7873"><Input type="number" step="any" value={s.geo_longitude ?? ''} onChange={(e: any) => set('geo_longitude', e.target.value === '' ? null : Number(e.target.value))} /></Field>
+          <Field label="Price range" hint="$, $$, $$$ or ₹, ₹₹, ₹₹₹"><Input value={s.geo_price_range || ''} onChange={(e: any) => set('geo_price_range', e.target.value)} placeholder="₹₹" /></Field>
+        </div>
+      </Card>
+
+      <Card title="Service areas" desc="Cities / regions you serve — added to Store schema 'areaServed' for local AI search.">
+        <Field label="One city per line">
+          <textarea rows={8} value={areas.join('\n')} onChange={(e) => set('geo_service_areas', e.target.value.split('\n').map(x => x.trim()).filter(Boolean))} className="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Mumbai&#10;Delhi&#10;Bengaluru&#10;Jaipur&#10;Hyderabad" />
+        </Field>
+      </Card>
+
+      <Card title="Opening hours" desc="Schema.org format. One per line: e.g. 'Mo-Sa 09:00-19:00' or 'Su 10:00-14:00'.">
+        <textarea rows={4} value={hours.join('\n')} onChange={(e) => set('org_opening_hours', e.target.value.split('\n').map(x => x.trim()).filter(Boolean))} className="border rounded-lg px-3 py-2 text-xs font-mono w-full" placeholder="Mo-Sa 09:00-19:00" />
+      </Card>
+
+      <div className="text-right"><SaveBtn saving={saving} onClick={() => patch({ geo_latitude: s.geo_latitude, geo_longitude: s.geo_longitude, geo_price_range: s.geo_price_range, geo_service_areas: s.geo_service_areas, org_opening_hours: s.org_opening_hours })} /></div>
+    </>
   );
 }
