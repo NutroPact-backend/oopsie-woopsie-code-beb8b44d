@@ -487,6 +487,7 @@ export default function Home() {
   const sections = rawSections
     .filter((s: any) => s.enabled !== false)
     .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+  const hasSections = sections.length > 0;
 
   return (
     <div className="overflow-x-hidden">
@@ -495,6 +496,23 @@ export default function Home() {
           the existing CMS-driven hero design. */}
       <h1 className="sr-only">NutroPact — Premium Nutrition &amp; Supplements</h1>
       <VideoSections placement="home" />
+      {!hasSections && (
+        <section className="px-4 py-16 md:px-8 md:py-24">
+          <div className="mx-auto flex min-h-[50vh] max-w-6xl items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.08em] text-orange-500">NutroPact</p>
+              <h2 className="mt-4 text-3xl font-bold text-gray-900 md:text-5xl">Premium nutrition, now loading with a safe fallback</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
+                Homepage content abhi configured nahi hai, isliye site blank nahi chhodi. Aap products aur core pages browse kar sakte ho.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Link href="/products" className="hp-btn-primary inline-block"><T>Shop Products</T></Link>
+                <Link href="/our-story" className="hp-btn-secondary inline-block"><T>Our Story</T></Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       {sections.map((sec: any, idx: number) => {
         const key = sec._id || idx;
         if (sec.type === 'heroSlider')      return <HeroSlider       key={key} sec={sec} />;
