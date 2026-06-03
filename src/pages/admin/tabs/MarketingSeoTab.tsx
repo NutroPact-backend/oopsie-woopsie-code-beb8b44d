@@ -8,12 +8,12 @@ import {
 } from '@/lib/marketing.functions';
 import {
   Save, Plus, Trash2, ExternalLink, Copy, Check, AlertCircle,
-  BarChart3, Search, Pin, Link as LinkIcon, FileText, Globe, Layers, Zap,
+  BarChart3, Search, Pin, Link as LinkIcon, FileText, Globe, Layers, Zap, Bot, MapPin,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TabHelp } from './_TabHelp';
 
-type SubTab = 'pixels' | 'capi' | 'seo' | 'jsonld' | 'utm' | 'robots' | 'hreflang' | 'ab' | 'dashboard' | 'log';
+type SubTab = 'pixels' | 'capi' | 'seo' | 'jsonld' | 'aiSearch' | 'geo' | 'utm' | 'robots' | 'hreflang' | 'ab' | 'dashboard' | 'log';
 
 const SUBS: { id: SubTab; label: string; icon: any }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -21,6 +21,8 @@ const SUBS: { id: SubTab; label: string; icon: any }[] = [
   { id: 'capi', label: 'Conversions API', icon: Zap },
   { id: 'seo', label: 'OG & Twitter Defaults', icon: Search },
   { id: 'jsonld', label: 'Schema.org JSON-LD', icon: FileText },
+  { id: 'aiSearch', label: 'AI Search (AEO/LLM)', icon: Bot },
+  { id: 'geo', label: 'GEO / Local', icon: MapPin },
   { id: 'utm', label: 'UTM Builder', icon: LinkIcon },
   { id: 'robots', label: 'robots.txt', icon: FileText },
   { id: 'hreflang', label: 'Hreflang', icon: Globe },
@@ -77,6 +79,8 @@ export default function MarketingSeoTab() {
         {sub === 'capi' && <CapiPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'seo' && <OgPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'jsonld' && <JsonLdPanel cfg={cfg} patch={patch} saving={saving} />}
+        {sub === 'aiSearch' && <AISearchPanel cfg={cfg} patch={patch} saving={saving} />}
+        {sub === 'geo' && <GeoPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'utm' && <UtmPanel />}
         {sub === 'robots' && <RobotsPanel cfg={cfg} patch={patch} saving={saving} />}
         {sub === 'hreflang' && <HreflangPanel cfg={cfg} patch={patch} saving={saving} />}
