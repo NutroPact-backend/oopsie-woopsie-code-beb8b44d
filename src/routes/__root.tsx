@@ -34,10 +34,9 @@ const ChatWidget = lazy(() => import("@/components/ChatWidget"));
 const CookieConsent = lazy(() => import("@/components/CookieConsent"));
 const RecentlyViewed = lazy(() => import("@/components/RecentlyViewed"));
 const PageBackground = lazy(() => import("@/components/PageBackground"));
-const Scene3DBackground = lazy(() => import("@/components/three/Scene3DBackground"));
-const AutoTilt3D = lazy(() =>
-  import("@/components/three/Tilt3D").then((m) => ({ default: m.AutoTilt3D }))
-);
+// 3D layer is loaded client-only via ClientOnly3DLayer below.
+// We CANNOT use React.lazy() here because @react-three/fiber touches DOM /
+// WebGL APIs at module init, which crashes Cloudflare Worker SSR.
 
 const SUPABASE_ORIGIN = (() => {
   try { return new URL(import.meta.env.VITE_SUPABASE_URL).origin; } catch { return ""; }
@@ -398,6 +397,42 @@ function NativeBoot() {
   return null;
 }
 
+/**
+ * ClientOnly3DLayer
+ * Mounts the WebGL background + auto-tilt strictly on the client, after first
+ * paint. Avoids any SSR evaluation of @react-three/fiber / three, which is
+ * unsafe in the Cloudflare Worker SSR runtime.
+ */
+function ClientOnly3DLayer() {
+  const [Mods, setMods] = useState<null | {
+    Scene: React.ComponentType<any>;
+    AutoTilt: React.ComponentType<any>;
+  }>(null);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      import("@/components/three/Scene3DBackground"),
+      import("@/components/three/Tilt3D"),
+    ])
+      .then(([scene, tilt]) => {
+        if (!alive) return;
+        setMods({ Scene: scene.default, AutoTilt: tilt.AutoTilt3D });
+      })
+      .catch((err) => console.warn("[3D layer] failed to load", err));
+    return () => { alive = false; };
+  }, []);
+
+  if (!Mods) return null;
+  const { Scene, AutoTilt } = Mods;
+  return (
+    <>
+      <Scene opacity={0.55} />
+      <AutoTilt />
+    </>
+  );
+}
+
 function VisitTracker() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
@@ -431,12 +466,7 @@ function RootComponent() {
             <PageBackground />
           </Suspense>
         )}
-        {!isAdmin && (
-          <Suspense fallback={null}>
-            <Scene3DBackground opacity={0.55} />
-            <AutoTilt3D />
-          </Suspense>
-        )}
+        {!isAdmin && <ClientOnly3DLayer />}
         {!isAdmin && <Header />}
         <main className="flex-1">
           <Outlet />
