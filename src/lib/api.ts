@@ -71,7 +71,7 @@ const GET: Record<string, Handler> = {
     return camelize(data ?? []);
   },
   "/homepage": async () => {
-    const { data } await supabase.from("homepage_config").select("config").eq("section_key", "default").maybeSingle();
+    const { data } = await supabase.from("homepage_config").select("config").eq("section_key", "default").maybeSingle();
     return camelize(data?.config ?? {});
   },
   "/homepage/testimonials": async () => {
