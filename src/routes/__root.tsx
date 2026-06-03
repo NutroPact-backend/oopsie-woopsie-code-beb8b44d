@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
@@ -25,15 +25,6 @@ const marketingQuery = queryOptions({
   staleTime: 1000 * 60 * 10,
 });
 
-// Lite-mode: defer non-critical overlays. Never block first paint.
-const SocialProof = lazy(() => import("@/components/SocialProof"));
-const ExitIntent = lazy(() => import("@/components/ExitIntent"));
-const AbandonedCart = lazy(() => import("@/components/AbandonedCart"));
-const WhatsAppFloat = lazy(() => import("@/components/WhatsAppFloat"));
-const ChatWidget = lazy(() => import("@/components/ChatWidget"));
-const CookieConsent = lazy(() => import("@/components/CookieConsent"));
-const RecentlyViewed = lazy(() => import("@/components/RecentlyViewed"));
-const PageBackground = lazy(() => import("@/components/PageBackground"));
 // 3D layer is loaded client-only via ClientOnly3DLayer below.
 // We CANNOT use React.lazy() here because @react-three/fiber touches DOM /
 // WebGL APIs at module init, which crashes Cloudflare Worker SSR.
@@ -376,17 +367,44 @@ function AuthSync() {
 
 function DeferredOverlays() {
   const [show, setShow] = useState(false);
+  const [mods, setMods] = useState<null | {
+    SocialProof?: React.ComponentType<any>;
+    ExitIntent?: React.ComponentType<any>;
+    AbandonedCart?: React.ComponentType<any>;
+  }>(null);
   useEffect(() => {
     if (isLiteMode()) return; // skip overlays for 2G / data-saver users
     return onIdle(() => setShow(true), 3000);
   }, []);
+  useEffect(() => {
+    if (!show) return;
+    let alive = true;
+    Promise.allSettled([
+      import("@/components/SocialProof"),
+      import("@/components/ExitIntent"),
+      import("@/components/AbandonedCart"),
+    ]).then((results) => {
+      if (!alive) return;
+      setMods({
+        SocialProof: results[0].status === "fulfilled" ? results[0].value.default : undefined,
+        ExitIntent: results[1].status === "fulfilled" ? results[1].value.default : undefined,
+        AbandonedCart: results[2].status === "fulfilled" ? results[2].value.default : undefined,
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [show]);
   if (!show) return null;
+  const SocialProof = mods?.SocialProof;
+  const ExitIntent = mods?.ExitIntent;
+  const AbandonedCart = mods?.AbandonedCart;
   return (
-    <Suspense fallback={null}>
-      <SocialProof />
-      <ExitIntent />
-      <AbandonedCart />
-    </Suspense>
+    <>
+      {SocialProof ? <SocialProof /> : null}
+      {ExitIntent ? <ExitIntent /> : null}
+      {AbandonedCart ? <AbandonedCart /> : null}
+    </>
   );
 }
 
@@ -433,6 +451,36 @@ function ClientOnly3DLayer() {
   );
 }
 
+function SafeClientModules({
+  loaders,
+  render,
+}: {
+  loaders: Record<string, () => Promise<any>>;
+  render: (mods: Record<string, any>) => React.ReactNode;
+}) {
+  const [mods, setMods] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const entries = Object.entries(loaders);
+    Promise.allSettled(entries.map(([, load]) => load())).then((results) => {
+      if (!alive) return;
+      const next: Record<string, any> = {};
+      results.forEach((result, index) => {
+        const [key] = entries[index];
+        next[key] = result.status === "fulfilled" ? result.value.default ?? result.value : null;
+      });
+      setMods(next);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!mods) return null;
+  return <>{render(mods)}</>;
+}
+
 function VisitTracker() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
@@ -462,9 +510,13 @@ function RootComponent() {
 
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         {!isAdmin && (
-          <Suspense fallback={null}>
-            <PageBackground />
-          </Suspense>
+          <SafeClientModules
+            loaders={{ PageBackground: () => import("@/components/PageBackground") }}
+            render={(mods) => {
+              const PageBackground = mods.PageBackground;
+              return PageBackground ? <PageBackground /> : null;
+            }}
+          />
         )}
         {!isAdmin && <ClientOnly3DLayer />}
         {!isAdmin && <Header />}
@@ -472,19 +524,37 @@ function RootComponent() {
           <Outlet />
         </main>
         {!isAdmin && isHome && (
-          <Suspense fallback={null}>
-            <RecentlyViewed />
-          </Suspense>
+          <SafeClientModules
+            loaders={{ RecentlyViewed: () => import("@/components/RecentlyViewed") }}
+            render={(mods) => {
+              const RecentlyViewed = mods.RecentlyViewed;
+              return RecentlyViewed ? <RecentlyViewed /> : null;
+            }}
+          />
         )}
         {!isAdmin && <Footer />}
       </div>
       {!isAdmin && <DeferredOverlays />}
       {!isAdmin && (
-        <Suspense fallback={null}>
-          <WhatsAppFloat />
-          <CookieConsent />
-          <ChatWidget />
-        </Suspense>
+        <SafeClientModules
+          loaders={{
+            WhatsAppFloat: () => import("@/components/WhatsAppFloat"),
+            CookieConsent: () => import("@/components/CookieConsent"),
+            ChatWidget: () => import("@/components/ChatWidget"),
+          }}
+          render={(mods) => {
+            const WhatsAppFloat = mods.WhatsAppFloat;
+            const CookieConsent = mods.CookieConsent;
+            const ChatWidget = mods.ChatWidget;
+            return (
+              <>
+                {WhatsAppFloat ? <WhatsAppFloat /> : null}
+                {CookieConsent ? <CookieConsent /> : null}
+                {ChatWidget ? <ChatWidget /> : null}
+              </>
+            );
+          }}
+        />
       )}
       <Toaster />
     </QueryClientProvider>
