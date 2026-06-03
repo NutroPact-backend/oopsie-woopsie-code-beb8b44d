@@ -478,13 +478,8 @@ export default function Home() {
     API.get('/products').then(r => setProducts(r.data || [])).catch(() => {});
   }, []);
 
-   if (!hp && !hpResolved) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full" />
-    </div>
-  );
-
-  const rawSections = hp.sections?.length ? mergeSectionsWithLegacy(hp.sections, hp) : legacySectionsFromHp(hp);
+  const homeData = hp ?? {};
+  const rawSections = homeData.sections?.length ? mergeSectionsWithLegacy(homeData.sections, homeData) : legacySectionsFromHp(homeData);
   const sections = rawSections
     .filter((s: any) => s.enabled !== false)
     .sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
