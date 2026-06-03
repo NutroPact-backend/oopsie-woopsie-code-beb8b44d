@@ -16,6 +16,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShippingRouteImport } from './routes/shipping'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as ProductsRouteImport } from './routes/products'
@@ -29,6 +30,7 @@ import { Route as ComboRouteImport } from './routes/combo'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AiDottxtRouteImport } from './routes/ai[.]txt'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
@@ -109,6 +111,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RssDotxmlRoute = RssDotxmlRouteImport.update({
+  id: '/rss.xml',
+  path: '/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   id: '/robots.txt',
   path: '/robots.txt',
@@ -172,6 +179,11 @@ const CartRoute = CartRouteImport.update({
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnswersRoute = AnswersRouteImport.update({
+  id: '/answers',
+  path: '/answers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiDottxtRoute = AiDottxtRouteImport.update({
@@ -406,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
   '/ai.txt': typeof AiDottxtRoute
+  '/answers': typeof AnswersRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -419,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/refund': typeof RefundRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/search': typeof SearchRoute
   '/shipping': typeof ShippingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -472,6 +486,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
   '/ai.txt': typeof AiDottxtRoute
+  '/answers': typeof AnswersRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -484,6 +499,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/search': typeof SearchRoute
   '/shipping': typeof ShippingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -538,6 +554,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/admin': typeof AdminRoute
   '/ai.txt': typeof AiDottxtRoute
+  '/answers': typeof AnswersRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/refund': typeof RefundRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/rss.xml': typeof RssDotxmlRoute
   '/search': typeof SearchRoute
   '/shipping': typeof ShippingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -606,6 +624,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/ai.txt'
+    | '/answers'
     | '/blog'
     | '/cart'
     | '/checkout'
@@ -619,6 +638,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/refund'
     | '/robots.txt'
+    | '/rss.xml'
     | '/search'
     | '/shipping'
     | '/sitemap.xml'
@@ -672,6 +692,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/ai.txt'
+    | '/answers'
     | '/blog'
     | '/cart'
     | '/checkout'
@@ -684,6 +705,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund'
     | '/robots.txt'
+    | '/rss.xml'
     | '/search'
     | '/shipping'
     | '/sitemap.xml'
@@ -737,6 +759,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/ai.txt'
+    | '/answers'
     | '/blog'
     | '/cart'
     | '/checkout'
@@ -750,6 +773,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/refund'
     | '/robots.txt'
+    | '/rss.xml'
     | '/search'
     | '/shipping'
     | '/sitemap.xml'
@@ -804,6 +828,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   AdminRoute: typeof AdminRoute
   AiDottxtRoute: typeof AiDottxtRoute
+  AnswersRoute: typeof AnswersRoute
   BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -817,6 +842,7 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   RefundRoute: typeof RefundRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
+  RssDotxmlRoute: typeof RssDotxmlRoute
   SearchRoute: typeof SearchRoute
   ShippingRoute: typeof ShippingRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -905,6 +931,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rss.xml': {
+      id: '/rss.xml'
+      path: '/rss.xml'
+      fullPath: '/rss.xml'
+      preLoaderRoute: typeof RssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -996,6 +1029,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/answers': {
+      id: '/answers'
+      path: '/answers'
+      fullPath: '/answers'
+      preLoaderRoute: typeof AnswersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai.txt': {
@@ -1370,6 +1410,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   AdminRoute: AdminRoute,
   AiDottxtRoute: AiDottxtRoute,
+  AnswersRoute: AnswersRoute,
   BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
@@ -1383,6 +1424,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   RefundRoute: RefundRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
+  RssDotxmlRoute: RssDotxmlRoute,
   SearchRoute: SearchRoute,
   ShippingRoute: ShippingRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
