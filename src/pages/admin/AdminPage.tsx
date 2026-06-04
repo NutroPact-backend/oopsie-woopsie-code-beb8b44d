@@ -87,7 +87,7 @@ import GrowthBoostersTab from './tabs/GrowthBoostersTab';
 import VideoSectionsTab from './tabs/VideoSectionsTab';
 
 import VariantsManager, { syncVariantsToDb, variantsToJson, type VariantRow } from './components/VariantsManager';
-import { useCategoryNames } from '@/hooks/useCategories';
+import { useCategoryNames, useCategories } from '@/hooks/useCategories';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminPermissions } from '@/hooks/useAdminPermissions';
 import { TAB_PERMISSIONS, TAB_PERMISSION_META } from './tab-permissions';
