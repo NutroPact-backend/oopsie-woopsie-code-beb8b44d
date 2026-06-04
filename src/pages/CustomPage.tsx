@@ -54,15 +54,23 @@ function ProductCard({ product }: { product: any }) {
             </span>
           )}
           {product.images?.[0] ? (
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              width={400}
-              height={400}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
-            />
+            <>
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                width={400}
+                height={400}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div className="absolute inset-0 hidden items-center justify-center text-4xl font-black text-gray-200">NP</div>
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl font-black text-gray-200">NP</div>
           )}

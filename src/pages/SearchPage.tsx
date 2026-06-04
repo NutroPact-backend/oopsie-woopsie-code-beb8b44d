@@ -120,7 +120,16 @@ export default function SearchPage() {
                 <Link key={product._id} href={`/products/${product.slug}`}
                   className="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden group">
                   <div className="bg-gray-100 h-48 flex items-center justify-center relative">
-                    {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : <span className="text-6xl">🥛</span>}
+                    {product.images?.[0] ? <>
+                      <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" loading="lazy" decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-4xl font-black text-gray-200">NP</div>
+                    </> : <span className="text-6xl">🥛</span>}
                     {product.comparePrice > product.price && (
                       <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">{calculateDiscount(product.price, product.comparePrice)}% OFF</span>
                     )}

@@ -316,9 +316,16 @@ function FeaturedProducts({ sec, products }: { sec: any; products: any[] }) {
               className="tilt-3d bg-white rounded-2xl shadow-sm overflow-hidden group border border-gray-100">
               <div className="bg-gray-100 h-48 flex items-center justify-center relative overflow-hidden">
                 {p.images?.[0]
-                  ? <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async"
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                  ? <>
+                      <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async"
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = 'flex';
+                        }} />
+                      <div className="absolute inset-0 hidden items-center justify-center text-4xl font-black text-gray-200">NP</div>
+                    </>
                   : <span className="text-6xl">🥛</span>
                 }
                 {p.comparePrice > p.price && (
