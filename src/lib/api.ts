@@ -572,6 +572,7 @@ async function dynamicGet(path: string): Promise<any> {
 
 const adminGetTableMap: Record<string, string> = {
   "/admin/products": "products",
+  "/admin/product-groups": "product_groups",
   "/admin/orders": "orders",
   "/admin/blog": "blog_posts",
   "/admin/contact": "contact_submissions",
