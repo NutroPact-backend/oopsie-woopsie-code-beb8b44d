@@ -892,6 +892,7 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const [variantsValid, setVariantsValid] = useState(true);
   const [selFlavorIds, setSelFlavorIds] = useState<string[]>([]);
   const [selSizeIds, setSelSizeIds] = useState<string[]>([]);
+  const hydratedProductRef = useRef<string | null>(null);
   const catNames = useCategoryNames();
   const CATEGORIES = catNames.length ? catNames : FALLBACK_CATEGORIES;
   const { data: allCats } = useCategories(true);
@@ -932,6 +933,61 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   })();
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   const setNested = (parent: string, k: string, v: any) => setForm((f: any) => ({ ...f, [parent]: { ...(f[parent] || {}), [k]: v } }));
+
+  useEffect(() => {
+    if (!product?._id) {
+      hydratedProductRef.current = null;
+      setVariantRows([]);
+      setSelFlavorIds([]);
+      setSelSizeIds([]);
+      return;
+    }
+    if (!product?._id || hydratedProductRef.current === product._id) return;
+    hydratedProductRef.current = product._id;
+    const sourceVariants = Array.isArray(product?.variants) ? product.variants : [];
+    setVariantRows(sourceVariants.map((variant: any, index: number) => {
+        const flavorName = variant.flavor ?? variant.flavor_name ?? '';
+        const sizeName = variant.size ?? variant.size_name ?? '';
+        const variantImages = Array.isArray(variant.images)
+          ? variant.images.filter(Boolean)
+          : [variant.image || variant.image_url].filter(Boolean);
+        return {
+          id: variant.id,
+          flavor_id: allFlavors.find((f: any) => f.name === flavorName)?.id ?? null,
+          size_id: allSizes.find((s: any) => s.name === sizeName)?.id ?? null,
+          flavor_name: flavorName,
+          size_name: sizeName,
+          sku: variant.sku || '',
+          price: Number(variant.price || 0),
+          compare_price: Number(variant.comparePrice ?? variant.compare_price ?? 0),
+          stock: Number(variant.stock || 0),
+          image_url: variant.image || variant.image_url || variantImages[0] || '',
+          images: variantImages,
+          description: variant.description || '',
+          highlights: Array.isArray(variant.highlights) ? variant.highlights : [],
+          weight_grams: Number(variant.weightGrams ?? variant.weight_grams ?? 0),
+          is_default: variant.isDefault ?? variant.is_default ?? index === 0,
+          active: variant.active !== false,
+        };
+      }));
+  }, [product?._id, product?.variants, allFlavors, allSizes]);
+
+  useEffect(() => {
+    const sourceVariants = variantRows.length > 0 ? variantRows : (Array.isArray(product?.variants) ? product.variants : []);
+    const flavorNames = sourceVariants.length > 0
+      ? sourceVariants.map((variant: any) => variant.flavor_name ?? variant.flavor).filter(Boolean)
+      : (Array.isArray(form.flavors) ? form.flavors : []);
+    const sizeNames = sourceVariants.length > 0
+      ? sourceVariants.map((variant: any) => variant.size_name ?? variant.size).filter(Boolean)
+      : (Array.isArray(form.sizes) ? form.sizes : []);
+
+    setSelFlavorIds(Array.from(new Set(
+      flavorNames.map((name: string) => allFlavors.find((f: any) => f.name === name)?.id).filter(Boolean),
+    )) as string[]);
+    setSelSizeIds(Array.from(new Set(
+      sizeNames.map((name: string) => allSizes.find((s: any) => s.name === name)?.id).filter(Boolean),
+    )) as string[]);
+  }, [variantRows, product?.variants, form.flavors, form.sizes, allFlavors, allSizes]);
 
   const handleName = (name: string) => { set('name', name); if (!product?._id) set('slug', toSlug(name)); };
 
