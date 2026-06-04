@@ -935,11 +935,17 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const setNested = (parent: string, k: string, v: any) => setForm((f: any) => ({ ...f, [parent]: { ...(f[parent] || {}), [k]: v } }));
 
   useEffect(() => {
+    if (!product?._id) {
+      hydratedProductRef.current = null;
+      setVariantRows([]);
+      setSelFlavorIds([]);
+      setSelSizeIds([]);
+      return;
+    }
     if (!product?._id || hydratedProductRef.current === product._id) return;
     hydratedProductRef.current = product._id;
     const sourceVariants = Array.isArray(product?.variants) ? product.variants : [];
-    if (sourceVariants.length > 0) {
-      setVariantRows(sourceVariants.map((variant: any, index: number) => {
+    setVariantRows(sourceVariants.map((variant: any, index: number) => {
         const flavorName = variant.flavor ?? variant.flavor_name ?? '';
         const sizeName = variant.size ?? variant.size_name ?? '';
         const variantImages = Array.isArray(variant.images)
@@ -964,7 +970,6 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
           active: variant.active !== false,
         };
       }));
-    }
   }, [product?._id, product?.variants, allFlavors, allSizes]);
 
   useEffect(() => {
