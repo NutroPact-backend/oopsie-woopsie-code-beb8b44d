@@ -902,7 +902,7 @@ const EMPTY_PRODUCT: any = {
   name: '', slug: '', price: 0, comparePrice: 0, category: 'Protein', stock: 50,
   ratings: 0, numReviews: 0, isActive: true,
   images: [''], video: '', banners: [],
-  flavors: ['Chocolate', 'Vanilla'], sizes: ['1 kg'],
+  flavors: [], sizes: [],
   shortDescription: '', description: '', howToUse: '', ingredients: '',
   certifications: '',
   keyBenefits: [], nutritionHighlights: [], nutritionFacts: [], qAndA: [],
