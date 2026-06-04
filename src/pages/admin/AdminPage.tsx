@@ -899,6 +899,14 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const { data: allCats } = useCategories(true);
   const { data: allFlavors } = useFlavors(false);
   const { data: allSizes } = useSizes(false);
+  const [groups, setGroups] = useState<any[]>([]);
+  useEffect(() => {
+    let alive = true;
+    AdminAPI.get('/admin/product-groups')
+      .then(r => { if (alive) setGroups((r.data || []).filter((g: any) => g.active !== false)); })
+      .catch(() => { if (alive) setGroups([]); });
+    return () => { alive = false; };
+  }, []);
   // Build indented (hierarchical) options for category dropdown
   const catOptions = (() => {
     if (!allCats?.length) return CATEGORIES.map((n) => ({ name: n, label: n, depth: 0 }));
