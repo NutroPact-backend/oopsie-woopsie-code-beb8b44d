@@ -15,6 +15,7 @@ export default function BrandsTab() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<(Brand | typeof EMPTY) | null>(null);
   const [saving, setSaving] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(false);
   const { uploadFile, isUploading } = useSimpleUpload();
   const sel = useBulkSelection(rows, (b) => b.id);
 
@@ -50,7 +51,7 @@ export default function BrandsTab() {
           <h2 className="text-2xl font-black">Brands</h2>
           <p className="text-sm text-gray-500">Master brand list — used in product form & filters.</p>
         </div>
-        <button onClick={() => setEditing({ ...EMPTY, sort_order: rows.length * 10 })}
+        <button onClick={() => { setSlugTouched(false); setEditing({ ...EMPTY, sort_order: rows.length * 10 }); }}
           className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-sm">
           <Plus size={16} /> New Brand
         </button>
@@ -86,7 +87,7 @@ export default function BrandsTab() {
                   <td className="px-4 py-3 text-center"><button onClick={() => toggle(b)}>{b.active ? <Eye size={16} className="text-green-600" /> : <EyeOff size={16} className="text-gray-300" />}</button></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setEditing(b)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={14} /></button>
+                      <button onClick={() => { setSlugTouched(true); setEditing(b); }} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={14} /></button>
                       <button onClick={() => remove(b)} className="p-1.5 hover:bg-red-50 text-red-500 rounded"><Trash2 size={14} /></button>
                     </div>
                   </td>
@@ -104,8 +105,8 @@ export default function BrandsTab() {
             <div className="border-b px-6 py-4 flex items-center justify-between"><h3 className="text-xl font-black">{'id' in editing ? 'Edit' : 'New'} Brand</h3><button onClick={() => setEditing(null)}><X size={20} /></button></div>
             <div className="p-6 space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Name *"><input className="np-in" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value, slug: editing.slug || toSlug(e.target.value) })} /></Field>
-                <Field label="Slug"><input className="np-in font-mono" value={editing.slug} onChange={e => setEditing({ ...editing, slug: toSlug(e.target.value) })} /></Field>
+                <Field label="Name *"><input className="np-in" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value, slug: slugTouched ? editing.slug : toSlug(e.target.value) })} /></Field>
+                <Field label="Slug"><input className="np-in font-mono" value={editing.slug} onChange={e => { setSlugTouched(true); setEditing({ ...editing, slug: toSlug(e.target.value) }); }} /></Field>
               </div>
               <Field label="Description"><textarea className="np-in min-h-[60px]" value={editing.description} onChange={e => setEditing({ ...editing, description: e.target.value })} /></Field>
               <Field label="Logo">
