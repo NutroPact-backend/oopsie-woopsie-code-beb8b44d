@@ -69,6 +69,59 @@ export default function MailSystemTab() {
         </p>
       </div>
 
+      {/* Sender domain / branding guide */}
+      <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-5 space-y-4">
+        <div>
+          <h3 className="font-black text-lg flex items-center gap-2">
+            <Mail size={18} className="text-orange-600" /> Sender Domain Setup (Your own branded emails)
+          </h3>
+          <p className="text-xs text-gray-600 mt-1">
+            By default, transactional &amp; auth emails go out from the platform's shared
+            sender (<code className="bg-white px-1 rounded">no-reply@auth.lovable.cloud</code>).
+            To send from <b>your own domain</b> (e.g. <code className="bg-white px-1 rounded">no-reply@nutropact.com</code>),
+            follow the steps below. This is fully independent — no third-party lock-in.
+          </p>
+        </div>
+
+        <ol className="space-y-3 text-sm">
+          <Step n={1} title="Pick a sender subdomain">
+            Recommended: <code className="bg-white px-1 rounded">notify.yourdomain.com</code> or
+            <code className="bg-white px-1 rounded"> mail.yourdomain.com</code>. Keep it separate from
+            your root domain so your normal email (Google Workspace etc.) is untouched.
+          </Step>
+          <Step n={2} title="Choose a sending path">
+            <ul className="list-disc ml-4 space-y-1">
+              <li><b>Option A — Self-hosted relay</b> (see guide below). Best for full control + zero per-email cost.</li>
+              <li><b>Option B — Hosted provider</b> (Resend / Brevo / SendGrid — see cards below). Fastest to launch.</li>
+            </ul>
+          </Step>
+          <Step n={3} title="Verify the domain with the provider">
+            Add the <b>SPF</b>, <b>DKIM</b> and <b>DMARC</b> TXT records the provider gives you to your DNS
+            (Cloudflare / GoDaddy / Route53). Wait for "Verified" status before sending.
+          </Step>
+          <Step n={4} title="Configure mailboxes here">
+            Go to <b>Messaging Gateway → Email → Mailboxes</b> and set the <i>from</i> address
+            (e.g. <code className="bg-white px-1 rounded">no-reply@notify.yourdomain.com</code>),
+            reply-to, and sender name per channel (orders / marketing / support).
+          </Step>
+          <Step n={5} title="Send a test (above) and verify deliverability">
+            Use the <b>Send a test email</b> box above. Open
+            <a href="https://www.mail-tester.com" target="_blank" rel="noreferrer"
+              className="text-orange-600 font-bold hover:underline mx-1">mail-tester.com</a>
+            and send a test there — aim for <b>9/10+</b>. If SPF/DKIM fail, recheck the DNS records.
+          </Step>
+        </ol>
+
+        <div className="text-[11px] text-gray-600 bg-white/60 border border-orange-200 rounded p-2 flex gap-1.5">
+          <Info size={12} className="mt-0.5 text-orange-500 shrink-0" />
+          <span>
+            Tip: For auth emails (signup OTP, password reset) the <i>from</i> address is read from the
+            mailbox you mark as <b>auth</b> in Messaging Gateway. Once that mailbox uses your domain,
+            users stop seeing the platform default.
+          </span>
+        </div>
+      </div>
+
       {/* Status card */}
       <div className="bg-white border rounded-2xl p-5">
         <div className="flex items-center justify-between flex-wrap gap-3">
