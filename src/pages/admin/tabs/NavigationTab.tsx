@@ -1,16 +1,9 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Plus, Trash2, Save, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";
 import { BulkActionBar, SelectCheckbox } from '../components/BulkSelect';
-
-const AdminAPI = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
-AdminAPI.interceptors.request.use(config => {
-  const token = sessionStorage.getItem('np_admin_token');
-  if (token) config.headers['x-admin-token'] = token;
-  return config;
-});
+import API from '@/lib/api';
 
 const DEFAULTS = [
   { label: 'All Products', href: '/products' },
@@ -26,7 +19,7 @@ export default function NavigationTab() {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
-    AdminAPI.get('/admin/settings').then(r => {
+    API.get('/admin/settings').then(r => {
       setLinks(r.data.navLinks?.length ? r.data.navLinks : DEFAULTS);
     }).catch(() => setLinks(DEFAULTS));
   }, []);
@@ -34,10 +27,13 @@ export default function NavigationTab() {
   const save = async () => {
     setSaving(true);
     try {
-      await AdminAPI.put('/admin/settings', { navLinks: links });
+      await API.put('/admin/settings', { navLinks: links });
+      window.dispatchEvent(new CustomEvent('site-settings-updated', { detail: { navLinks: links } }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch { alert('Save failed'); }
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Save failed');
+    }
     setSaving(false);
   };
 
