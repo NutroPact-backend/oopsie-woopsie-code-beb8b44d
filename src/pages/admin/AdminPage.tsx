@@ -65,6 +65,7 @@ import CategoriesTab from './tabs/CategoriesTab';
 import BrandsTab from './tabs/BrandsTab';
 import FlavorsTab from './tabs/FlavorsTab';
 import SizesTab from './tabs/SizesTab';
+import SizeChartsTab from './tabs/SizeChartsTab';
 import SecurityTab from './tabs/SecurityTab';
 import ProductAuthTab from './tabs/ProductAuthTab';
 import SeoDebugTab from './tabs/SeoDebugTab';
@@ -103,7 +104,7 @@ AdminAPI.interceptors.request.use(config => {
   return config;
 });
 
-type Tab = 'dashboard' | 'analytics' | 'products' | 'productauth' | 'categories' | 'brands' | 'flavors' | 'sizes' | 'bulkimport' | 'inventory' | 'accounting' | 'orders' | 'abandoned' | 'subscriptions' | 'campaigns' | 'giftcards' | 'chatbot' | 'loyalty' | 'referrals' | 'wholesale' | 'productqa' | 'settings' | 'site' | 'about' | 'navigation' | 'homepage' | 'footer' | 'coupons' | 'offers' | 'notifications' | 'communications' | 'messaging' | 'mailsystem' | 'popups' | 'dimensions' | 'blog' | 'faq' | 'reviews' | 'reviewmod' | 'contact' | 'ai' | 'aiseo' | 'shipping' | 'automation' | 'reconciliation' | 'returns' | 'ordermodify' | 'users' | 'customer360' | 'pages' | 'sitemap' | 'payments' | 'wallet' | 'security' | 'marketing' | 'seocommand' | 'seodebug' | 'auditlog' | 'support' | 'backup' | 'roas' | 'bulkorders' | 'experiments' | 'health' | 'superadmin' | 'backgrounds' | 'whatsapp_channels' | 'urgency' | 'quick_checkout' | 'variants_pro' | 'verification' | 'growth_boosters' | 'videosections';
+type Tab = 'dashboard' | 'analytics' | 'products' | 'productauth' | 'categories' | 'brands' | 'flavors' | 'sizes' | 'sizecharts' | 'bulkimport' | 'inventory' | 'accounting' | 'orders' | 'abandoned' | 'subscriptions' | 'campaigns' | 'giftcards' | 'chatbot' | 'loyalty' | 'referrals' | 'wholesale' | 'productqa' | 'settings' | 'site' | 'about' | 'navigation' | 'homepage' | 'footer' | 'coupons' | 'offers' | 'notifications' | 'communications' | 'messaging' | 'mailsystem' | 'popups' | 'dimensions' | 'blog' | 'faq' | 'reviews' | 'reviewmod' | 'contact' | 'ai' | 'aiseo' | 'shipping' | 'automation' | 'reconciliation' | 'returns' | 'ordermodify' | 'users' | 'customer360' | 'pages' | 'sitemap' | 'payments' | 'wallet' | 'security' | 'marketing' | 'seocommand' | 'seodebug' | 'auditlog' | 'support' | 'backup' | 'roas' | 'bulkorders' | 'experiments' | 'health' | 'superadmin' | 'backgrounds' | 'whatsapp_channels' | 'urgency' | 'quick_checkout' | 'variants_pro' | 'verification' | 'growth_boosters' | 'videosections';
 type ModalTab = 'details' | 'reviews';
 type ProductSubTab = 'basic' | 'variants' | 'media' | 'content' | 'benefits' | 'shipping' | 'seo' | 'pixels';
 
@@ -1794,6 +1795,7 @@ export default function AdminPage() {
         { id: 'brands', icon: <Award size={16} />, label: 'Brands', desc: 'Brand master — logo, description, sort' },
         { id: 'flavors', icon: <Sparkles size={16} />, label: 'Flavors', desc: 'Global flavor master with color swatches' },
         { id: 'sizes', icon: <Ruler size={16} />, label: 'Sizes', desc: 'Global size master — grams used in shipping' },
+        { id: 'sizecharts', icon: <Ruler size={16} />, label: 'Size Charts', desc: 'Reusable charts for apparel & accessories (wrist band, lifting belt, t-shirt…)' },
         { id: 'dimensions', icon: <Ruler size={16} />, label: 'Dimensions', desc: 'Shipping sizes' },
         { id: 'bulkimport', icon: <Upload size={16} />, label: 'Bulk Import', desc: 'CSV / Excel — 100s of products at once' },
         { id: 'inventory', icon: <Package size={16} />, label: 'Inventory', desc: 'Stock levels, low-stock alerts, manual adjustments' },
@@ -1971,6 +1973,7 @@ export default function AdminPage() {
             {tab === 'brands'       && <BrandsTab />}
             {tab === 'flavors'      && <FlavorsTab />}
             {tab === 'sizes'        && <SizesTab />}
+            {tab === 'sizecharts'   && <SizeChartsTab />}
             {tab === 'bulkimport'   && <BulkImportTab />}
             {tab === 'inventory'    && <InventoryTab />}
             {tab === 'accounting'   && <AccountingTab />}
