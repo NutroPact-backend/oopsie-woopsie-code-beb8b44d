@@ -182,11 +182,32 @@ function ImageRowUploader({ value, index, isFirst, isLast, onUpdate, onRemove, o
   );
 }
 
-function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
+function AddImageRow({ onAdd, onAddMany }: { onAdd: (url: string) => void; onAddMany?: (urls: string[]) => void }) {
   const [newUrl, setNewUrl] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, isUploading, progress } = useSimpleUpload({ onSuccess: (url: string) => onAdd(url) });
+  const { uploadFile, isUploading, progress } = useSimpleUpload({});
+  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
   const addUrl = () => { const url = newUrl.trim(); if (!url) return; onAdd(url); setNewUrl(''); };
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (imgs.length === 0) return;
+    setBatch({ done: 0, total: imgs.length });
+    let done = 0;
+    const results = await Promise.all(imgs.map(async f => {
+      const url = await uploadFile(f);
+      done += 1;
+      setBatch({ done, total: imgs.length });
+      return url;
+    }));
+    const urls = results.filter((u): u is string => !!u);
+    if (urls.length) {
+      if (onAddMany) onAddMany(urls);
+      else urls.forEach(u => onAdd(u));
+    }
+    setBatch(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
   return (
     <div className="flex gap-2 mt-1 flex-wrap">
       <input value={newUrl} onChange={e => setNewUrl(e.target.value)}
@@ -197,18 +218,18 @@ function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
         className="px-3 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1">
         <Plus size={14} /> Add
       </button>
-      {isUploading ? (
-        <div className="px-3 flex items-center text-xs text-gray-400 font-bold">{progress}%</div>
+      {isUploading || batch ? (
+        <div className="px-3 flex items-center text-xs text-gray-500 font-bold gap-2">
+          {batch ? `${batch.done}/${batch.total}` : `${progress}%`}
+        </div>
       ) : (
         <button type="button" onClick={() => fileRef.current?.click()}
           className="px-3 py-2 bg-gray-100 hover:bg-orange-50 text-gray-500 hover:text-orange-500 rounded-xl text-xs font-bold border border-gray-200 flex items-center gap-1 transition">
-          <Upload size={14} /> Upload Image
+          <Upload size={14} /> Upload Images
         </button>
       )}
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={async e => {
-        const f = e.target.files?.[0]; if (!f || !f.type.startsWith('image/')) return;
-        await uploadFile(f); if (fileRef.current) fileRef.current.value = '';
-      }} />
+      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={e => handleFiles(e.target.files)} />
     </div>
   );
 }
@@ -315,17 +336,35 @@ function ImgUploadInp({ label, value, onChange, placeholder }: any) {
 function ImageGalleryManager({ images, onChange }: { images: string[]; onChange: (imgs: string[]) => void }) {
   const list: string[] = Array.isArray(images) ? images : [];
   const add = (url: string) => onChange([...list, url]);
+  const addMany = (urls: string[]) => onChange([...list, ...urls]);
   const remove = (i: number) => onChange(list.filter((_, idx) => idx !== i));
   const moveUp = (i: number) => { if (i === 0) return; const next = [...list]; [next[i - 1], next[i]] = [next[i], next[i - 1]]; onChange(next); };
   const moveDown = (i: number) => { if (i === list.length - 1) return; const next = [...list]; [next[i], next[i + 1]] = [next[i + 1], next[i]]; onChange(next); };
   const updateUrl = (i: number, val: string) => { const next = [...list]; next[i] = val; onChange(next); };
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const onDrop = (target: number) => {
+    if (dragIdx === null || dragIdx === target) { setDragIdx(null); return; }
+    const next = [...list];
+    const [moved] = next.splice(dragIdx, 1);
+    next.splice(target, 0, moved);
+    setDragIdx(null);
+    onChange(next);
+  };
   return (
     <div className="space-y-2">
       <label className="text-xs font-bold text-gray-500 block">Product Images</label>
       {list.map((url, i) => (
-        <ImageRowUploader key={i} value={url} index={i} isFirst={i === 0} isLast={i === list.length - 1}
-          onUpdate={val => updateUrl(i, val)} onRemove={() => remove(i)}
-          onMoveUp={() => moveUp(i)} onMoveDown={() => moveDown(i)} />
+        <div key={i}
+          draggable
+          onDragStart={() => setDragIdx(i)}
+          onDragOver={e => { e.preventDefault(); }}
+          onDrop={() => onDrop(i)}
+          onDragEnd={() => setDragIdx(null)}
+          className={`transition ${dragIdx === i ? 'opacity-40' : ''}`}>
+          <ImageRowUploader value={url} index={i} isFirst={i === 0} isLast={i === list.length - 1}
+            onUpdate={val => updateUrl(i, val)} onRemove={() => remove(i)}
+            onMoveUp={() => moveUp(i)} onMoveDown={() => moveDown(i)} />
+        </div>
       ))}
       {list.filter(Boolean).length > 1 && (
         <div className="flex gap-2 mt-1 flex-wrap">
@@ -337,8 +376,8 @@ function ImageGalleryManager({ images, onChange }: { images: string[]; onChange:
           <p className="text-xs text-gray-400 self-center ml-1">↑ First image = primary</p>
         </div>
       )}
-      <AddImageRow onAdd={add} />
-      <p className="text-xs text-gray-400">First image is primary (shown in listings). Add up to 6 for gallery.</p>
+      <AddImageRow onAdd={add} onAddMany={addMany} />
+      <p className="text-xs text-gray-400">Drag rows to reorder. First image is primary (shown in listings). Select multiple files at once to bulk upload.</p>
     </div>
   );
 }
