@@ -526,7 +526,6 @@ export type Database = {
           data: Json | null
           excerpt: string | null
           id: string
-          is_published: boolean | null
           meta_description: string | null
           meta_title: string | null
           published: boolean | null
@@ -545,7 +544,6 @@ export type Database = {
           data?: Json | null
           excerpt?: string | null
           id?: string
-          is_published?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
           published?: boolean | null
@@ -564,7 +562,6 @@ export type Database = {
           data?: Json | null
           excerpt?: string | null
           id?: string
-          is_published?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
           published?: boolean | null
@@ -583,7 +580,6 @@ export type Database = {
           data: Json | null
           description: string | null
           id: string
-          is_active: boolean | null
           logo_url: string | null
           name: string
           slug: string | null
@@ -596,7 +592,6 @@ export type Database = {
           data?: Json | null
           description?: string | null
           id?: string
-          is_active?: boolean | null
           logo_url?: string | null
           name: string
           slug?: string | null
@@ -609,7 +604,6 @@ export type Database = {
           data?: Json | null
           description?: string | null
           id?: string
-          is_active?: boolean | null
           logo_url?: string | null
           name?: string
           slug?: string | null
@@ -670,7 +664,6 @@ export type Database = {
           icon: string | null
           id: string
           image_url: string | null
-          is_active: boolean | null
           meta_description: string | null
           meta_title: string | null
           name: string
@@ -691,7 +684,6 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
           name: string
@@ -712,7 +704,6 @@ export type Database = {
           icon?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           meta_description?: string | null
           meta_title?: string | null
           name?: string
@@ -879,7 +870,6 @@ export type Database = {
           discount_type: string | null
           discount_value: number | null
           id: string
-          is_active: boolean | null
           min_quantity: number | null
           name: string | null
           product_ids: string[] | null
@@ -893,7 +883,6 @@ export type Database = {
           discount_type?: string | null
           discount_value?: number | null
           id?: string
-          is_active?: boolean | null
           min_quantity?: number | null
           name?: string | null
           product_ids?: string[] | null
@@ -907,7 +896,6 @@ export type Database = {
           discount_type?: string | null
           discount_value?: number | null
           id?: string
-          is_active?: boolean | null
           min_quantity?: number | null
           name?: string | null
           product_ids?: string[] | null
@@ -1001,7 +989,6 @@ export type Database = {
           discount_value: number | null
           expires_at: string | null
           id: string
-          is_active: boolean | null
           is_public: boolean | null
           label: string | null
           max_discount: number | null
@@ -1024,7 +1011,6 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           id?: string
-          is_active?: boolean | null
           is_public?: boolean | null
           label?: string | null
           max_discount?: number | null
@@ -1047,7 +1033,6 @@ export type Database = {
           discount_value?: number | null
           expires_at?: string | null
           id?: string
-          is_active?: boolean | null
           is_public?: boolean | null
           label?: string | null
           max_discount?: number | null
@@ -1257,7 +1242,6 @@ export type Database = {
           category: string | null
           created_at: string
           data: Json | null
-          enabled: boolean | null
           id: string
           is_active: boolean | null
           question: string | null
@@ -1269,7 +1253,6 @@ export type Database = {
           category?: string | null
           created_at?: string
           data?: Json | null
-          enabled?: boolean | null
           id?: string
           is_active?: boolean | null
           question?: string | null
@@ -1281,7 +1264,6 @@ export type Database = {
           category?: string | null
           created_at?: string
           data?: Json | null
-          enabled?: boolean | null
           id?: string
           is_active?: boolean | null
           question?: string | null
@@ -1557,7 +1539,6 @@ export type Database = {
           is_active: boolean | null
           key: string | null
           payload: Json | null
-          section_key: string | null
           sort_order: number | null
           subtitle: string | null
           title: string | null
@@ -1571,7 +1552,6 @@ export type Database = {
           is_active?: boolean | null
           key?: string | null
           payload?: Json | null
-          section_key?: string | null
           sort_order?: number | null
           subtitle?: string | null
           title?: string | null
@@ -1585,7 +1565,6 @@ export type Database = {
           is_active?: boolean | null
           key?: string | null
           payload?: Json | null
-          section_key?: string | null
           sort_order?: number | null
           subtitle?: string | null
           title?: string | null
@@ -2064,7 +2043,6 @@ export type Database = {
           free_product_name: string | null
           id: string
           image_url: string | null
-          is_active: boolean | null
           link_url: string | null
           max_order_value: number | null
           min_amount: number | null
@@ -2102,7 +2080,6 @@ export type Database = {
           free_product_name?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           link_url?: string | null
           max_order_value?: number | null
           min_amount?: number | null
@@ -2140,7 +2117,6 @@ export type Database = {
           free_product_name?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           link_url?: string | null
           max_order_value?: number | null
           min_amount?: number | null
@@ -2267,7 +2243,6 @@ export type Database = {
           items: Json | null
           notes: string | null
           order_number: string | null
-          order_status: string | null
           payment_id: string | null
           payment_method: string | null
           payment_status: string | null
@@ -2298,7 +2273,6 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           order_number?: string | null
-          order_status?: string | null
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -2329,7 +2303,6 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           order_number?: string | null
-          order_status?: string | null
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -2437,7 +2410,6 @@ export type Database = {
           discount_type: string | null
           discount_value: number | null
           id: string
-          is_active: boolean | null
           link: string | null
           logo: string | null
           max_cashback: number | null
@@ -2464,7 +2436,6 @@ export type Database = {
           discount_type?: string | null
           discount_value?: number | null
           id?: string
-          is_active?: boolean | null
           link?: string | null
           logo?: string | null
           max_cashback?: number | null
@@ -2491,7 +2462,6 @@ export type Database = {
           discount_type?: string | null
           discount_value?: number | null
           id?: string
-          is_active?: boolean | null
           link?: string | null
           logo?: string | null
           max_cashback?: number | null
@@ -3003,7 +2973,6 @@ export type Database = {
           hex_color: string | null
           id: string
           image_url: string | null
-          is_active: boolean | null
           name: string
           price_adjustment: number | null
           product_id: string
@@ -3020,7 +2989,6 @@ export type Database = {
           hex_color?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           name: string
           price_adjustment?: number | null
           product_id: string
@@ -3037,7 +3005,6 @@ export type Database = {
           hex_color?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           name?: string
           price_adjustment?: number | null
           product_id?: string
@@ -3160,7 +3127,6 @@ export type Database = {
           created_at: string
           data: Json | null
           id: string
-          is_active: boolean | null
           name: string
           price: number | null
           product_id: string
@@ -3178,7 +3144,6 @@ export type Database = {
           created_at?: string
           data?: Json | null
           id?: string
-          is_active?: boolean | null
           name: string
           price?: number | null
           product_id: string
@@ -3196,7 +3161,6 @@ export type Database = {
           created_at?: string
           data?: Json | null
           id?: string
-          is_active?: boolean | null
           name?: string
           price?: number | null
           product_id?: string
@@ -3258,7 +3222,6 @@ export type Database = {
           flavor_name: string | null
           id: string
           image_url: string | null
-          is_active: boolean | null
           is_default: boolean | null
           low_stock_threshold: number | null
           name: string | null
@@ -3283,7 +3246,6 @@ export type Database = {
           flavor_name?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           is_default?: boolean | null
           low_stock_threshold?: number | null
           name?: string | null
@@ -3308,7 +3270,6 @@ export type Database = {
           flavor_name?: string | null
           id?: string
           image_url?: string | null
-          is_active?: boolean | null
           is_default?: boolean | null
           low_stock_threshold?: number | null
           name?: string | null
@@ -4738,7 +4699,6 @@ export type Database = {
           exclude_product_ids: string[] | null
           id: string
           include_product_ids: string[] | null
-          is_active: boolean | null
           label_template: string | null
           message_template: string | null
           min_to_show: number | null
@@ -4757,7 +4717,6 @@ export type Database = {
           exclude_product_ids?: string[] | null
           id?: string
           include_product_ids?: string[] | null
-          is_active?: boolean | null
           label_template?: string | null
           message_template?: string | null
           min_to_show?: number | null
@@ -4776,7 +4735,6 @@ export type Database = {
           exclude_product_ids?: string[] | null
           id?: string
           include_product_ids?: string[] | null
-          is_active?: boolean | null
           label_template?: string | null
           message_template?: string | null
           min_to_show?: number | null
