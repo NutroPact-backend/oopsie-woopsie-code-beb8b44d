@@ -924,8 +924,15 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
       // Mirror variants into legacy jsonb shape for backward-compat with PDP
       const flavorNames = Array.from(new Set(variantRows.map(v => v.flavor_name).filter(Boolean)));
       const sizeNames = Array.from(new Set(variantRows.map(v => v.size_name).filter(Boolean)));
+      // Merge primary category + extra (ancestor) categories into tags so
+      // listings filtered by category name also surface this product.
+      const extraCats: string[] = Array.isArray(form.extraCategories) ? form.extraCategories : [];
+      const baseTags: string[] = Array.isArray(form.tags) ? form.tags : [];
+      const mergedTags = Array.from(new Set([...baseTags, form.category, ...extraCats].filter(Boolean)));
       const payload = {
         ...form,
+        tags: mergedTags,
+        extraCategories: extraCats,
         certifications: typeof form.certifications === 'string'
           ? form.certifications.split(',').map((s: string) => s.trim()).filter(Boolean)
           : form.certifications,
