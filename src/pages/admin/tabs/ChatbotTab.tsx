@@ -616,7 +616,7 @@ function SettingsView() {
             className="w-full" />
           <div className="flex justify-between text-[10px] text-gray-500">
             <span>0 — AI har baat khud handle kare</span>
-            <span>1 — sirf 100% sure replies, warna escalate</span>
+            <span>1 — only 100% confident replies, otherwise escalate</span>
           </div>
           <p className="text-[11px] text-gray-600 mt-1">
             Recommended: <b>0.55–0.65</b>. The AI returns a 0–1 confidence with every reply; below this threshold it auto-escalates.

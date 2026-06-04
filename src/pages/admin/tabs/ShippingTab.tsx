@@ -213,7 +213,7 @@ export default function ShippingTab() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-xl font-black flex items-center gap-2"><Truck size={18} className="text-orange-500" /> Shipping & Logistics</h2>
-          <p className="text-sm text-gray-500">Sirf API keys daalo, baaki shipment creation / rate fetch automatic ho jayega.</p>
+          <p className="text-sm text-gray-500">Just paste the API keys — shipment creation / rate fetch happens automatically.</p>
         </div>
         <button onClick={save} disabled={saving}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition ${saved ? 'bg-green-500 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'} disabled:opacity-50`}>

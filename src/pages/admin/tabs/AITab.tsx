@@ -124,7 +124,7 @@ export default function AITab() {
               <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
                 className="text-orange-600 hover:underline inline-flex items-center gap-1">
                 aistudio.google.com/apikey <ExternalLink size={11} />
-              </a>{' '}se le lo (1500 free requests/day). Key sirf admins ko visible hai.
+              </a>{' '}to grab one (1500 free requests/day). The key is visible only to admins.
             </p>
           </div>
           {apiKeyMasked && (
@@ -170,7 +170,7 @@ export default function AITab() {
           <input type="checkbox" checked={s.enabled} onChange={e => set('enabled', e.target.checked)} className="w-5 h-5 accent-orange-500" />
           <div>
             <p className="font-bold text-sm flex items-center gap-1"><Bot size={14} className="text-orange-500" /> Enable AI Search</p>
-            <p className="text-xs text-gray-500">Off karne par /search page sirf normal product search dikhayega.</p>
+            <p className="text-xs text-gray-500">When turned off, the /search page shows only regular product search.</p>
           </div>
         </label>
       </section>
