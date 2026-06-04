@@ -895,6 +895,24 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const catNames = useCategoryNames();
   const CATEGORIES = catNames.length ? catNames : FALLBACK_CATEGORIES;
   const { data: allCats } = useCategories(true);
+  const { data: allFlavors } = useFlavors(false);
+  const { data: allSizes } = useSizes(false);
+  // Build indented (hierarchical) options for category dropdown
+  const catOptions = (() => {
+    if (!allCats?.length) return CATEGORIES.map((n) => ({ name: n, label: n, depth: 0 }));
+    const out: { name: string; label: string; depth: number }[] = [];
+    const walk = (pid: string | null, depth: number) => {
+      allCats
+        .filter((c: any) => (c.parent_id || null) === pid && c.active !== false)
+        .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+        .forEach((c: any) => {
+          out.push({ name: c.name, label: `${'— '.repeat(depth)}${c.name}`, depth });
+          walk(c.id, depth + 1);
+        });
+    };
+    walk(null, 0);
+    return out;
+  })();
   // ancestors of currently selected category (parent → super-parent → …)
   const catAncestors = (() => {
     if (!allCats?.length || !form.category) return [] as { id: string; name: string }[];
@@ -1030,7 +1048,7 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
                   <div>
                     <label className="text-xs font-bold text-gray-500 block mb-1">Category</label>
                     <select value={form.category || 'Protein'} onChange={e => set('category', e.target.value)} className="w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-orange-400">
-                      {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                      {catOptions.map(c => <option key={c.name} value={c.name}>{c.label}</option>)}
                     </select>
                     {catAncestors.length > 0 && (
                       <div className="mt-2 p-2.5 rounded-xl bg-orange-50/60 border border-orange-100">
@@ -1077,11 +1095,52 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-500 block mb-1">Flavors (comma-separated)</label>
-                    <input value={(form.flavors || []).join(', ')} onChange={e => set('flavors', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400" placeholder="Chocolate, Vanilla, Strawberry" />
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Flavors</label>
+                    {allFlavors.length === 0 ? (
+                      <p className="text-xs text-gray-400 px-3 py-2 border rounded-xl bg-gray-50">No flavors in master list. Add some in the Flavors tab.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5 p-2 border rounded-xl max-h-32 overflow-y-auto bg-white">
+                        {allFlavors.map((f: any) => {
+                          const cur: string[] = Array.isArray(form.flavors) ? form.flavors : [];
+                          const checked = cur.includes(f.name);
+                          return (
+                            <label key={f.id} className={`px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer border ${checked ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                              <input type="checkbox" className="hidden" checked={checked} onChange={e => {
+                                const next = new Set(cur);
+                                if (e.target.checked) next.add(f.name); else next.delete(f.name);
+                                set('flavors', Array.from(next));
+                              }} />
+                              {f.hex_color && <span className="inline-block w-2.5 h-2.5 rounded-full mr-1 align-middle" style={{ background: f.hex_color }} />}
+                              {f.name}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-500 block mb-1">Sizes (comma-separated)</label>
-                    <input value={(form.sizes || []).join(', ')} onChange={e => set('sizes', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400" placeholder="1 kg, 2 kg, 4 kg" />
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Sizes</label>
+                    {allSizes.length === 0 ? (
+                      <p className="text-xs text-gray-400 px-3 py-2 border rounded-xl bg-gray-50">No sizes in master list. Add some in the Sizes tab.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5 p-2 border rounded-xl max-h-32 overflow-y-auto bg-white">
+                        {allSizes.map((s: any) => {
+                          const cur: string[] = Array.isArray(form.sizes) ? form.sizes : [];
+                          const checked = cur.includes(s.name);
+                          return (
+                            <label key={s.id} className={`px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer border ${checked ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+                              <input type="checkbox" className="hidden" checked={checked} onChange={e => {
+                                const next = new Set(cur);
+                                if (e.target.checked) next.add(s.name); else next.delete(s.name);
+                                set('sizes', Array.from(next));
+                              }} />
+                              {s.name}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-xs font-bold text-gray-500 block mb-1">Short Description (shown in listings)</label>
