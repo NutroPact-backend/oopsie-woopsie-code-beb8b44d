@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Sparkles, Upload, Star, RotateCw } from 'lucide-react';
+import { Plus, Trash2, Sparkles, Upload, Star, RotateCw, ChevronDown, ChevronUp, X as XIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFlavors, useSizes, fetchVariants, type ProductVariant } from '@/hooks/useMasterData';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';
@@ -23,6 +23,9 @@ export interface VariantRow {
   compare_price: number;
   stock: number;
   image_url: string;
+  images: string[];
+  description: string;
+  highlights: string[];
   weight_grams: number;
   is_default: boolean;
   active: boolean;
@@ -53,6 +56,8 @@ export default function VariantsManager(props: Props) {
   const [bulkPrice, setBulkPrice] = useState<string>('');
   const [bulkStock, setBulkStock] = useState<string>('');
   const [loadingDb, setLoadingDb] = useState(false);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const toggleExpand = (i: number) => setExpanded(e => ({ ...e, [i]: !e[i] }));
 
   // On mount with existing product, hydrate from DB (only if parent hasn't pre-populated)
   useEffect(() => {
@@ -99,7 +104,8 @@ export default function VariantsManager(props: Props) {
           flavor_id: fId, size_id: sId, flavor_name: fName, size_name: sName,
           sku: autoSku(productName, fName, sName),
           price: basePrice || 0, compare_price: baseComparePrice || 0,
-          stock: 50, image_url: '', weight_grams: sId ? sizeMap[sId]?.value_grams || 0 : 0,
+          stock: 50, image_url: '', images: [], description: '', highlights: [],
+          weight_grams: sId ? sizeMap[sId]?.value_grams || 0 : 0,
           is_default: matrix.length === 0, active: true,
         });
       }
@@ -120,6 +126,18 @@ export default function VariantsManager(props: Props) {
     onChange(next);
   };
   const removeRow = (idx: number) => onChange(variants.filter((_, i) => i !== idx));
+  const addImageToRow = async (idx: number, file: File) => {
+    const url = await uploadFile(file);
+    if (!url) return;
+    const row = variants[idx];
+    const next = [...(row.images || []), url];
+    updateRow(idx, { images: next, image_url: row.image_url || url });
+  };
+  const removeImageFromRow = (idx: number, imgIdx: number) => {
+    const row = variants[idx];
+    const next = (row.images || []).filter((_, j) => j !== imgIdx);
+    updateRow(idx, { images: next, image_url: next[0] || '' });
+  };
   const applyBulkPrice = () => { const v = Number(bulkPrice); if (!v) return; onChange(variants.map(r => ({ ...r, price: v }))); };
   const applyBulkStock = () => { const v = Number(bulkStock); if (bulkStock === '') return; onChange(variants.map(r => ({ ...r, stock: v }))); };
   const regenSkus = () => onChange(variants.map(r => ({ ...r, sku: autoSku(productName, r.flavor_name, r.size_name) })));
