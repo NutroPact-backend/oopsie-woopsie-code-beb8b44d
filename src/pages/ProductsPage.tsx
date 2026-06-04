@@ -58,7 +58,7 @@ function ProductCard({ product }: { product: Product }) {
   const buyNow = (e: React.MouseEvent) => { quickAdd(e); navigate({ to: '/checkout' }); };
 
   return (
-    <div className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+    <div className="group tilt-3d relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
         <div className="relative bg-gray-50 aspect-square overflow-hidden">
           {discount > 0 && (
