@@ -179,7 +179,16 @@ function CategoryPage() {
                 <Link to="/products/$slug" params={{ slug: p.slug }} className="block">
                   <div className="relative bg-gray-50 aspect-square overflow-hidden">
                     {discount > 0 && <span className="absolute top-3 left-3 z-10 bg-green-500 text-white text-xs font-black px-2 py-1 rounded-full">{discount}% OFF</span>}
-                    {p.images?.[0] ? <img src={p.images[0]} alt={p.name} width={400} height={400} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-gray-200">NP</div>}
+                    {p.images?.[0] ? <>
+                      <img src={p.images[0]} alt={p.name} width={400} height={400} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                      <div className="absolute inset-0 hidden items-center justify-center text-4xl font-black text-gray-200">NP</div>
+                    </> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-gray-200">NP</div>}
                   </div>
                   <div className="p-4 pb-2">
                     <p className="text-xs text-gray-400 font-medium mb-1">{p.category}</p>
