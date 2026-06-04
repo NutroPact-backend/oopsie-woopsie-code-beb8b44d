@@ -85,6 +85,7 @@ import VariantsProTab from './tabs/VariantsProTab';
 import VerificationTab from './tabs/VerificationTab';
 import GrowthBoostersTab from './tabs/GrowthBoostersTab';
 import VideoSectionsTab from './tabs/VideoSectionsTab';
+import ProductGroupsTab from './tabs/ProductGroupsTab';
 
 import VariantsManager, { syncVariantsToDb, variantsToJson, type VariantRow } from './components/VariantsManager';
 import { useCategoryNames, useCategories } from '@/hooks/useCategories';
