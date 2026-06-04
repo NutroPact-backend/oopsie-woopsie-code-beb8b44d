@@ -2138,6 +2138,7 @@ export default function AdminPage() {
             {tab === 'brands'       && <BrandsTab />}
             {tab === 'flavors'      && <FlavorsTab />}
             {tab === 'sizes'        && <SizesTab />}
+            {tab === 'product_groups' && <ProductGroupsTab />}
             {tab === 'sizecharts'   && <SizeChartsTab />}
             {tab === 'bulkimport'   && <BulkImportTab />}
             {tab === 'inventory'    && <InventoryTab />}
