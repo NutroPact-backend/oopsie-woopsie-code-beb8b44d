@@ -1,46 +1,98 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Eye, EyeOff, Ruler } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchSizes, invalidateSizesCache, type Size } from '@/hooks/useMasterData';
 import { useBulkSelection, BulkActionBar, SelectCheckbox, runForEach } from '@/pages/admin/components/BulkSelect';
 import { TabHelp } from './_TabHelp';
-import { formatSizeDisplay, parseWeightGrams, gramsToLbsLabel } from '@/lib/sizeFormat';
+import { formatSizeDisplay, gramsToLbsLabel } from '@/lib/sizeFormat';
 
 const toSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const EMPTY: Omit<Size, 'id'> = { name: '', slug: '', value_grams: 0, sort_order: 0, active: true };
+
+// ─── Size type registry ──────────────────────────────────────────────────────
+const TYPES: Record<string, { label: string; units: string[]; helper: string }> = {
+  weight:    { label: 'Weight',    units: ['kg', 'g'],                       helper: 'Auto-converted to lbs on the storefront.' },
+  volume:    { label: 'Volume',    units: ['ml', 'L'],                        helper: 'Shown as-is, no conversion.' },
+  count:     { label: 'Count',     units: ['caps', 'tabs', 'servings', 'scoops', 'pcs'], helper: 'For capsule/tablet/serving counts.' },
+  apparel:   { label: 'Apparel',   units: ['S','M','L','XL','XXL','3XL','4XL','5XL','Free'], helper: 'T-shirts, hoodies, joggers. Pick a standard size.' },
+  accessory: { label: 'Accessory', units: [],                                 helper: 'Wrist bands, lifting belts, gloves. Link a Size Chart.' },
+};
+
+const EMPTY = { name: '', slug: '', value_grams: 0, sort_order: 0, active: true, size_type: 'weight', unit: 'kg', value_numeric: 0, chart_id: null as string | null };
+
+function buildName(t: string, val: number | string, unit: string) {
+  if (t === 'apparel') return String(unit || '');
+  if (t === 'accessory') return String(val || '');
+  if (!val) return '';
+  return `${val} ${unit || ''}`.trim();
+}
+function toGrams(t: string, val: number, unit: string): number {
+  if (t !== 'weight') return 0;
+  if (unit === 'kg') return Math.round(val * 1000);
+  return Math.round(val);
+}
 
 export default function SizesTab() {
-  const [rows, setRows] = useState<Size[]>([]);
+  const [rows, setRows] = useState<any[]>([]);
+  const [charts, setCharts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<(Size | typeof EMPTY) | null>(null);
+  const [editing, setEditing] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
   const sel = useBulkSelection(rows, (r) => r.id);
 
-  const load = () => { setLoading(true); fetchSizes({ force: true, includeInactive: true }).then(setRows).catch(() => setRows([])).finally(() => setLoading(false)); };
-  useEffect(load, []);
+  const load = async () => {
+    setLoading(true);
+    const [s, c] = await Promise.all([
+      fetchSizes({ force: true, includeInactive: true }),
+      supabase.from('size_charts').select('id,name,category,active').order('name'),
+    ]);
+    setRows(s);
+    setCharts(c.data || []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => setEditing({ ...EMPTY, sort_order: rows.length * 10 });
+  const openEdit = (s: any) => setEditing({ ...EMPTY, ...s });
 
   const save = async () => {
-    if (!editing || !editing.name.trim()) return alert('Name required');
+    if (!editing) return;
+    const t = editing.size_type || 'weight';
+    const name = buildName(t, editing.value_numeric, editing.unit) || editing.name;
+    if (!name.trim()) return alert('Name/value required');
     setSaving(true);
-    const payload: any = { ...editing, slug: editing.slug?.trim() || toSlug(editing.name) };
-    const id = 'id' in editing ? (editing as Size).id : null;
-    const { error } = id
-      ? await supabase.from('product_sizes').update(payload).eq('id', id)
+    const grams = toGrams(t, Number(editing.value_numeric) || 0, editing.unit || '');
+    const payload: any = {
+      name,
+      slug: toSlug(`${t}-${name}`),
+      size_type: t,
+      unit: editing.unit || null,
+      value_numeric: Number(editing.value_numeric) || null,
+      value_grams: grams || editing.value_grams || 0,
+      chart_id: t === 'accessory' || t === 'apparel' ? (editing.chart_id || null) : null,
+      sort_order: editing.sort_order || 0,
+      active: editing.active !== false,
+    };
+    const { error } = editing.id
+      ? await supabase.from('product_sizes').update(payload).eq('id', editing.id)
       : await supabase.from('product_sizes').insert(payload);
     setSaving(false);
     if (error) return alert(error.message);
     invalidateSizesCache(); setEditing(null); load();
   };
-  const remove = async (s: Size) => { if (!confirm(`Delete "${s.name}"?`)) return; const { error } = await supabase.from('product_sizes').delete().eq('id', s.id); if (error) return alert(error.message); invalidateSizesCache(); load(); };
-  const toggle = async (s: Size) => { await supabase.from('product_sizes').update({ active: !s.active }).eq('id', s.id); invalidateSizesCache(); load(); };
+
+  const remove = async (s: any) => { if (!confirm(`Delete "${s.name}"?`)) return; const { error } = await supabase.from('product_sizes').delete().eq('id', s.id); if (error) return alert(error.message); invalidateSizesCache(); load(); };
+  const toggle = async (s: any) => { await supabase.from('product_sizes').update({ active: !s.active }).eq('id', s.id); invalidateSizesCache(); load(); };
 
   return (
     <div className="space-y-5">
       <TabHelp topic="sizes" />
       <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-black">Sizes</h2><p className="text-sm text-gray-500">Master size list. Grams used for shipping weight estimation.</p></div>
-        <button onClick={() => setEditing({ ...EMPTY, sort_order: rows.length * 10 })} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-sm"><Plus size={16} /> New Size</button>
+        <div>
+          <h2 className="text-2xl font-black">Sizes</h2>
+          <p className="text-sm text-gray-500">Supports weight (kg/g), volume (ml/L), count (caps/tabs), apparel (S–5XL) and accessory sizes with size charts.</p>
+        </div>
+        <button onClick={openNew} className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-sm"><Plus size={16} /> New Size</button>
       </div>
 
       <BulkActionBar
@@ -48,9 +100,9 @@ export default function SizesTab() {
         ids={Array.from(sel.selected)}
         onClear={() => { sel.clear(); load(); }}
         actions={[
-          { key: 'activate', label: 'Activate', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_sizes').update({ active: true }).eq('id', id)); invalidateSizesCache(); } },
+          { key: 'activate',   label: 'Activate',   color: 'bg-green-600 hover:bg-green-700',  run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_sizes').update({ active: true  }).eq('id', id)); invalidateSizesCache(); } },
           { key: 'deactivate', label: 'Deactivate', color: 'bg-yellow-600 hover:bg-yellow-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_sizes').update({ active: false }).eq('id', id)); invalidateSizesCache(); } },
-          { key: 'delete', label: 'Delete', color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} sizes?', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_sizes').delete().eq('id', id)); invalidateSizesCache(); } },
+          { key: 'delete',     label: 'Delete',     color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} sizes?', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_sizes').delete().eq('id', id)); invalidateSizesCache(); } },
         ]}
       />
 
@@ -59,19 +111,29 @@ export default function SizesTab() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr>
               <th className="px-3 py-3 w-10"><SelectCheckbox checked={sel.allSelected} indeterminate={sel.someSelected} onChange={sel.toggleAll} /></th>
-              <th className="text-left px-4 py-3">Size</th><th className="text-left px-4 py-3">Slug</th><th className="text-right px-4 py-3">Grams</th><th className="px-4 py-3">Active</th><th className="px-4 py-3 w-32">Actions</th></tr></thead>
+              <th className="text-left px-4 py-3">Size</th>
+              <th className="text-left px-4 py-3">Type</th>
+              <th className="text-right px-4 py-3">Grams</th>
+              <th className="text-left px-4 py-3">Chart</th>
+              <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3 w-32">Actions</th>
+            </tr></thead>
             <tbody>
-              {rows.map(s => (
-                <tr key={s.id} className={`border-t hover:bg-orange-50/30 ${sel.isSelected(s.id) ? 'bg-orange-50' : ''}`}>
-                  <td className="px-3 py-3"><SelectCheckbox checked={sel.isSelected(s.id)} onChange={() => sel.toggleOne(s.id)} /></td>
-                  <td className="px-4 py-3 font-bold">{formatSizeDisplay(s.name)}</td>
-                  <td className="px-4 py-3 text-xs font-mono text-gray-500">{s.slug}</td>
-                  <td className="px-4 py-3 text-right text-sm tabular-nums">{s.value_grams || '—'}</td>
-                  <td className="px-4 py-3 text-center"><button onClick={() => toggle(s)}>{s.active ? <Eye size={16} className="text-green-600" /> : <EyeOff size={16} className="text-gray-300" />}</button></td>
-                  <td className="px-4 py-3"><div className="flex items-center justify-end gap-1"><button onClick={() => setEditing(s)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={14} /></button><button onClick={() => remove(s)} className="p-1.5 hover:bg-red-50 text-red-500 rounded"><Trash2 size={14} /></button></div></td>
-                </tr>
-              ))}
-              {rows.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-gray-400">No sizes yet.</td></tr>}
+              {rows.map((s: any) => {
+                const chart = charts.find(c => c.id === s.chart_id);
+                return (
+                  <tr key={s.id} className={`border-t hover:bg-orange-50/30 ${sel.isSelected(s.id) ? 'bg-orange-50' : ''}`}>
+                    <td className="px-3 py-3"><SelectCheckbox checked={sel.isSelected(s.id)} onChange={() => sel.toggleOne(s.id)} /></td>
+                    <td className="px-4 py-3 font-bold">{formatSizeDisplay(s.name)}</td>
+                    <td className="px-4 py-3"><span className="text-[10px] font-bold uppercase bg-gray-100 px-2 py-0.5 rounded">{s.size_type || 'weight'}</span></td>
+                    <td className="px-4 py-3 text-right text-sm tabular-nums">{s.value_grams || '—'}</td>
+                    <td className="px-4 py-3 text-xs">{chart ? <span className="inline-flex items-center gap-1 text-blue-600"><Ruler size={12} /> {chart.name}</span> : <span className="text-gray-300">—</span>}</td>
+                    <td className="px-4 py-3 text-center"><button onClick={() => toggle(s)}>{s.active ? <Eye size={16} className="text-green-600" /> : <EyeOff size={16} className="text-gray-300" />}</button></td>
+                    <td className="px-4 py-3"><div className="flex items-center justify-end gap-1"><button onClick={() => openEdit(s)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={14} /></button><button onClick={() => remove(s)} className="p-1.5 hover:bg-red-50 text-red-500 rounded"><Trash2 size={14} /></button></div></td>
+                  </tr>
+                );
+              })}
+              {rows.length === 0 && <tr><td colSpan={7} className="text-center py-12 text-gray-400">No sizes yet.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -79,29 +141,86 @@ export default function SizesTab() {
 
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="border-b px-6 py-4 flex items-center justify-between"><h3 className="text-xl font-black">{'id' in editing ? 'Edit' : 'New'} Size</h3><button onClick={() => setEditing(null)}><X size={20} /></button></div>
-            <div className="p-6 space-y-3">
-              <Field label="Name * (e.g. 1 kg, 500 g, 60 caps)"><input className="np-in" value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value, slug: toSlug(e.target.value) })} /></Field>
-              <Field label="Slug"><input className="np-in font-mono" value={editing.slug} onChange={e => setEditing({ ...editing, slug: toSlug(e.target.value) })} /></Field>
-              <Field label="Weight in grams (used for shipping calc)"><input type="number" className="np-in" value={editing.value_grams} onChange={e => setEditing({ ...editing, value_grams: Number(e.target.value) })} /></Field>
-              {(() => {
-                const grams = parseWeightGrams(editing.name) ?? (Number(editing.value_grams) > 0 ? Number(editing.value_grams) : null);
-                const isVolume = /\b(ml|l|lt|ltr|liter|litre)\b/i.test(editing.name || '');
-                if (isVolume) {
-                  return <div className="text-xs text-gray-500 bg-gray-50 border rounded-lg px-3 py-2">Volume unit (ml/L) — lbs conversion skipped.</div>;
-                }
-                if (grams && grams > 0) {
-                  return <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">Frontend will display: <b>{editing.name || '—'} ({gramsToLbsLabel(grams)})</b></div>;
-                }
-                return <div className="text-[11px] text-gray-400">Auto kg→lbs preview appears when name contains kg/g.</div>;
-              })()}
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white"><h3 className="text-xl font-black">{editing.id ? 'Edit' : 'New'} Size</h3><button onClick={() => setEditing(null)}><X size={20} /></button></div>
+            <div className="p-6 space-y-4">
+              {/* Type selector */}
+              <Field label="Type *">
+                <div className="grid grid-cols-5 gap-1.5">
+                  {Object.entries(TYPES).map(([k, t]) => (
+                    <button key={k} onClick={() => setEditing({ ...editing, size_type: k, unit: t.units[0] || '', value_numeric: 0, chart_id: null })}
+                      className={`text-[11px] font-bold py-2 rounded-lg border-2 transition ${editing.size_type === k ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">{TYPES[editing.size_type]?.helper}</p>
+              </Field>
+
+              {/* Dynamic fields by type */}
+              {(editing.size_type === 'weight' || editing.size_type === 'volume' || editing.size_type === 'count') && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Value *">
+                    <input type="number" step="0.01" className="np-in" value={editing.value_numeric}
+                      onChange={e => setEditing({ ...editing, value_numeric: e.target.value })} placeholder="1, 500, 60…" />
+                  </Field>
+                  <Field label="Unit *">
+                    <select className="np-in" value={editing.unit || ''} onChange={e => setEditing({ ...editing, unit: e.target.value })}>
+                      {TYPES[editing.size_type].units.map(u => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                  </Field>
+                </div>
+              )}
+
+              {editing.size_type === 'apparel' && (
+                <Field label="Apparel Size *">
+                  <div className="flex flex-wrap gap-1.5">
+                    {TYPES.apparel.units.map(u => (
+                      <button key={u} onClick={() => setEditing({ ...editing, unit: u, value_numeric: 0 })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${editing.unit === u ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200'}`}>
+                        {u}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              )}
+
+              {editing.size_type === 'accessory' && (
+                <Field label="Label * (e.g. Small, Medium, 32 inch)">
+                  <input className="np-in" value={editing.value_numeric || ''}
+                    onChange={e => setEditing({ ...editing, value_numeric: e.target.value })} placeholder="Small, 32 in, …" />
+                </Field>
+              )}
+
+              {/* Optional chart link (apparel + accessory) */}
+              {(editing.size_type === 'apparel' || editing.size_type === 'accessory') && (
+                <Field label="Link Size Chart (optional)">
+                  <select className="np-in" value={editing.chart_id || ''} onChange={e => setEditing({ ...editing, chart_id: e.target.value || null })}>
+                    <option value="">— None —</option>
+                    {charts.filter(c => c.active !== false).map(c => <option key={c.id} value={c.id}>{c.name} ({c.category})</option>)}
+                  </select>
+                  <p className="text-[11px] text-gray-400 mt-1">Manage charts under <b>Size Charts</b> tab.</p>
+                </Field>
+              )}
+
+              {/* Live preview */}
+              <div className="text-xs bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                Storefront will show: <b>{(() => {
+                  const n = buildName(editing.size_type, editing.value_numeric, editing.unit);
+                  if (editing.size_type === 'weight') {
+                    const g = toGrams(editing.size_type, Number(editing.value_numeric) || 0, editing.unit || '');
+                    return g > 0 ? `${n} (${gramsToLbsLabel(g)})` : n || '—';
+                  }
+                  return n || '—';
+                })()}</b>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Sort order"><input type="number" className="np-in" value={editing.sort_order} onChange={e => setEditing({ ...editing, sort_order: Number(e.target.value) })} /></Field>
-                <label className="flex items-center gap-2 text-sm font-semibold mt-7"><input type="checkbox" checked={editing.active} onChange={e => setEditing({ ...editing, active: e.target.checked })} /> Active</label>
+                <label className="flex items-center gap-2 text-sm font-semibold mt-7"><input type="checkbox" checked={editing.active !== false} onChange={e => setEditing({ ...editing, active: e.target.checked })} /> Active</label>
               </div>
             </div>
-            <div className="border-t px-6 py-3 flex justify-end gap-2"><button onClick={() => setEditing(null)} className="px-4 py-2 rounded-xl border font-bold text-sm">Cancel</button><button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm disabled:opacity-50"><Save size={16} /> {saving ? 'Saving…' : 'Save'}</button></div>
+            <div className="border-t px-6 py-3 flex justify-end gap-2 sticky bottom-0 bg-white"><button onClick={() => setEditing(null)} className="px-4 py-2 rounded-xl border font-bold text-sm">Cancel</button><button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm disabled:opacity-50"><Save size={16} /> {saving ? 'Saving…' : 'Save'}</button></div>
           </div>
         </div>
       )}
