@@ -310,11 +310,16 @@ function autoSku(productName: string, flavor: string, size: string) {
 }
 
 function toRow(v: ProductVariant): VariantRow {
+  const d = (v.data || {}) as { gallery_images?: string[]; description?: string; highlights?: string[] };
+  const gallery = Array.isArray(d.gallery_images) ? d.gallery_images : [];
+  const images = gallery.length ? gallery : (v.image_url ? [v.image_url] : []);
   return {
     id: v.id, flavor_id: v.flavor_id, size_id: v.size_id,
     flavor_name: v.flavor_name, size_name: v.size_name,
     sku: v.sku, price: Number(v.price), compare_price: Number(v.compare_price || 0),
-    stock: v.stock, image_url: v.image_url, weight_grams: Number(v.weight_grams || 0),
+    stock: v.stock, image_url: v.image_url || images[0] || '',
+    images, description: d.description || '', highlights: Array.isArray(d.highlights) ? d.highlights : [],
+    weight_grams: Number(v.weight_grams || 0),
     is_default: v.is_default, active: v.active,
   };
 }
@@ -348,7 +353,12 @@ export async function syncVariantsToDb(productId: string, rows: VariantRow[]) {
       flavor_id: r.flavor_id, size_id: r.size_id,
       flavor_name: r.flavor_name, size_name: r.size_name,
       price: r.price, compare_price: r.compare_price, stock: r.stock,
-      image_url: r.image_url, weight_grams: r.weight_grams,
+      image_url: r.image_url || r.images?.[0] || '', weight_grams: r.weight_grams,
+      data: {
+        gallery_images: r.images || [],
+        description: r.description || '',
+        highlights: r.highlights || [],
+      },
       is_default: r.is_default, active: r.active,
     };
     if (r.id) await supabase.from('product_variants').update(payload).eq('id', r.id);
@@ -367,7 +377,11 @@ export async function syncVariantsToDb(productId: string, rows: VariantRow[]) {
 export function variantsToJson(rows: VariantRow[]) {
   return rows.filter(r => r.active).map(r => ({
     sku: r.sku, flavor: r.flavor_name, size: r.size_name,
-    price: r.price, comparePrice: r.compare_price, stock: r.stock, image: r.image_url,
+    price: r.price, comparePrice: r.compare_price, stock: r.stock,
+    image: r.image_url || r.images?.[0] || '',
+    images: r.images || [],
+    description: r.description || '',
+    highlights: r.highlights || [],
     isDefault: r.is_default,
   }));
 }
