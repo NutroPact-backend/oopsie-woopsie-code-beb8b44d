@@ -1139,6 +1139,17 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
                     )}
                   </div>
                   <div>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Product Group <span className="text-gray-400 font-normal">(link related products)</span></label>
+                    <select value={form.groupId || ''} onChange={e => set('groupId', e.target.value || null)}
+                      className="w-full border rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-orange-400">
+                      <option value="">— No group —</option>
+                      {groups.map((g: any) => (
+                        <option key={g._id || g.id} value={g._id || g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-gray-400 mt-1">Products in the same group show up as clickable chips on the PDP — like Avvatar's flavor switcher. Manage groups in the <b>Product Groups</b> tab.</p>
+                  </div>
+                  <div>
                     <label className="text-xs font-bold text-gray-500 block mb-1">Price (₹) *</label>
                     <input type="number" value={form.price || ''} onChange={e => set('price', Number(e.target.value))} className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400" />
                   </div>
