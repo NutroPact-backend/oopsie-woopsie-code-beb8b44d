@@ -892,6 +892,7 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const [variantsValid, setVariantsValid] = useState(true);
   const [selFlavorIds, setSelFlavorIds] = useState<string[]>([]);
   const [selSizeIds, setSelSizeIds] = useState<string[]>([]);
+  const hydratedProductRef = useRef<string | null>(null);
   const catNames = useCategoryNames();
   const CATEGORIES = catNames.length ? catNames : FALLBACK_CATEGORIES;
   const { data: allCats } = useCategories(true);
@@ -934,7 +935,8 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
   const setNested = (parent: string, k: string, v: any) => setForm((f: any) => ({ ...f, [parent]: { ...(f[parent] || {}), [k]: v } }));
 
   useEffect(() => {
-    if (!product?._id) return;
+    if (!product?._id || hydratedProductRef.current === product._id) return;
+    hydratedProductRef.current = product._id;
     const sourceVariants = Array.isArray(product?.variants) ? product.variants : [];
     if (sourceVariants.length > 0) {
       setVariantRows(sourceVariants.map((variant: any, index: number) => {
@@ -963,12 +965,15 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
         };
       }));
     }
+  }, [product?._id, product?.variants, allFlavors, allSizes]);
 
+  useEffect(() => {
+    const sourceVariants = variantRows.length > 0 ? variantRows : (Array.isArray(product?.variants) ? product.variants : []);
     const flavorNames = sourceVariants.length > 0
-      ? sourceVariants.map((variant: any) => variant.flavor ?? variant.flavor_name).filter(Boolean)
+      ? sourceVariants.map((variant: any) => variant.flavor_name ?? variant.flavor).filter(Boolean)
       : (Array.isArray(form.flavors) ? form.flavors : []);
     const sizeNames = sourceVariants.length > 0
-      ? sourceVariants.map((variant: any) => variant.size ?? variant.size_name).filter(Boolean)
+      ? sourceVariants.map((variant: any) => variant.size_name ?? variant.size).filter(Boolean)
       : (Array.isArray(form.sizes) ? form.sizes : []);
 
     setSelFlavorIds(Array.from(new Set(
@@ -977,7 +982,7 @@ function ProductModal({ product, onClose, onSave, onReviewsChanged }: { product:
     setSelSizeIds(Array.from(new Set(
       sizeNames.map((name: string) => allSizes.find((s: any) => s.name === name)?.id).filter(Boolean),
     )) as string[]);
-  }, [product?._id, product?.variants, form.flavors, form.sizes, allFlavors, allSizes]);
+  }, [variantRows, product?.variants, form.flavors, form.sizes, allFlavors, allSizes]);
 
   const handleName = (name: string) => { set('name', name); if (!product?._id) set('slug', toSlug(name)); };
 
