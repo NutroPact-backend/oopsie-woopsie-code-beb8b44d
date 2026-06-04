@@ -536,7 +536,7 @@ async function dynamicGet(path: string): Promise<any> {
     }
     const table = adminGetTableMap[path];
     if (table) {
-      const { data } = await supabase.from(table as any).select("*").order("created_at", { ascending: false });
+      const { data } = await supabase.from(table as any).select("*").order("created_at", { ascending: false }).limit(1000);
       return camelize(data ?? []);
     }
     if (path === "/admin/homepage") {
@@ -1190,12 +1190,24 @@ async function dynamicDelete(path: string): Promise<any> {
 }
 
 // ---------- public client ----------
-async function dispatch(method: "get" | "post" | "put" | "patch" | "delete", url: string, body?: any): Promise<{ data: any }> {
+async function dispatch(method: "get" | "post" | "put" | "patch" | "delete", url: string, body?: any, opts?: { params?: Record<string, any> }): Promise<{ data: any }> {
   // strip absolute origin and /api prefix so the same handler map works for
   // both internal API calls (`/products`) and legacy `${VITE_API_URL}/admin/...` calls.
   let cleaned = url;
   try { cleaned = new URL(url).pathname + (new URL(url).search || ""); } catch {}
   cleaned = cleaned.replace(/^\/api(?=\/|$)/, "") || "/";
+  // Merge axios-style { params } into the query string so callers like
+  // `API.get('/admin/contact', { params: { status: 'new' } })` actually filter.
+  if (opts?.params && typeof opts.params === "object") {
+    const usp = new URLSearchParams(cleaned.includes("?") ? cleaned.split("?")[1] : "");
+    for (const [k, v] of Object.entries(opts.params)) {
+      if (v === undefined || v === null || v === "") continue;
+      usp.set(k, String(v));
+    }
+    const qs = usp.toString();
+    const basePath = cleaned.split("?")[0];
+    cleaned = qs ? `${basePath}?${qs}` : basePath;
+  }
   const { path, params } = parsePath(cleaned);
   try {
     if (method === "get") {
@@ -1221,11 +1233,11 @@ async function dispatch(method: "get" | "post" | "put" | "patch" | "delete", url
 
 type ApiResp = { data: any };
 const API = {
-  get: (url: string): Promise<ApiResp> => dispatch("get", url),
-  post: (url: string, data?: unknown): Promise<ApiResp> => dispatch("post", url, data),
-  put: (url: string, data?: unknown): Promise<ApiResp> => dispatch("put", url, data),
-  patch: (url: string, data?: unknown): Promise<ApiResp> => dispatch("patch", url, data),
-  delete: (url: string): Promise<ApiResp> => dispatch("delete", url),
+  get: (url: string, opts?: any): Promise<ApiResp> => dispatch("get", url, undefined, opts),
+  post: (url: string, data?: unknown, opts?: any): Promise<ApiResp> => dispatch("post", url, data, opts),
+  put: (url: string, data?: unknown, opts?: any): Promise<ApiResp> => dispatch("put", url, data, opts),
+  patch: (url: string, data?: unknown, opts?: any): Promise<ApiResp> => dispatch("patch", url, data, opts),
+  delete: (url: string, opts?: any): Promise<ApiResp> => dispatch("delete", url, undefined, opts),
   request: (cfg: any): Promise<ApiResp> => dispatch((cfg?.method || "get").toLowerCase(), cfg.url, cfg?.data),
   interceptors: { request: { use: (_fn?: any) => {} }, response: { use: (_fn?: any) => {} } },
   create: (_cfg?: any): any => API,
