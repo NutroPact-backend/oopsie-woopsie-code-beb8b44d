@@ -185,8 +185,25 @@ function ImageRowUploader({ value, index, isFirst, isLast, onUpdate, onRemove, o
 function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
   const [newUrl, setNewUrl] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, isUploading, progress } = useSimpleUpload({ onSuccess: (url: string) => onAdd(url) });
+  const { uploadFile, isUploading, progress } = useSimpleUpload({});
+  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
   const addUrl = () => { const url = newUrl.trim(); if (!url) return; onAdd(url); setNewUrl(''); };
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (imgs.length === 0) return;
+    setBatch({ done: 0, total: imgs.length });
+    let done = 0;
+    // Upload in parallel but add to list as each finishes (sequential add via callback closure issue avoided by using functional updates upstream is not available — so we await sequentially)
+    for (const f of imgs) {
+      const url = await uploadFile(f);
+      if (url) onAdd(url);
+      done += 1;
+      setBatch({ done, total: imgs.length });
+    }
+    setBatch(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
   return (
     <div className="flex gap-2 mt-1 flex-wrap">
       <input value={newUrl} onChange={e => setNewUrl(e.target.value)}
@@ -197,18 +214,18 @@ function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
         className="px-3 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition flex items-center gap-1">
         <Plus size={14} /> Add
       </button>
-      {isUploading ? (
-        <div className="px-3 flex items-center text-xs text-gray-400 font-bold">{progress}%</div>
+      {isUploading || batch ? (
+        <div className="px-3 flex items-center text-xs text-gray-500 font-bold gap-2">
+          {batch ? `${batch.done}/${batch.total}` : `${progress}%`}
+        </div>
       ) : (
         <button type="button" onClick={() => fileRef.current?.click()}
           className="px-3 py-2 bg-gray-100 hover:bg-orange-50 text-gray-500 hover:text-orange-500 rounded-xl text-xs font-bold border border-gray-200 flex items-center gap-1 transition">
-          <Upload size={14} /> Upload Image
+          <Upload size={14} /> Upload Images
         </button>
       )}
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={async e => {
-        const f = e.target.files?.[0]; if (!f || !f.type.startsWith('image/')) return;
-        await uploadFile(f); if (fileRef.current) fileRef.current.value = '';
-      }} />
+      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={e => handleFiles(e.target.files)} />
     </div>
   );
 }
