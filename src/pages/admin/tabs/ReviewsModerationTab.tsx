@@ -100,7 +100,7 @@ export default function ReviewsModerationTab() {
           <li><b>Pending</b> tab — review them and click <b>Verify</b> (adds the verified badge).</li>
           <li><b>Pin</b> karne se review product page ke top par dikhega.</li>
           <li>If it is spam or inappropriate, click <b>Delete</b> .</li>
-          <li>Photo thumbnail par click karke full size dekh.</li>
+          <li>Click the photo thumbnail to view full size.</li>
         </ul>
       </div>
 

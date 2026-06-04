@@ -271,7 +271,7 @@ export default function ShippingTab() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h3 className="font-black text-sm flex items-center gap-2">🤖 Shipment Automation</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Confirm hone ke baad order automatically pack, rate-compare, and book ho jaata hai. Defaults aam tor par theek hain.</p>
+            <p className="text-xs text-gray-400 mt-0.5">Once confirmed, the order is automatically packed, rate-compared, and booked. Defaults are fine for most setups.</p>
           </div>
           <label className="flex items-center gap-2 cursor-pointer shrink-0">
             <input type="checkbox" checked={s.automation?.enabled !== false} onChange={e => setAuto('enabled', e.target.checked)} className="w-4 h-4 accent-orange-500" />
@@ -283,7 +283,7 @@ export default function ShippingTab() {
             <label className="text-[11px] font-bold text-gray-500 block mb-1">Normal delay (mins)</label>
             <input type="number" min={0} value={s.automation?.delayMinutes ?? 120} onChange={e => setAuto('delayMinutes', Number(e.target.value) || 0)}
               className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400" />
-            <p className="text-[10px] text-gray-400 mt-1">Order placed ke kitne mins baad auto-ship trigger ho. Default 120.</p>
+            <p className="text-[10px] text-gray-400 mt-1">Minutes after the order is placed before auto-ship triggers. Default 120.</p>
           </div>
           <div>
             <label className="text-[11px] font-bold text-gray-500 block mb-1">Priority delay (mins)</label>
@@ -322,7 +322,7 @@ export default function ShippingTab() {
         const list = CARRIERS.filter(c => c.kind === kind);
         const heading = kind === 'aggregator' ? 'Aggregators' : 'Direct Carriers';
         const sub = kind === 'aggregator'
-          ? 'Ek login se multiple couriers. Inka commission / markup hota hai — but onboarding fast.'
+          ? 'Multiple couriers from a single login. They charge commission/markup but onboarding is fast.'
           : 'Direct courier contracts. Apni slab rates, no aggregator markup — but separate KYC each.';
         return (
           <section key={kind} className="space-y-3">

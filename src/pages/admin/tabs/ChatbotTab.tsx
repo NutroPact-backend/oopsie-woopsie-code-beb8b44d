@@ -284,7 +284,7 @@ function KBView() {
   }, [items, query, catFilter, statusFilter]);
 
   async function save() {
-    if (!editing?.title || !editing?.body) { alert("Title aur body chahiye"); return; }
+    if (!editing?.title || !editing?.body) { alert("Title and body are required"); return; }
     setSaving(true);
     try {
       await upsertFn({ data: {
@@ -659,7 +659,7 @@ function SettingsView() {
               className="w-full border rounded px-2 py-1.5 text-sm"
               value={s.max_failed_turns ?? 3}
               onChange={e => setS({ ...s, max_failed_turns: Number(e.target.value) })} />
-            <p className="text-[10px] text-gray-500 mt-1">Kitne negative replies ke baad handoff trigger ho.</p>
+            <p className="text-[10px] text-gray-500 mt-1">How many negative replies trigger a handoff.</p>
           </Field>
         </div>
 

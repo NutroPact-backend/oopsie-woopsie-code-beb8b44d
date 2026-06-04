@@ -121,9 +121,9 @@ export default function AbandonedCartsTab() {
         <p>Jab customer checkout tak pahuche but order place na kare, cart yaha save ho jaata hai.</p>
         <ul className="list-disc ml-5 mt-1 space-y-0.5 text-xs">
           <li><b>Auto cron</b>: every 15 min it notifies carts older than 2 hours (in-app + email + whatsapp queue).</li>
-          <li>Manually <b>Notify Now</b> button se bhej sakte ho.</li>
+          <li>You can send manually via the <b>Notify Now</b> button.</li>
           <li>Customer order place kare to status auto <b>recovered</b> ho jata hai.</li>
-          <li>72 ghante baad inactive cart auto <b>expired</b>.</li>
+          <li>Inactive carts are auto-marked <b>expired</b> after 72 hours.</li>
         </ul>
         <p className="text-xs mt-2 text-orange-800">
           ⚙️ To schedule the cron: Database SQL me <code>cron.schedule</code> with endpoint: <code>/api/public/hooks/recover-carts</code>.

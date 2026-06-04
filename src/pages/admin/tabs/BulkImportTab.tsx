@@ -192,7 +192,7 @@ export default function BulkImportTab() {
           <li>For multiple images or tags use <code className="px-1 bg-white rounded">|</code> (pipe) as the separator — e.g. <code className="px-1 bg-white rounded">url1|url2|url3</code>.</li>
           <li>Boolean columns: <code className="px-1 bg-white rounded">true/false</code>, <code className="px-1 bg-white rounded">yes/no</code>, ya <code className="px-1 bg-white rounded">1/0</code>.</li>
           <li>To update an existing product set <code className="px-1 bg-white rounded">id</code> with its ID. To add a new product leave <code className="px-1 bg-white rounded">id</code> empty.</li>
-          <li>Upload karne ke baad <b>preview</b> me row-wise errors/warnings dikhenge. Sirf valid rows import hongi.</li>
+          <li>After upload, row-wise errors/warnings appear in the <b>preview</b>. Only valid rows are imported.</li>
           <li>Filling HSN + GST rate is recommended for accurate invoices.</li>
         </ol>
       </div>

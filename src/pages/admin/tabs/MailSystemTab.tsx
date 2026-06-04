@@ -213,7 +213,7 @@ node server.js  # or pm2 start server.js`}</pre>
         </div>
         <p className="text-xs text-gray-600 mt-3 flex items-start gap-1.5">
           <Info size={12} className="mt-0.5 text-blue-500 shrink-0" />
-          Provider chuna → Apply the preset in Messaging Gateway → API Keys me apni key paste .
+          Pick a provider → apply the preset in Messaging Gateway → paste your key under API Keys.
           That's it. The dispatcher will send automatically.
         </p>
       </div>
