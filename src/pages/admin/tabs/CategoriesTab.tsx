@@ -136,7 +136,7 @@ export default function CategoriesTab() {
             </thead>
             <tbody>
               {tree.map(parent => (
-                <RowGroup key={parent.id} parent={parent} sel={sel} onEdit={c => setEditing(c)} onDelete={remove} onToggle={toggleActive} onFeature={toggleFeatured} onMove={move} onAddChild={(p) => setEditing({ ...EMPTY, parent_id: p.id, sort_order: ((p as any).children?.length || 0) * 10 })} />
+                <RowGroup key={parent.id} node={parent} depth={0} sel={sel} onEdit={c => setEditing(c)} onDelete={remove} onToggle={toggleActive} onFeature={toggleFeatured} onMove={move} onAddChild={(p) => setEditing({ ...EMPTY, parent_id: p.id, sort_order: ((p as any).children?.length || 0) * 10 })} />
               ))}
               {tree.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-gray-400">No categories yet — click "New Category".</td></tr>}
             </tbody>
