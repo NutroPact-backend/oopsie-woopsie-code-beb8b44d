@@ -1110,7 +1110,7 @@ export default function ProductPage() {
               return (
                 <Link key={p._id} to="/products/$slug" params={{ slug: p.slug }}
                   className="shrink-0 w-48 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
-                  <div className="relative bg-gray-50 h-40 flex items-center justify-center">
+                  <div className="relative bg-gray-50 h-40 overflow-hidden">
                     {d > 0 && <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full">{d}%</span>}
                     {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" loading="lazy"  decoding="async"/> : <span className="text-4xl font-black text-gray-200">NP</span>}
                   </div>
