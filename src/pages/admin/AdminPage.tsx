@@ -895,7 +895,7 @@ function ReviewsTab({ product, onReviewsChanged }: { product: any; onReviewsChan
 // ─── Product Modal ────────────────────────────────────────────────────────────
 
 const EMPTY_PRODUCT: any = {
-  name: '', slug: '', price: 0, comparePrice: 0, category: 'Protein', stock: 50,
+  name: '', slug: '', price: 0, comparePrice: 0, category: '', stock: 50,
   ratings: 0, numReviews: 0, isActive: true,
   images: [''], video: '', banners: [],
   flavors: [], sizes: [],
