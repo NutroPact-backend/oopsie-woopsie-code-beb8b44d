@@ -287,7 +287,7 @@ const GET: Record<string, Handler> = {
         .eq("is_approved", true)
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false }),
-      supabase.from("product_reviews").select("*").order("created_at", { ascending: false }),
+      supabase.from("product_reviews").select("*").eq("is_approved", true).order("created_at", { ascending: false }),
       supabase.from("products").select("id,name,slug"),
     ]);
     const pmap = new Map((productsList.data ?? []).map((p: any) => [p.id, p]));
