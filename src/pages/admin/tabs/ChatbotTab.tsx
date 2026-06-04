@@ -669,7 +669,7 @@ function SettingsView() {
             onChange={e => setKw(e.target.value)}
             placeholder="refund, complaint, manager, lawsuit, legal, fraud" />
           <p className="text-[10px] text-gray-500 mt-1">
-            User message me ye words milte hi bina AI ki try ke handoff. {(s.escalate_keywords || []).length}/30.
+            When any of these words appear in the user message, escalate without calling the AI. {(s.escalate_keywords || []).length}/30.
           </p>
         </Field>
       </div>

@@ -187,7 +187,7 @@ export default function BulkImportTab() {
       <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 text-sm">
         <div className="flex items-center gap-2 font-bold text-blue-900 mb-2"><Info size={16} /> Bulk Product Import — how to use</div>
         <ol className="list-decimal pl-5 space-y-1 text-blue-900/90 text-xs leading-relaxed">
-          <li><b>Download template</b> dabake sample XLSX le lo (saare supported columns ke saath).</li>
+          <li><b>Download template</b> to grab the sample XLSX (with all supported columns).</li>
           <li>One row = one product. <b>Required</b>: name, slug, category, price. (If slug is empty, it is auto-generated from the name.)</li>
           <li>For multiple images or tags use <code className="px-1 bg-white rounded">|</code> (pipe) as the separator — e.g. <code className="px-1 bg-white rounded">url1|url2|url3</code>.</li>
           <li>Boolean columns: <code className="px-1 bg-white rounded">true/false</code>, <code className="px-1 bg-white rounded">yes/no</code>, ya <code className="px-1 bg-white rounded">1/0</code>.</li>
