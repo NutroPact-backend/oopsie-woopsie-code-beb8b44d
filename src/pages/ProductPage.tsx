@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';
 import { calculateDiscount, formatPrice } from '@/lib/utils';
+import { formatSizeDisplay } from '@/lib/sizeFormat';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useSEO, useBreadcrumbSEO } from '@/lib/useSEO';
