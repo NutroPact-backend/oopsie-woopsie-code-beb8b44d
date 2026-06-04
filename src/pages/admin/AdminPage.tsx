@@ -1954,6 +1954,7 @@ export default function AdminPage() {
       id: 'catalog', label: 'Catalog',
       items: [
         { id: 'products', icon: <Box size={16} />, label: 'Products', desc: 'Add / edit products' },
+        { id: 'product_groups', icon: <Layers size={16} />, label: 'Product Groups', desc: 'Link related products as a family (Avvatar / MuscleBlaze style flavor switcher)' },
         { id: 'productauth', icon: <ShieldCheck size={16} />, label: 'Product Authentication', desc: 'ProofPack anti-piracy codes — QR + scratch + geo detection' },
         { id: 'categories', icon: <Layers size={16} />, label: 'Categories', desc: 'Master list, sub-categories, SEO, icons' },
         { id: 'brands', icon: <Award size={16} />, label: 'Brands', desc: 'Brand master — logo, description, sort' },
