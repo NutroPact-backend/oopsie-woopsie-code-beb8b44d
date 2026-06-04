@@ -3123,6 +3123,7 @@ export type Database = {
       product_sizes: {
         Row: {
           active: boolean | null
+          chart_id: string | null
           compare_price: number | null
           created_at: string
           data: Json | null
@@ -3130,16 +3131,20 @@ export type Database = {
           name: string
           price: number | null
           product_id: string | null
+          size_type: string
           size_value: string | null
           slug: string | null
           sort_order: number | null
           stock: number | null
+          unit: string | null
           updated_at: string
           value_grams: number | null
+          value_numeric: number | null
           weight: number | null
         }
         Insert: {
           active?: boolean | null
+          chart_id?: string | null
           compare_price?: number | null
           created_at?: string
           data?: Json | null
@@ -3147,16 +3152,20 @@ export type Database = {
           name: string
           price?: number | null
           product_id?: string | null
+          size_type?: string
           size_value?: string | null
           slug?: string | null
           sort_order?: number | null
           stock?: number | null
+          unit?: string | null
           updated_at?: string
           value_grams?: number | null
+          value_numeric?: number | null
           weight?: number | null
         }
         Update: {
           active?: boolean | null
+          chart_id?: string | null
           compare_price?: number | null
           created_at?: string
           data?: Json | null
@@ -3164,12 +3173,15 @@ export type Database = {
           name?: string
           price?: number | null
           product_id?: string | null
+          size_type?: string
           size_value?: string | null
           slug?: string | null
           sort_order?: number | null
           stock?: number | null
+          unit?: string | null
           updated_at?: string
           value_grams?: number | null
+          value_numeric?: number | null
           weight?: number | null
         }
         Relationships: []
@@ -3349,6 +3361,8 @@ export type Database = {
           rating: number | null
           review_count: number | null
           short_description: string | null
+          size_chart_id: string | null
+          size_chart_override: Json | null
           sku: string | null
           slug: string | null
           sort_order: number | null
@@ -3388,6 +3402,8 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           short_description?: string | null
+          size_chart_id?: string | null
+          size_chart_override?: Json | null
           sku?: string | null
           slug?: string | null
           sort_order?: number | null
@@ -3427,6 +3443,8 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           short_description?: string | null
+          size_chart_id?: string | null
+          size_chart_override?: Json | null
           sku?: string | null
           slug?: string | null
           sort_order?: number | null
@@ -4509,6 +4527,54 @@ export type Database = {
           updated_at?: string
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      size_charts: {
+        Row: {
+          active: boolean
+          category: string
+          columns: Json
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          rows: Json
+          slug: string
+          sort_order: number
+          unit_hint: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          columns?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          rows?: Json
+          slug: string
+          sort_order?: number
+          unit_hint?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          columns?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          rows?: Json
+          slug?: string
+          sort_order?: number
+          unit_hint?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
