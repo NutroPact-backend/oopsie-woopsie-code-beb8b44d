@@ -38,9 +38,23 @@ export default function CategoriesTab() {
   useEffect(load, []);
 
   const tree = useMemo(() => {
-    const parents = rows.filter(r => !r.parent_id);
-    return parents.map(p => ({ ...p, children: rows.filter(r => r.parent_id === p.id) }));
+    const build = (parentId: string | null): any[] =>
+      rows
+        .filter(r => (r.parent_id || null) === parentId)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map(r => ({ ...r, children: build(r.id) }));
+    return build(null);
   }, [rows]);
+
+  // descendants of a node (to prevent making a node child of its own descendant)
+  const descendantIds = (id: string): Set<string> => {
+    const out = new Set<string>();
+    const walk = (pid: string) => {
+      rows.filter(r => r.parent_id === pid).forEach(c => { out.add(c.id); walk(c.id); });
+    };
+    walk(id);
+    return out;
+  };
 
   const save = async () => {
     if (!editing) return;
@@ -159,7 +173,24 @@ export default function CategoriesTab() {
                 <Field label="Parent (optional)">
                   <select className="np-in" value={editing.parent_id || ''} onChange={e => setEditing({ ...editing, parent_id: e.target.value || null })}>
                     <option value="">— Top level —</option>
-                    {rows.filter(r => !r.parent_id && (!('id' in editing) || r.id !== (editing as Category).id)).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    {(() => {
+                      const selfId = ('id' in editing && (editing as Category).id) ? (editing as Category).id : null;
+                      const blocked = selfId ? descendantIds(selfId) : new Set<string>();
+                      // build indented options at any depth
+                      const opts: { id: string; label: string }[] = [];
+                      const walk = (pid: string | null, depth: number) => {
+                        rows
+                          .filter(r => (r.parent_id || null) === pid)
+                          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+                          .forEach(r => {
+                            if (r.id === selfId || blocked.has(r.id)) return;
+                            opts.push({ id: r.id, label: `${'— '.repeat(depth)}${r.name}` });
+                            walk(r.id, depth + 1);
+                          });
+                      };
+                      walk(null, 0);
+                      return opts.map(o => <option key={o.id} value={o.id}>{o.label}</option>);
+                    })()}
                   </select>
                 </Field>
                 <Field label="Sort order">
