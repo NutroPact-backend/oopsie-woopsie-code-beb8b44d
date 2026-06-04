@@ -182,7 +182,7 @@ function ImageRowUploader({ value, index, isFirst, isLast, onUpdate, onRemove, o
   );
 }
 
-function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
+function AddImageRow({ onAdd, onAddMany }: { onAdd: (url: string) => void; onAddMany?: (urls: string[]) => void }) {
   const [newUrl, setNewUrl] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading, progress } = useSimpleUpload({});
@@ -194,12 +194,16 @@ function AddImageRow({ onAdd }: { onAdd: (url: string) => void }) {
     if (imgs.length === 0) return;
     setBatch({ done: 0, total: imgs.length });
     let done = 0;
-    // Upload in parallel but add to list as each finishes (sequential add via callback closure issue avoided by using functional updates upstream is not available — so we await sequentially)
-    for (const f of imgs) {
+    const results = await Promise.all(imgs.map(async f => {
       const url = await uploadFile(f);
-      if (url) onAdd(url);
       done += 1;
       setBatch({ done, total: imgs.length });
+      return url;
+    }));
+    const urls = results.filter((u): u is string => !!u);
+    if (urls.length) {
+      if (onAddMany) onAddMany(urls);
+      else urls.forEach(u => onAdd(u));
     }
     setBatch(null);
     if (fileRef.current) fileRef.current.value = '';
