@@ -427,8 +427,32 @@ async function dynamicGet(path: string): Promise<any> {
       categoryName: buildCategoryAncestry(data.category_id, byId).join(" > ") || parseProductData(data).category || "",
       variants: (variants ?? []).map(shapeVariantRow),
     });
+    // Group siblings — other products in the same product group (Avvatar-style switcher)
+    let groupSiblings: any[] = [];
+    let group: any = null;
+    if (data.group_id) {
+      const [{ data: sibs }, { data: grp }] = await Promise.all([
+        supabase.from("products")
+          .select("id,name,slug,price,compare_price,images,stock,is_active")
+          .eq("group_id", data.group_id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: true }),
+        supabase.from("product_groups").select("id,name,slug").eq("id", data.group_id).maybeSingle(),
+      ]);
+      groupSiblings = (sibs ?? []).map((s: any) => ({
+        _id: s.id, id: s.id, name: s.name, slug: s.slug,
+        price: Number(s.price || 0),
+        comparePrice: Number(s.compare_price || 0),
+        images: normalizeImages(s.images),
+        stock: Number(s.stock || 0),
+        isCurrent: s.id === data.id,
+      }));
+      group = grp ? camelize(grp) : null;
+    }
     return {
       ...result,
+      group,
+      groupSiblings,
       reviews: camelize((reviews ?? []).map((r: any) => ({
         ...r,
         name: r.user_name,
