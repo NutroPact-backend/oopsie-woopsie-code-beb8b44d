@@ -290,12 +290,11 @@ export default function PagesTab() {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs font-bold text-gray-500 block mb-1">Hero image URL (optional)</label>
-                      <input
+                      <label className="text-xs font-bold text-gray-500 block mb-1">Hero image / video (optional)</label>
+                      <MediaInput
                         value={page.heroImage || ''}
-                        onChange={e => update(page.id, { heroImage: e.target.value })}
-                        placeholder="https://..."
-                        className="w-full bg-white border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        onChange={url => update(page.id, { heroImage: url })}
+                        placeholder="https://… or upload image/video →"
                       />
                     </div>
                   </div>
@@ -682,7 +681,7 @@ function SectionFields({ section, products, onChange }: { section: BuilderSectio
     case 'banner':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <Field label="Image URL"><input className={inp} value={section.image || ''} onChange={e => onChange({ image: e.target.value } as any)} placeholder="https://..." /></Field>
+          <Field label="Image / video"><MediaInput value={section.image || ''} onChange={url => onChange({ image: url } as any)} /></Field>
           <Field label="Align"><select className={inp} value={section.align || 'center'} onChange={e => onChange({ align: e.target.value as any } as any)}><option value="left">Left</option><option value="center">Center</option></select></Field>
           <Field label="Title"><input className={inp} value={section.title || ''} onChange={e => onChange({ title: e.target.value } as any)} /></Field>
           <Field label="Subtitle"><input className={inp} value={section.subtitle || ''} onChange={e => onChange({ subtitle: e.target.value } as any)} /></Field>
@@ -704,7 +703,7 @@ function SectionFields({ section, products, onChange }: { section: BuilderSectio
     case 'image':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <Field label="Image URL"><input className={inp} value={section.src} onChange={e => onChange({ src: e.target.value } as any)} placeholder="https://..." /></Field>
+          <Field label="Image / video"><MediaInput value={section.src} onChange={url => onChange({ src: url } as any)} /></Field>
           <Field label="Alt text"><input className={inp} value={section.alt || ''} onChange={e => onChange({ alt: e.target.value } as any)} /></Field>
           <Field label="Click link (optional)"><input className={inp} value={section.href || ''} onChange={e => onChange({ href: e.target.value } as any)} /></Field>
           <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 mt-5"><input type="checkbox" checked={section.rounded !== false} onChange={e => onChange({ rounded: e.target.checked } as any)} className="accent-orange-500" /> Rounded corners</label>
