@@ -290,12 +290,11 @@ export default function PagesTab() {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="text-xs font-bold text-gray-500 block mb-1">Hero image URL (optional)</label>
-                      <input
+                      <label className="text-xs font-bold text-gray-500 block mb-1">Hero image / video (optional)</label>
+                      <MediaInput
                         value={page.heroImage || ''}
-                        onChange={e => update(page.id, { heroImage: e.target.value })}
-                        placeholder="https://..."
-                        className="w-full bg-white border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        onChange={url => update(page.id, { heroImage: url })}
+                        placeholder="https://… or upload image/video →"
                       />
                     </div>
                   </div>
@@ -651,12 +650,38 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 const inp = 'w-full border rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-orange-400';
 
+function MediaInput({ value, onChange, accept = 'image/*,video/*', placeholder = 'https://… or upload →', bucket = 'page-backgrounds', className = '' }: { value: string; onChange: (url: string) => void; accept?: string; placeholder?: string; bucket?: string; className?: string }) {
+  const { uploadFile, isUploading, progress } = useSimpleUpload({ bucket });
+  return (
+    <div className={`flex gap-2 items-center ${className}`}>
+      <input
+        className="flex-1 bg-white border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 min-w-0"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+      />
+      <label className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-bold cursor-pointer shrink-0 inline-flex items-center gap-1.5">
+        <Upload size={12} /> {isUploading ? `${progress}%` : 'Upload'}
+        <input type="file" accept={accept} className="hidden" onChange={async e => {
+          const f = e.target.files?.[0]; if (!f) return;
+          const url = await uploadFile(f);
+          if (url) onChange(url);
+          e.target.value = '';
+        }} />
+      </label>
+      {value && (
+        <button type="button" onClick={() => onChange('')} className="px-2.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold shrink-0">Clear</button>
+      )}
+    </div>
+  );
+}
+
 function SectionFields({ section, products, onChange }: { section: BuilderSection; products: any[]; onChange: (p: Partial<BuilderSection>) => void }) {
   switch (section.type) {
     case 'banner':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <Field label="Image URL"><input className={inp} value={section.image || ''} onChange={e => onChange({ image: e.target.value } as any)} placeholder="https://..." /></Field>
+          <Field label="Image / video"><MediaInput value={section.image || ''} onChange={url => onChange({ image: url } as any)} /></Field>
           <Field label="Align"><select className={inp} value={section.align || 'center'} onChange={e => onChange({ align: e.target.value as any } as any)}><option value="left">Left</option><option value="center">Center</option></select></Field>
           <Field label="Title"><input className={inp} value={section.title || ''} onChange={e => onChange({ title: e.target.value } as any)} /></Field>
           <Field label="Subtitle"><input className={inp} value={section.subtitle || ''} onChange={e => onChange({ subtitle: e.target.value } as any)} /></Field>
@@ -678,7 +703,7 @@ function SectionFields({ section, products, onChange }: { section: BuilderSectio
     case 'image':
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <Field label="Image URL"><input className={inp} value={section.src} onChange={e => onChange({ src: e.target.value } as any)} placeholder="https://..." /></Field>
+          <Field label="Image / video"><MediaInput value={section.src} onChange={url => onChange({ src: url } as any)} /></Field>
           <Field label="Alt text"><input className={inp} value={section.alt || ''} onChange={e => onChange({ alt: e.target.value } as any)} /></Field>
           <Field label="Click link (optional)"><input className={inp} value={section.href || ''} onChange={e => onChange({ href: e.target.value } as any)} /></Field>
           <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 mt-5"><input type="checkbox" checked={section.rounded !== false} onChange={e => onChange({ rounded: e.target.checked } as any)} className="accent-orange-500" /> Rounded corners</label>
