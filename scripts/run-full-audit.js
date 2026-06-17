@@ -87,20 +87,15 @@ function runPhase(phase) {
 function preflight() {
   log('\n🔧 PRE-FLIGHT CHECKS\n', 'bold');
 
-  // Check .env
-  const envFile = path.join(ROOT, '.env');
+  // Check audit.env (kept separate from app .env)
+  const envFile = path.join(ROOT, 'audit.env');
   if (!fs.existsSync(envFile)) {
-    log('  ❌ .env file missing!', 'red');
-    log('  → Copy .env.example to .env and fill in credentials', 'yellow');
+    log('  ❌ audit.env missing!', 'red');
+    log('  → Copy audit.env.example to audit.env and fill in credentials', 'yellow');
     process.exit(1);
   }
 
-  // Check node_modules
-  const nm = path.join(ROOT, 'node_modules');
-  if (!fs.existsSync(nm)) {
-    log('  📦 Installing dependencies...', 'yellow');
-    execSync('npm install', { cwd: ROOT, stdio: 'inherit' });
-  }
+  // node_modules assumed (bun-managed). Skip install.
 
   // Check Playwright browsers
   try {
