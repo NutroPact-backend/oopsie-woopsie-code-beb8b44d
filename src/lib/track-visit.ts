@@ -31,10 +31,24 @@ function device(): "mobile" | "desktop" | "tablet" {
 function utm(search: string) {
   try {
     const p = new URLSearchParams(search);
+    const read = (k: string) => {
+      const fromUrl = p.get(k);
+      if (fromUrl) return fromUrl;
+      try {
+        const stored = localStorage.getItem("attr:" + k);
+        if (stored) {
+          const { v, exp } = JSON.parse(stored);
+          if (!exp || exp > Date.now()) return v;
+        }
+      } catch {}
+      try { return sessionStorage.getItem(k); } catch { return null; }
+    };
     return {
-      utm_source: p.get("utm_source") || sessionStorage.getItem("utm_source") || null,
-      utm_medium: p.get("utm_medium") || sessionStorage.getItem("utm_medium") || null,
-      utm_campaign: p.get("utm_campaign") || sessionStorage.getItem("utm_campaign") || null,
+      utm_source: read("utm_source"),
+      utm_medium: read("utm_medium"),
+      utm_campaign: read("utm_campaign"),
+      utm_term: read("utm_term"),
+      utm_content: read("utm_content"),
     };
   } catch { return { utm_source: null, utm_medium: null, utm_campaign: null }; }
 }
@@ -52,12 +66,24 @@ export function trackVisit() {
   } catch {}
 
   const u = utm(window.location.search);
-  // Persist utm for downstream attribution
-  try {
-    if (u.utm_source) sessionStorage.setItem("utm_source", u.utm_source);
-    if (u.utm_medium) sessionStorage.setItem("utm_medium", u.utm_medium);
-    if (u.utm_campaign) sessionStorage.setItem("utm_campaign", u.utm_campaign);
-  } catch {}
+  // Persist utm for downstream attribution: 30-day first-touch window in
+  // localStorage + per-session in sessionStorage.
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const persist = (k: string, v: string | null) => {
+    if (!v) return;
+    try { sessionStorage.setItem(k, v); } catch {}
+    try {
+      const existing = localStorage.getItem("attr:" + k);
+      if (!existing) {
+        localStorage.setItem("attr:" + k, JSON.stringify({ v, exp: Date.now() + THIRTY_DAYS }));
+      }
+    } catch {}
+  };
+  persist("utm_source", u.utm_source);
+  persist("utm_medium", u.utm_medium);
+  persist("utm_campaign", u.utm_campaign);
+  persist("utm_term", u.utm_term);
+  persist("utm_content", u.utm_content);
 
   const payload = {
     session_id: sid(),

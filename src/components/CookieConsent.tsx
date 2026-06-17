@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { initAnalytics, pushConsentDefaults, grantConsent, denyConsent } from '@/lib/analytics';
 
 const KEY = 'nutropact:cookie-consent';
 
@@ -8,9 +9,18 @@ export default function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // Always push Consent Mode v2 defaults (denied) before any tag loads.
+    pushConsentDefaults();
     try {
       const v = localStorage.getItem(KEY);
-      if (!v) setShow(true);
+      if (!v) {
+        setShow(true);
+      } else {
+        // Re-apply prior decision and boot tags so they run on returning visits.
+        const prev = JSON.parse(v);
+        initAnalytics();
+        if (prev?.accepted) grantConsent(); else denyConsent();
+      }
     } catch { /* private mode */ }
   }, []);
 
@@ -18,6 +28,8 @@ export default function CookieConsent() {
     try {
       localStorage.setItem(KEY, JSON.stringify({ accepted, ts: Date.now() }));
     } catch {}
+    initAnalytics();
+    if (accepted) grantConsent(); else denyConsent();
     setShow(false);
   };
 
