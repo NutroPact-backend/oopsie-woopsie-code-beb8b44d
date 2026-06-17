@@ -9,7 +9,7 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How NutroPact collects, uses, and safeguards your personal information when you shop premium supplements with us in India." },
       { property: "og:title", content: "Privacy Policy — NutroPact" },
       { property: "og:description", content: "How NutroPact collects, uses, and safeguards your personal information." },
-      { property: "og:url", content: "/privacy" },
+      { property: "og:url", content: "https://www.nutropact.com/privacy" },
     ],
     links: [{ rel: "canonical", href: "/privacy" }],
   }),

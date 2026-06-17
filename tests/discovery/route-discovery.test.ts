@@ -161,11 +161,16 @@ test('DISC-01: Crawl all seed routes and discover additional pages', async ({ pa
         `(${result.loadTimeMs}ms)`
       );
 
-      // Crawl discovered links recursively (1 level deep)
+      // Crawl discovered links recursively (1 level deep).
+      // Cap per-seed to avoid timing out on link-heavy pages (PDPs, listings).
+      const CRAWL_CAP = 8;
+      let crawled = 0;
       for (const link of result.linksFound) {
+        if (crawled >= CRAWL_CAP) break;
         if (!visited.has(link) && !SEED_ROUTES.includes(link)) {
           const subResult = await auditRoute(page, link, 'crawled');
           if (subResult) {
+            crawled++;
             results.push(subResult);
             console.log(
               `    ${subResult.status === 200 ? '✅' : '⚠️ '} [CRAWLED] [${subResult.status}] ${subResult.path}`

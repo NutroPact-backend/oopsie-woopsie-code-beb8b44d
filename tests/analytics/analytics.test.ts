@@ -328,9 +328,12 @@ test('ANA-05: Cookie consent — verify pixels not fired before consent', async 
   await page.waitForTimeout(2000);
 
   // Check if cookie banner is shown
-  const cookieBanner = await page.locator(
-    '[data-testid*="cookie"], .cookie-banner, .cookie-consent, [aria-label*="cookie"], text=cookie, text=consent'
-  ).count();
+  // Combine CSS selector matches with Playwright text-engine matches.
+  // `text=...` is not valid inside a CSS selector list, so use `.or(...)`.
+  const cookieBanner = await page
+    .locator('[data-testid*="cookie"], .cookie-banner, .cookie-consent, [aria-label*="cookie"]')
+    .or(page.getByText(/cookie|consent/i))
+    .count();
 
   console.log('\n  📋 COOKIE CONSENT AUDIT:');
   console.log(`     Cookie banner visible: ${cookieBanner > 0 ? '✅ YES' : '❌ NO BANNER'}`);

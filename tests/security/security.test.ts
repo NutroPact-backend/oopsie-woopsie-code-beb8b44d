@@ -132,6 +132,7 @@ test('SEC-01: HTTP security headers audit', async ({ page }) => {
     });
   }
 
+  fs.mkdirSync('reports/output/security-findings', { recursive: true });
   fs.writeFileSync('reports/output/security-findings/headers.json', JSON.stringify({ findings, headers }, null, 2));
   saveLog('sec01-headers', { headers, findings });
 });
