@@ -10,9 +10,11 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const whatsappHref = settings?.whatsappNumber
-    ? `https://wa.me/${settings.whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(settings?.whatsappMessage || 'Hi, I want to know more about NutroPact.')}`
-    : '#';
+  const DEFAULT_PHONE = '+91-8955590350';
+  const DEFAULT_EMAIL = 'info@nutropact.com';
+  const DEFAULT_WHATSAPP = '918955590350';
+  const whatsappNumber = settings?.whatsappNumber || DEFAULT_WHATSAPP;
+  const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(settings?.whatsappMessage || 'Hi, I want to know more about NutroPact.')}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,21 +34,21 @@ export default function ContactPage() {
     {
       icon: <Mail size={22} className="text-orange-500" />,
       label: 'Email Us',
-      value: settings?.email || 'support@nutropact.com',
+      value: settings?.email || DEFAULT_EMAIL,
       sub: 'We reply within 24 hours',
-      href: `mailto:${settings?.email || 'support@nutropact.com'}`,
+      href: `mailto:${settings?.email || DEFAULT_EMAIL}`,
     },
     {
       icon: <Phone size={22} className="text-orange-500" />,
       label: 'Call Us',
-      value: settings?.phone || '+91 9999999999',
-      sub: 'Mon–Sat, 9 AM – 7 PM IST',
-      href: `tel:${(settings?.phone || '+919999999999').replace(/\s/g, '')}`,
+      value: settings?.phone || DEFAULT_PHONE,
+      sub: 'Mon–Sat, 11 AM – 6 PM IST',
+      href: `tel:${(settings?.phone || DEFAULT_PHONE).replace(/[^+\d]/g, '')}`,
     },
     {
       icon: <MessageCircle size={22} className="text-green-500" />,
       label: 'WhatsApp',
-      value: settings?.whatsappNumber ? `+${settings.whatsappNumber}` : 'Chat with us',
+      value: `+${whatsappNumber.replace(/\D/g, '')}`,
       sub: 'Fastest response',
       href: whatsappHref,
     },
