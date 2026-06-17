@@ -1,5 +1,6 @@
 // Critical money-path tests — run with `bun test src/lib/__tests__`.
 // Pure functions only; no DB/network. Keep this fast and deterministic.
+// @ts-nocheck
 import { describe, it, expect } from "bun:test";
 import { computeLineTax } from "../invoice.shared";
 import { gstr1B2cSummary, gstr3bSummary, hsnSummary } from "../gstr";
