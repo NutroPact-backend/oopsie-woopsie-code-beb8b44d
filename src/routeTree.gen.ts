@@ -27,6 +27,7 @@ import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ComboRouteImport } from './routes/combo'
+import { Route as CoaRouteImport } from './routes/coa'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BlogRouteImport } from './routes/blog'
@@ -165,6 +166,11 @@ const ContactRoute = ContactRouteImport.update({
 const ComboRoute = ComboRouteImport.update({
   id: '/combo',
   path: '/combo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoaRoute = CoaRouteImport.update({
+  id: '/coa',
+  path: '/coa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/coa': typeof CoaRoute
   '/combo': typeof ComboRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -498,6 +505,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/coa': typeof CoaRoute
   '/combo': typeof ComboRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -567,6 +575,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/coa': typeof CoaRoute
   '/combo': typeof ComboRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -638,6 +647,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/cart'
     | '/checkout'
+    | '/coa'
     | '/combo'
     | '/contact'
     | '/faq'
@@ -707,6 +717,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/cart'
     | '/checkout'
+    | '/coa'
     | '/combo'
     | '/contact'
     | '/faq'
@@ -775,6 +786,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/cart'
     | '/checkout'
+    | '/coa'
     | '/combo'
     | '/contact'
     | '/faq'
@@ -845,6 +857,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  CoaRoute: typeof CoaRoute
   ComboRoute: typeof ComboRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -1021,6 +1034,13 @@ declare module '@tanstack/react-router' {
       path: '/combo'
       fullPath: '/combo'
       preLoaderRoute: typeof ComboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coa': {
+      id: '/coa'
+      path: '/coa'
+      fullPath: '/coa'
+      preLoaderRoute: typeof CoaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -1435,6 +1455,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  CoaRoute: CoaRoute,
   ComboRoute: ComboRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
