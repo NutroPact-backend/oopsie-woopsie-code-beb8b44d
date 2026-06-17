@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
 import { screenshot, attachNetworkLogger, saveLog } from '../../utils/page-helpers';
 import { coverage } from '../../utils/coverage-tracker';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
 
 const BASE = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 

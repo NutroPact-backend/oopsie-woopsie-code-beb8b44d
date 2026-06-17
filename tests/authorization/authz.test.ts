@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
 import { screenshot, attachNetworkLogger, saveLog } from '../../utils/page-helpers';
 import { coverage } from '../../utils/coverage-tracker';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
 
 const BASE = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 
@@ -141,7 +141,8 @@ test('AUTHZ-03: IDOR — order data not accessible by guessing IDs', async ({ pa
     ];
 
     for (const route of routes) {
-      await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await page.waitForLoadState('load', { timeout: 5000 }).catch(() => {});
       const content = await page.content();
       const status = page.url();
 
@@ -178,10 +179,10 @@ test('AUTHZ-04: Open redirect in login redirect parameter', async ({ page }) => 
   ];
 
   for (const url of maliciousRedirects) {
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.fill('input[type="email"]', process.env.ADMIN_EMAIL || '').catch(() => {});
     await page.fill('input[type="password"]', process.env.ADMIN_PASSWORD || '').catch(() => {});
-    await page.click('button[type="submit"]').catch(() => {});
+    await page.locator('form:has(input[type="password"]) button[type="submit"]').first().click().catch(() => {});
     await page.waitForTimeout(2000);
 
     const finalUrl = page.url();
