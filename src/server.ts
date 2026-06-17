@@ -81,6 +81,10 @@ function withSecurityHeaders(response: Response, request: Request): Response {
     "camera=(), microphone=(), geolocation=(), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=()",
   );
   headers.set("X-XSS-Protection", "0"); // modern browsers ignore; explicit off prevents legacy bug
+  // Cross-origin isolation — same-origin-allow-popups keeps OAuth popups
+  // (Google sign-in) working while still mitigating cross-window attacks.
+  headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  headers.set("Cross-Origin-Resource-Policy", "same-site");
 
   if (isHtml) {
     // Prevent caching of HTML by browsers/proxies — HTML may contain
@@ -110,6 +114,8 @@ function withSecurityHeaders(response: Response, request: Request): Response {
       `media-src 'self' data: blob: ${supaOrigin} https://*.supabase.co`,
       `connect-src 'self' ${supaOrigin} https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.razorpay.com https://api.phonepe.com https://challenges.cloudflare.com`,
       `frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://mercury.phonepe.com https://challenges.cloudflare.com https://www.google.com`,
+      `worker-src 'self' blob:`,
+      `manifest-src 'self'`,
       `frame-ancestors 'none'`,
       `form-action 'self' https://*.razorpay.com https://mercury.phonepe.com`,
       `base-uri 'self'`,
