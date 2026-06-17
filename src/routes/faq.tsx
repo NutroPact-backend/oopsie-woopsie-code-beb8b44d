@@ -16,7 +16,7 @@ export const Route = createFileRoute("/faq")({
       { name: "description", content: "Answers to common questions about NutroPact supplements, shipping, returns, payments, and authenticity for customers across India." },
       { property: "og:title", content: "FAQ — NutroPact" },
       { property: "og:description", content: "Answers to common questions about NutroPact supplements, shipping, and returns." },
-      { property: "og:url", content: "/faq" },
+      { property: "og:url", content: "https://www.nutropact.com/faq" },
     ],
     links: [{ rel: "canonical", href: "/faq" }],
     scripts: [{
