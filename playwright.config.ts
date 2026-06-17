@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
 
 const BASE_URL = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 const REPORT_DIR = process.env.REPORT_DIR || './reports/output';
