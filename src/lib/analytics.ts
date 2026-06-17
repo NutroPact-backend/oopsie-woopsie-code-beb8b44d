@@ -26,6 +26,7 @@ const FB_PIXEL_ID = import.meta.env.VITE_FB_PIXEL_ID as string | undefined;
 const GTM_ID = import.meta.env.VITE_GTM_ID as string | undefined;
 const TIKTOK_PIXEL_ID = import.meta.env.VITE_TIKTOK_PIXEL_ID as string | undefined;
 const SNAPCHAT_PIXEL_ID = import.meta.env.VITE_SNAPCHAT_PIXEL_ID as string | undefined;
+const CLARITY_ID = import.meta.env.VITE_CLARITY_ID as string | undefined;
 
 // Track which pixel IDs have already been initialized so we never double-init
 const initializedFbPixels = new Set<string>();
@@ -50,6 +51,10 @@ function inlineScript(code: string) {
 // ─── Global pixel bootstrap ──────────────────────────────────────────────────
 
 export function initAnalytics() {
+  // Google Consent Mode v2 defaults — must run BEFORE GTM/GA loads.
+  // Defaults to denied; CookieConsent calls grantConsent() on accept.
+  pushConsentDefaults();
+
   if (GTM_ID) {
     window.dataLayer = window.dataLayer || [];
     inlineScript(
@@ -79,6 +84,68 @@ export function initAnalytics() {
   if (SNAPCHAT_PIXEL_ID) {
     initSnapchatPixel(SNAPCHAT_PIXEL_ID);
   }
+
+  if (CLARITY_ID) {
+    initClarity(CLARITY_ID);
+  }
+}
+
+// ─── Google Consent Mode v2 ──────────────────────────────────────────────────
+
+let consentDefaulted = false;
+export function pushConsentDefaults() {
+  if (typeof window === 'undefined' || consentDefaulted) return;
+  consentDefaulted = true;
+  window.dataLayer = window.dataLayer || [];
+  // gtag stub so consent commands queue before gtag.js loads
+  if (!window.gtag) window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'granted',
+    security_storage: 'granted',
+    wait_for_update: 500,
+  });
+}
+
+export function grantConsent() {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('consent', 'update', {
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'granted',
+    analytics_storage: 'granted',
+  });
+}
+
+export function denyConsent() {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('consent', 'update', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+  });
+}
+
+// ─── Microsoft Clarity ───────────────────────────────────────────────────────
+
+const initializedClarity = new Set<string>();
+export function initClarity(projectId: string) {
+  if (!projectId || initializedClarity.has(projectId)) return;
+  initializedClarity.add(projectId);
+  inlineScript(
+    `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};` +
+    `t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;` +
+    `y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);` +
+    `})(window,document,"clarity","script","${projectId}");`
+  );
 }
 
 // ─── Idempotent per-pixel initializers ───────────────────────────────────────
