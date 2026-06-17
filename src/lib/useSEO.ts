@@ -80,7 +80,10 @@ export function useSEO(meta: SEOMeta) {
     const description = o.description || meta.description ||
       'NutroPact — Lab-tested protein, creatine, pre-workout, and mass gainers. Premium supplements for serious athletes. Free delivery above ₹999.';
     const image = o.og_image || meta.image || `${window.location.origin}/og-image.jpg`;
-    const url = meta.url || window.location.href;
+    // Self-referential canonical/og:url — strip query + hash so social
+    // crawlers don't index tracking params or page-internal anchors.
+    const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+    const url = meta.url || cleanUrl;
 
     const keywords = meta.keywords ? `${meta.keywords}, ${BASE_KEYWORDS}` : BASE_KEYWORDS;
 
@@ -96,15 +99,20 @@ export function useSEO(meta: SEOMeta) {
     setMeta('og:url', url, 'property');
     setMeta('og:type', meta.type === 'product' ? 'product' : 'website', 'property');
     setMeta('og:site_name', SITE_NAME, 'property');
+    setMeta('og:locale', 'en_IN', 'property');
     if (meta.price) {
       setMeta('product:price:amount', String(meta.price), 'property');
       setMeta('product:price:currency', meta.currency || 'INR', 'property');
+      if (meta.availability) {
+        setMeta('product:availability', meta.availability === 'OutOfStock' ? 'oos' : 'instock', 'property');
+      }
     }
 
     setMeta('twitter:card', 'summary_large_image');
     setMeta('twitter:title', title);
     setMeta('twitter:description', description);
     setMeta('twitter:image', image);
+    setMeta('twitter:url', url);
 
     setCanonical(o.canonical || url);
     if (o.robots) setMeta('robots', o.robots);
