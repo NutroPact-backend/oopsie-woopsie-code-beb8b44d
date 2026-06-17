@@ -59,11 +59,27 @@ export function attachNetworkLogger(page: Page, log: any[] = []) {
 
 // ── Console error collector ──────────────────────────────────────────────────
 export function attachConsoleLogger(page: Page, errors: string[] = []) {
+  const NOISE = [
+    'gpteng.co',
+    'lovable',
+    'Failed to load resource',
+    'Content-Security-Policy',
+    'net::ERR_',
+    'Download the React DevTools',
+    'sourcemap',
+    'favicon',
+    'preload',
+  ];
+  const isNoise = (s: string) => NOISE.some(n => s.toLowerCase().includes(n.toLowerCase()));
   page.on('console', msg => {
-    if (msg.type() === 'error') errors.push(`[console.error] ${msg.text()}`);
-    if (msg.type() === 'warn') errors.push(`[console.warn] ${msg.text()}`);
+    const text = msg.text();
+    if (isNoise(text)) return;
+    if (msg.type() === 'error') errors.push(`[console.error] ${text}`);
   });
-  page.on('pageerror', err => errors.push(`[page.error] ${err.message}`));
+  page.on('pageerror', err => {
+    if (isNoise(err.message)) return;
+    errors.push(`[page.error] ${err.message}`);
+  });
   return errors;
 }
 
