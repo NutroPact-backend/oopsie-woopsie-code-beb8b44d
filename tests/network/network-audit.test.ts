@@ -290,6 +290,7 @@ test('NET-04: Third-party requests — analytics and tracking inventory', async 
 
   saveLog('net04-third-party', thirdPartyDomains);
 
+  fs.mkdirSync('reports/output/analytics-report', { recursive: true });
   fs.writeFileSync('reports/output/analytics-report/third-party-inventory.json',
     JSON.stringify({ thirdPartyDomains, analytics: { hasGA4, hasGTM, hasMeta, hasAds } }, null, 2));
 });
