@@ -135,6 +135,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         if (h?.hreflang && h?.href) linkExtras.push({ rel: "alternate", hreflang: h.hreflang, href: h.href });
       }
     }
+    // Default hreflang so search engines have a regional/default signal even
+    // when no custom hreflang is configured in marketing settings.
+    if (linkExtras.length === 0) {
+      linkExtras.push({ rel: "alternate", hreflang: "en-IN", href: SITE_ORIGIN });
+      linkExtras.push({ rel: "alternate", hreflang: "x-default", href: SITE_ORIGIN });
+    }
 
     const scriptExtras: any[] = [];
     // Pinterest tag
