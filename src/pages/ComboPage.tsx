@@ -160,7 +160,7 @@ export default function ComboPage() {
   const stepDone2 = !!rule;
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-dvh bg-stone-50">
       {/* Hero with step tracker */}
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-orange-900 to-orange-600 text-white">
         <div className="absolute inset-0 opacity-[0.08]"

@@ -64,7 +64,7 @@ export default function ContactPage() {
   const SUBJECTS = ['General Inquiry', 'Order Issue', 'Return / Refund', 'Product Question', 'Bulk / Wholesale', 'Partnership', 'Other'];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       {/* Hero */}
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">

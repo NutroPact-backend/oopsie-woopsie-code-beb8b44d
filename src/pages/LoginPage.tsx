@@ -171,7 +171,7 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-16">
+    <div className="min-h-dvh bg-gray-50 flex items-center justify-center px-4 py-16">
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-md">
         <h1 className="text-3xl font-black mb-2">
           {mode === "password" ? (isLogin ? "LOGIN" : "REGISTER") : mode === "emailOtp" ? "EMAIL OTP" : "PHONE OTP"}
