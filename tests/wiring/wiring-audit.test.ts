@@ -147,7 +147,7 @@ test('WIRE-01: Products page load → Supabase query', async ({ page }) => {
   }
 
   const loadingStuck = await page.locator('text=Loading').count() > 0;
-  const productsShown = await page.locator('[data-testid*="product"], .product-card, article').count();
+  const productsShown = await page.locator('[data-testid="product-card"], .product-card, article').count();
 
   const entry: WiringEntry = {
     action: 'Load products page',
@@ -175,7 +175,7 @@ test('WIRE-02: Add to Cart → API → Cart state update', async ({ page }) => {
   await page.goto(`${BASE}/products`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(2000);
 
-  const addBtn = page.locator('button:has-text("Add to Cart"), button:has-text("Add"), [data-testid*="add-cart"]').first();
+  const addBtn = page.locator('[data-testid="add-to-cart"], button[aria-label="Add to cart"]').first();
 
   if (await addBtn.count() === 0) {
     wiringMatrix.push({
@@ -224,11 +224,11 @@ test('WIRE-03: Contact form submit → Supabase insert → success message', asy
   const networkLog = attachNetworkLogger(page);
   await page.goto(`${BASE}/contact`, { waitUntil: 'networkidle' });
 
-  await page.fill('input[name="name"], #name', 'Wire Test').catch(() => {});
-  await page.fill('input[type="email"]', 'wire-test@mailinator.com').catch(() => {});
-  await page.fill('textarea', 'Wiring audit test message').catch(() => {});
+  await page.locator('form[data-testid="contact-form"] input').first().fill('Wire Test').catch(() => {});
+  await page.fill('form[data-testid="contact-form"] input[type="email"]', 'wire-test@mailinator.com').catch(() => {});
+  await page.fill('form[data-testid="contact-form"] textarea', 'Wiring audit test message').catch(() => {});
 
-  await page.click('button[type="submit"]');
+  await page.locator('[data-testid="contact-submit"]').first().click();
   await page.waitForTimeout(2000);
 
   const apiCalls = networkLog.filter((r: any) => r.url?.includes('supabase') && r.type === 'response');

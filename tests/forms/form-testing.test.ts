@@ -39,6 +39,11 @@ const EMAIL_MISSING_TLD  = 'test@domain';
 const PHONE_VALID        = '9876543210';
 const PHONE_INVALID      = '123';
 
+// Site-specific selectors (Nutropact)
+const SEL_CONTACT_SUBMIT = '[data-testid="contact-submit"], form[data-testid="contact-form"] button[type="submit"]';
+const SEL_TRACK_INPUT    = '[data-testid="track-order-input"], input[name="orderNumber"]';
+const SEL_TRACK_SUBMIT   = '[data-testid="track-order-submit"], form[data-testid="track-order-form"] button[type="submit"]';
+
 // ── Helper: submit form and capture result ─────────────────────────────────
 async function submitFormAndObserve(page: any, submitSelector: string, waitMs = 2000) {
   const networkLog = attachNetworkLogger(page);
@@ -84,7 +89,7 @@ test('FORM-01: Contact form — valid submission', async ({ page }) => {
 
   await screenshot(page, 'form01-contact-filled-valid');
 
-  const result = await submitFormAndObserve(page, 'button[type="submit"]');
+  const result = await submitFormAndObserve(page, SEL_CONTACT_SUBMIT);
   await screenshot(page, 'form01-contact-submitted');
 
   console.log(`  📡 API calls triggered: ${result.apiCalls.length}`);
@@ -108,7 +113,7 @@ test('FORM-01: Contact form — valid submission', async ({ page }) => {
 
 test('FORM-02: Contact form — empty submission', async ({ page }) => {
   await page.goto(`${BASE}/contact`, { waitUntil: 'networkidle' });
-  await page.click('button[type="submit"]');
+  await page.locator(SEL_CONTACT_SUBMIT).first().click();
   await page.waitForTimeout(1000);
   await screenshot(page, 'form02-contact-empty-submit');
 
@@ -134,7 +139,7 @@ test('FORM-03: Contact form — XSS payload observation', async ({ page }) => {
   const msgField = page.locator('textarea').first();
   if (await msgField.count() > 0) await msgField.fill(XSS_PAYLOAD);
 
-  await page.click('button[type="submit"]').catch(() => {});
+  await page.locator(SEL_CONTACT_SUBMIT).first().click().catch(() => {});
   await page.waitForTimeout(1500);
   await screenshot(page, 'form03-contact-xss-payload');
 
@@ -163,7 +168,7 @@ test('FORM-04: Contact form — duplicate submission (double-click)', async ({ p
   if (await emailField.count() > 0) await emailField.fill(EMAIL_VALID);
   if (await msgField.count() > 0)   await msgField.fill('Duplicate test');
 
-  const submitBtn = page.locator('button[type="submit"]').first();
+  const submitBtn = page.locator(SEL_CONTACT_SUBMIT).first();
 
   // Double-click rapidly
   await submitBtn.click();
@@ -194,7 +199,7 @@ test('FORM-05: Track order form — valid and invalid inputs', async ({ page }) 
   await page.goto(`${BASE}/track-order`, { waitUntil: 'networkidle' });
   await screenshot(page, 'form05-track-order-initial');
 
-  const orderInput = page.locator('input[name*="order"], input[placeholder*="order" i], input[placeholder*="Order" i]').first();
+  const orderInput = page.locator(`${SEL_TRACK_INPUT}, input[name*="order"], input[placeholder*="order" i]`).first();
   if (await orderInput.count() === 0) {
     console.warn('  ⚠️  UNTESTED: Track order input field not found');
     return;
@@ -203,22 +208,22 @@ test('FORM-05: Track order form — valid and invalid inputs', async ({ page }) 
   coverage.addDiscoveredForm('track-order-form', '/track-order', ['order_id']);
 
   // Valid order ID format test
-  await orderInput.fill('ORD-123456');
-  const result1 = await submitFormAndObserve(page, 'button[type="submit"]');
+  await orderInput.fill('NP1234567890');
+  const result1 = await submitFormAndObserve(page, SEL_TRACK_SUBMIT);
   await screenshot(page, 'form05-track-valid-id');
   console.log(`  📡 API calls for valid order ID: ${result1.apiCalls.length}`);
 
   // Invalid / non-existent order
   await page.goto(`${BASE}/track-order`, { waitUntil: 'networkidle' });
-  await orderInput.fill('NONEXISTENT-99999');
-  const result2 = await submitFormAndObserve(page, 'button[type="submit"]');
+  await orderInput.fill('NP9999999999');
+  const result2 = await submitFormAndObserve(page, SEL_TRACK_SUBMIT);
   await screenshot(page, 'form05-track-invalid-id');
   console.log(`  📡 Not found messages: ${result2.errorMessages.join(' | ') || 'none'}`);
 
   // SQL injection attempt
   await page.goto(`${BASE}/track-order`, { waitUntil: 'networkidle' });
   await orderInput.fill(SQL_PAYLOAD);
-  const result3 = await submitFormAndObserve(page, 'button[type="submit"]');
+  const result3 = await submitFormAndObserve(page, SEL_TRACK_SUBMIT);
   await screenshot(page, 'form05-track-sql-injection');
   const sqlError = result3.apiCalls.find((c: any) => c.status >= 500);
   if (sqlError) {

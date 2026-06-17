@@ -115,7 +115,7 @@ export default function ContactPage() {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} data-testid="contact-form" className="space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-bold text-gray-500 block mb-1.5">Your Name *</label>
@@ -155,6 +155,7 @@ export default function ContactPage() {
                     </div>
                   )}
                   <button type="submit" disabled={sending}
+                    data-testid="contact-submit"
                     className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-black transition disabled:opacity-60 text-sm">
                     <Send size={16} />
                     {sending ? 'Sending...' : 'Send Message'}

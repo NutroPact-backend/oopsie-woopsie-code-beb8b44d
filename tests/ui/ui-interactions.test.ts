@@ -164,7 +164,7 @@ test('UI-02: Products page — filters, sort, product cards', async ({ page }) =
 
   // Check if products loaded or stuck in loading state
   const loadingText = await page.locator('text=Loading').count();
-  const productCards = await page.locator('[data-testid*="product"], .product-card, article').count();
+  const productCards = await page.locator('[data-testid="product-card"], .product-card').count();
 
   console.log(`  📋 Products page analysis:`);
   console.log(`     Loading indicator visible: ${loadingText > 0 ? '⚠️  YES (possible broken state)' : '✅ NO'}`);
@@ -189,10 +189,10 @@ test('UI-02: Products page — filters, sort, product cards', async ({ page }) =
   for (const label of filterLabels) {
     const btn = page.locator(`button:has-text("${label}"), [role="tab"]:has-text("${label}")`);
     if (await btn.count() > 0) {
-      const beforeProducts = await page.locator('[data-testid*="product"], .product-card').count();
+      const beforeProducts = await page.locator('[data-testid="product-card"], .product-card').count();
       await btn.click();
       await page.waitForTimeout(1000);
-      const afterProducts = await page.locator('[data-testid*="product"], .product-card').count();
+      const afterProducts = await page.locator('[data-testid="product-card"], .product-card').count();
       await screenshot(page, `ui02-filter-${label.toLowerCase()}`);
       console.log(`     Filter "${label}": before=${beforeProducts}, after=${afterProducts} products`);
 

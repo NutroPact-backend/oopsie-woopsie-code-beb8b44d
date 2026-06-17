@@ -28,7 +28,7 @@ test('BIZ-01: Cart — negative quantity and zero price manipulation', async ({ 
   await page.waitForTimeout(2000);
 
   // Try to add a product
-  const addToCartBtn = page.locator('button:has-text("Add to Cart"), button:has-text("Add"), [data-testid*="add-cart"]').first();
+  const addToCartBtn = page.locator('[data-testid="add-to-cart"], button[aria-label="Add to cart"]').first();
   if (await addToCartBtn.count() === 0) {
     console.warn('  ⚠️  UNTESTED: No "Add to Cart" button found — products page may not be loading');
     return;
