@@ -5,6 +5,15 @@
  * Returns axios-shaped { data } responses so pre-existing pages keep working.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name required").max(100),
+  email: z.string().trim().email("Invalid email").max(255),
+  phone: z.string().trim().max(20).optional().default(""),
+  subject: z.string().trim().max(100).optional().default("General Inquiry"),
+  message: z.string().trim().min(5, "Message too short").max(2000),
+});
 
 // ---------- helpers ----------
 const snakeToCamel = (s: string) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
