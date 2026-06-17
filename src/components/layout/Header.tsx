@@ -128,9 +128,9 @@ export default function Header() {
             <button className="ch-hamburger md-hide" onClick={() => setMenuOpen(true)} aria-label="Open menu">
               <span /><span /><span />
             </button>
-            <Link href="/" className={`ch-logo ch-logo--${s?.logoPosition || 'left'}`} aria-label={siteName}>
+            <Link href="/" className={`ch-logo ch-logo--${s?.logoPosition || 'left'}`} aria-label={siteName} style={{ minHeight: 40, display: 'inline-flex', alignItems: 'center' }}>
               {s?.logo
-                ? <img src={s.logo} alt={siteName} className="ch-logo-img"  loading="lazy" decoding="async"/>
+                ? <img src={s.logo} alt={siteName} className="ch-logo-img" width={s?.logoWidthDesktop || 170} height={40} loading="eager" fetchPriority="high" decoding="async"/>
                 : <span className="ch-logo-text">{siteName}</span>
               }
             </Link>
