@@ -177,8 +177,8 @@ export default function ContactPage() {
               </div>
               <div className="space-y-2 text-sm">
                 {[
-                  { day: 'Monday – Friday', time: '9:00 AM – 7:00 PM' },
-                  { day: 'Saturday', time: '10:00 AM – 5:00 PM' },
+                  { day: 'Monday – Friday', time: '11:00 AM – 6:00 PM' },
+                  { day: 'Saturday', time: '11:00 AM – 6:00 PM' },
                   { day: 'Sunday', time: 'Closed' },
                 ].map(({ day, time }) => (
                   <div key={day} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
