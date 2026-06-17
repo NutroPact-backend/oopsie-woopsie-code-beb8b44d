@@ -229,7 +229,7 @@ export default function Header() {
             {s?.showSearch !== false && (
               <form onSubmit={handleSearch} className="ch-mobile-search">
                 <input type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search..." />
-                <button type="submit"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M10.8 18.1a7.3 7.3 0 1 1 5.1-2.1l4.1 4.1-1.4 1.4-4.1-4.1a7.2 7.2 0 0 1-3.7.7Zm0-2a5.3 5.3 0 1 0 0-10.6 5.3 5.3 0 0 0 0 10.6Z" /></svg></button>
+                <button type="submit" aria-label="Search"><svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M10.8 18.1a7.3 7.3 0 1 1 5.1-2.1l4.1 4.1-1.4 1.4-4.1-4.1a7.2 7.2 0 0 1-3.7.7Zm0-2a5.3 5.3 0 1 0 0-10.6 5.3 5.3 0 0 0 0 10.6Z" /></svg></button>
               </form>
             )}
             <button onClick={() => setMenuOpen(false)} className="ch-drawer-close" aria-label="Close">×</button>
