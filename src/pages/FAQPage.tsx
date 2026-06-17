@@ -5,6 +5,7 @@ import { ChevronDown, Search, HelpCircle, MessageCircle, Truck, RefreshCw, Shiel
 import { Link } from 'wouter';
 import API from '@/lib/api';
 import { T } from '@/lib/useContentT';
+import { useSEO } from '@/lib/useSEO';
 
 const DEFAULT_FAQS = [
   {
@@ -128,6 +129,28 @@ export default function FAQPage() {
 
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
+  // FAQPage JSON-LD — boosts AEO (People Also Ask, Google rich results,
+  // Bing/ChatGPT citation surfaces).
+  const faqJsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: allItems.slice(0, 30).map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: String(item.a || '').replace(/\s+/g, ' ').trim().slice(0, 800),
+      },
+    })),
+  }), [allItems]);
+
+  useSEO({
+    title: 'FAQ — NutroPact Supplements',
+    description:
+      'Answers to common questions about NutroPact protein, creatine, pre-workout, shipping, returns, payments, and product authenticity.',
+    jsonLd: faqJsonLd,
+  });
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       {/* Hero */}
@@ -137,6 +160,16 @@ export default function FAQPage() {
         </div>
         <h1 className="text-4xl font-black text-gray-900 mb-3"><T>How can we help?</T></h1>
         <p className="text-gray-500 text-lg max-w-lg mx-auto"><T>Quick answers to the questions we hear most often.</T></p>
+      </div>
+
+      {/* TL;DR — direct-answer block for AI search and Google AI Overviews */}
+      <div className="max-w-3xl mx-auto mb-8 rounded-2xl border border-orange-100 bg-orange-50/60 p-5">
+        <p className="text-xs font-black uppercase tracking-wider text-orange-600 mb-2">TL;DR</p>
+        <p className="text-sm text-gray-800 leading-relaxed">
+          <strong>NutroPact</strong> ships lab-tested, FSSAI-compliant supplements across India in 2–7 days,
+          accepts UPI, cards, net banking and COD (up to ₹10,000), and offers a <strong>7-day return</strong>
+          window for unopened products or any quality issue. Free delivery on orders above ₹999.
+        </p>
       </div>
 
       {/* Search */}
