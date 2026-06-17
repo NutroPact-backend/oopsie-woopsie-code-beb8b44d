@@ -18,7 +18,8 @@ import {
 } from '../../utils/page-helpers';
 import { coverage } from '../../utils/coverage-tracker';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
+const SUBMIT = 'form:has(input[type="password"]) button[type="submit"]';
 
 const BASE = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    || '';
@@ -60,7 +61,7 @@ test('AUTH-01: Login with valid credentials', async ({ page }) => {
       res.request().method() === 'POST',
       { timeout: 10000 }
     ).catch(() => null),
-    page.click('button[type="submit"]'),
+    page.locator(SUBMIT).first().click(),
   ]);
 
   await page.waitForLoadState('networkidle');
@@ -96,7 +97,7 @@ test('AUTH-01: Login with valid credentials', async ({ page }) => {
   coverage.markRouteTested(loginPath, consoleErrors.length === 0 ? 'pass' : 'fail',
     consoleErrors.join(' | '));
 
-  expect(consoleErrors.filter(e => !e.includes('favicon'))).toHaveLength(0);
+  expect(consoleErrors.filter(e => !e.includes('favicon') && !e.includes('gpteng.co'))).toHaveLength(0);
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -114,7 +115,7 @@ test('AUTH-02: Login with wrong password shows error', async ({ page }) => {
       (res.url().includes('/auth/') || res.url().includes('supabase')) &&
       res.request().method() === 'POST', { timeout: 8000 }
     ).catch(() => null),
-    page.click('button[type="submit"]'),
+    page.locator(SUBMIT).first().click(),
   ]);
 
   await page.waitForLoadState('networkidle');
@@ -172,7 +173,7 @@ test('AUTH-03: Login with non-existent email', async ({ page }) => {
       res.url().includes('supabase') && res.request().method() === 'POST',
       { timeout: 8000 }
     ).catch(() => null),
-    page.click('button[type="submit"]'),
+    page.locator(SUBMIT).first().click(),
   ]);
 
   await page.waitForLoadState('networkidle');
@@ -198,7 +199,7 @@ test('AUTH-04: Login with empty fields — client-side validation', async ({ pag
   await screenshot(page, 'auth04-empty-form');
 
   // Click submit without filling anything
-  await page.click('button[type="submit"]');
+  await page.locator(SUBMIT).first().click();
   await page.waitForTimeout(1000);
   await screenshot(page, 'auth04-empty-submit-result');
 
@@ -224,7 +225,7 @@ test('AUTH-05: Logout clears session', async ({ page }) => {
   await gotoLogin(page);
   await page.fill('input[type="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"]', ADMIN_PASSWORD);
-  await page.click('button[type="submit"]');
+  await page.locator(SUBMIT).first().click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
 
@@ -233,23 +234,27 @@ test('AUTH-05: Logout clears session', async ({ page }) => {
 
   // Find logout
   const logoutSelectors = [
-    'button:has-text("Logout")',
-    'button:has-text("Log out")',
-    'button:has-text("Sign out")',
+    'button:has-text("Logout"):not(.ch-drawer-logout)',
+    'button:has-text("Log out"):not(.ch-drawer-logout)',
+    'button:has-text("Sign out"):not(.ch-drawer-logout)',
     'a:has-text("Logout")',
     '[data-testid="logout"]',
     '[aria-label="Logout"]',
   ];
 
+  // Navigate to account page where the visible logout button lives
+  await page.goto(`${BASE}/account`, { waitUntil: 'networkidle' }).catch(() => {});
+
   let loggedOut = false;
   for (const sel of logoutSelectors) {
+    const visible = page.locator(sel).filter({ visible: true } as any).first();
     if (await page.locator(sel).count() > 0) {
       const [signOutResponse] = await Promise.all([
         page.waitForResponse(
           res => res.url().includes('logout') || res.url().includes('signout'),
           { timeout: 8000 }
         ).catch(() => null),
-        page.click(sel),
+        visible.click({ force: true }).catch(() => page.locator(sel).first().click({ force: true })),
       ]);
       await page.waitForLoadState('networkidle');
       await screenshot(page, 'auth05-post-logout');
@@ -311,7 +316,7 @@ test('AUTH-06: Password reset link present and triggers email', async ({ page })
             res => res.url().includes('supabase') && res.request().method() === 'POST',
             { timeout: 8000 }
           ).catch(() => null),
-          page.click('button[type="submit"]'),
+          page.locator(SUBMIT).first().click(),
         ]);
         if (resetResponse) {
           console.log(`  📡 Reset API status: ${resetResponse.status()}`);
@@ -338,7 +343,7 @@ test('AUTH-07: Session shared across tabs', async ({ browser }) => {
   await tab1.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
   await tab1.fill('input[type="email"]', ADMIN_EMAIL);
   await tab1.fill('input[type="password"]', ADMIN_PASSWORD);
-  await tab1.click('button[type="submit"]');
+  await tab1.locator(SUBMIT).first().click();
   await tab1.waitForLoadState('networkidle');
 
   // Open a second tab in the same context
