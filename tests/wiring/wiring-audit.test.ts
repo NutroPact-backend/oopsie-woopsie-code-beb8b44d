@@ -25,7 +25,7 @@ import { screenshot, attachNetworkLogger, saveLog } from '../../utils/page-helpe
 import { coverage } from '../../utils/coverage-tracker';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
 
 const BASE = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 

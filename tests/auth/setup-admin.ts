@@ -5,7 +5,7 @@
 import { test as setup, expect } from '@playwright/test';
 import { loginAs, screenshot } from '../../utils/page-helpers';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: 'audit.env' });
 
 const BASE_URL = process.env.BASE_URL || 'https://oopsie-woopsie-code.lovable.app';
 
@@ -46,7 +46,7 @@ setup('Authenticate as admin and save state', async ({ page }) => {
   await screenshot(page, 'admin-login-filled');
 
   // Submit
-  await page.click('button[type="submit"], button:has-text("Sign"), button:has-text("Login"), button:has-text("Log")');
+  await page.locator('form:has(input[type="password"]) button[type="submit"]').first().click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
 
