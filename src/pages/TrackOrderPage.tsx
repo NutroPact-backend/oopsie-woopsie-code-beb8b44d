@@ -56,11 +56,12 @@ export default function TrackOrderPage() {
       <h1 className="text-3xl font-black text-center mb-2">TRACK YOUR ORDER</h1>
       <p className="text-gray-500 text-center mb-8">Enter your order number to track your delivery</p>
 
-      <form onSubmit={handleTrack} className="flex gap-3 mb-8">
+      <form onSubmit={handleTrack} data-testid="track-order-form" className="flex gap-3 mb-8">
         <input value={orderNumber} onChange={e => setOrderNumber(e.target.value)}
+          name="orderNumber" data-testid="track-order-input"
           placeholder="Enter Order Number (e.g. NP1234567890)"
           className="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition" required />
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading} data-testid="track-order-submit"
           className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold transition disabled:opacity-50">
           {loading ? '...' : 'Track'}
         </button>

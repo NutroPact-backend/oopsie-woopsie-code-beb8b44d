@@ -58,7 +58,7 @@ function ProductCard({ product }: { product: Product }) {
   const buyNow = (e: React.MouseEvent) => { quickAdd(e); navigate({ to: '/checkout' }); };
 
   return (
-    <div className="group tilt-3d relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+    <div data-testid="product-card" className="product-card group tilt-3d relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
       <Link to="/products/$slug" params={{ slug: product.slug }} className="block">
         <div className="relative bg-gray-50 aspect-square overflow-hidden">
           {discount > 0 && (
@@ -96,7 +96,7 @@ function ProductCard({ product }: { product: Product }) {
       </Link>
       <div className="px-3 pb-3 mt-auto flex gap-2">
         <button onClick={quickAdd} disabled={oos}
-          aria-label="Add to cart"
+          aria-label="Add to cart" data-testid="add-to-cart"
           className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-gray-900 text-gray-900 text-xs font-black hover:bg-gray-900 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed">
           <ShoppingCart size={13} /> <T>Add</T>
         </button>
