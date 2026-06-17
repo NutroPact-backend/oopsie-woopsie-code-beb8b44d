@@ -2,17 +2,32 @@
 import { useEffect, useState } from 'react';
 import API from './api';
 
+const CACHE_KEY = 'np_settings_cache_v1';
+
+function readCache(): any {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 export function useSettings() {
-  const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const cached = typeof window !== 'undefined' ? readCache() : null;
+  const [settings, setSettings] = useState<any>(cached);
+  const [loading, setLoading] = useState(!cached);
 
   useEffect(() => {
     let mounted = true;
 
     const load = () => {
       API.get('/settings')
-        .then(r => { if (mounted) setSettings(r.data); })
-        .catch(() => { if (mounted) setSettings({}); })
+        .then(r => {
+          if (!mounted) return;
+          setSettings(r.data);
+          try { window.localStorage.setItem(CACHE_KEY, JSON.stringify(r.data)); } catch {}
+        })
+        .catch(() => { if (mounted) setSettings((prev: any) => prev || {}); })
         .finally(() => { if (mounted) setLoading(false); });
     };
 
