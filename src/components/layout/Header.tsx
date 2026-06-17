@@ -103,7 +103,9 @@ export default function Header() {
 
   return (
     <>
-      {s?.announcementEnabled && (
+      {s === undefined ? (
+        <div style={{ height: (s as any)?.announcementPaddingY ? ((s as any).announcementPaddingY * 2 + 20) : 36 }} aria-hidden="true" />
+      ) : s?.announcementEnabled && (
         <AnnouncementBar
           messages={
             (Array.isArray((s as any)?.announcementMessages) && (s as any).announcementMessages.length
