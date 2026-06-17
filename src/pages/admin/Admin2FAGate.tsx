@@ -73,7 +73,7 @@ export function Admin2FAGate({ children }: { children: React.ReactNode }) {
 
   if (state === "checking") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-dvh flex items-center justify-center bg-gray-50">
         <Loader2 className="animate-spin text-orange-500" size={32} />
       </div>
     );
@@ -93,7 +93,7 @@ export function Admin2FAGate({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-dvh flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">

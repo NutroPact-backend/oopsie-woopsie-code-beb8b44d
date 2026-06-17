@@ -44,7 +44,7 @@ export default function InvoicePage() {
   const lineHasGstFields = (s.items?.[0] && typeof s.items[0].taxableValue !== 'undefined');
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 print:bg-white print:p-0">
+    <div className="min-h-dvh bg-gray-50 py-8 print:bg-white print:p-0">
       <div className="max-w-4xl mx-auto px-4 print:px-0 print:max-w-none">
         <div className="flex items-center justify-between mb-4 print:hidden">
           <Link to="/account" className="flex items-center gap-1 text-sm font-bold text-gray-600 hover:text-gray-900"><ArrowLeft size={16} /> Back</Link>
