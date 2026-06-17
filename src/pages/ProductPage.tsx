@@ -1198,6 +1198,9 @@ export default function ProductPage() {
         <BannerRow pos="before_reviews" />
       </div>
 
+      {/* People Also Ask — AEO / Google PAA + ChatGPT citation surface */}
+      <ProductPAA product={product} />
+
       {/* ── REVIEWS ───────────────────────────────────────── */}
       <div id="reviews" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         <div className="flex items-end justify-between mb-6">
