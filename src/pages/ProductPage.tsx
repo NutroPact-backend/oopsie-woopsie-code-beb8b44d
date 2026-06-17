@@ -455,6 +455,108 @@ function usePrimaryColor() {
   return color;
 }
 
+/**
+ * People Also Ask block — 4 evergreen Q&As tailored per product category,
+ * plus a FAQPage JSON-LD that lets Google / ChatGPT / Perplexity cite the
+ * answers directly. Pure presentational, no data dependencies.
+ */
+function ProductPAA({ product }: { product: any }) {
+  const qa = useMemo(() => {
+    if (!product) return [] as { q: string; a: string }[];
+    const name = product.name || 'this supplement';
+    const cat = (product.category || '').toLowerCase();
+    const generic = [
+      {
+        q: `Is ${name} authentic and lab tested?`,
+        a: `Yes. ${name} is sourced and packed by NutroPact in an FSSAI-licensed facility and every batch is tested for label-claim protein content, heavy metals, microbial limits and banned substances at NABL-accredited laboratories. You can verify your batch's Certificate of Analysis at /coa.`,
+      },
+      {
+        q: `When will ${name} be delivered?`,
+        a: `Most pin codes across India receive ${name} in 2–5 business days; remote pin codes take 5–7 days. Orders placed before 2 PM IST ship the same day. Free delivery on orders above ₹999. Track your shipment any time at /track-order.`,
+      },
+      {
+        q: `What is the return policy on ${name}?`,
+        a: `Unopened tubs can be returned within 7 days of delivery for a full refund. If you receive a damaged, expired or wrong product, send photos to info@nutropact.com within 48 hours and we'll replace it or refund 100% — no questions asked.`,
+      },
+    ];
+    const catSpecific: Record<string, { q: string; a: string }> = {
+      protein: {
+        q: `How much ${name} should I take per day?`,
+        a: `Most adults benefit from 1 scoop (≈25–30 g) once or twice daily, ideally within 30 minutes after training or as a between-meal protein boost. Total protein from food + supplements should be roughly 1.6–2.2 g per kg of body weight for active individuals.`,
+      },
+      creatine: {
+        q: `Do I need to load creatine when starting ${name}?`,
+        a: `Loading is optional. You can take 5 g of ${name} daily and reach full muscle saturation in about 3–4 weeks, or load with 20 g/day (split into 4 doses) for 5–7 days to saturate faster. Both reach the same end-point.`,
+      },
+      'pre-workout': {
+        q: `When should I take ${name} before training?`,
+        a: `Take 1 scoop of ${name} with 250–300 ml water about 20–30 minutes before your session. Avoid taking it within 5 hours of bedtime as the caffeine and stimulants can disrupt sleep.`,
+      },
+      'mass gainer': {
+        q: `How do I use ${name} to gain weight effectively?`,
+        a: `Mix 1 serving of ${name} with 300–400 ml of milk or water once a day, ideally post-workout or between meals. Combine with a calorie surplus from whole foods and progressive resistance training for clean weight gain.`,
+      },
+      bcaa: {
+        q: `When is the best time to take ${name}?`,
+        a: `Sip ${name} during your workout, or split a serving between pre and post training. On rest days it can be used as a between-meal recovery drink to help reduce muscle soreness.`,
+      },
+    };
+    const extra =
+      catSpecific[cat] ||
+      Object.entries(catSpecific).find(([k]) => cat.includes(k))?.[1] ||
+      null;
+    return extra ? [extra, ...generic] : generic;
+  }, [product?._id, product?.name, product?.category]);
+
+  // Inject FAQPage JSON-LD without colliding with the page-level Product JSON-LD.
+  useEffect(() => {
+    if (!qa.length) return;
+    const id = 'paa-jsonld';
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement('script');
+      el.type = 'application/ld+json';
+      el.id = id;
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: qa.map((x) => ({
+        '@type': 'Question',
+        name: x.q,
+        acceptedAnswer: { '@type': 'Answer', text: x.a },
+      })),
+    });
+    return () => {
+      try { document.getElementById(id)?.remove(); } catch {}
+    };
+  }, [qa]);
+
+  if (!qa.length) return null;
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-10">
+      <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1">People also ask</h2>
+      <p className="text-xs text-gray-500 mb-5">Quick answers to the questions most shoppers have about this product.</p>
+      <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl bg-white">
+        {qa.map((x, i) => (
+          <details key={i} className="group p-5 [&_summary::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer items-start justify-between gap-4 list-none">
+              <span className="font-bold text-sm sm:text-base text-gray-900">{x.q}</span>
+              <span className="text-orange-500 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+            </summary>
+            <p className="mt-3 text-sm text-gray-700 leading-relaxed">
+              <strong className="text-gray-900">{x.a.split('.').shift()}.</strong>{' '}
+              {x.a.split('.').slice(1).join('.').trim()}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function ProductPage() {
   const { slug } = useParams({ from: '/products/$slug' });
   const navigateFn = useNavigate();
