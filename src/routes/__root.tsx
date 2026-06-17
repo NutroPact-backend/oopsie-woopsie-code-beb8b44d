@@ -470,6 +470,13 @@ function RootComponent() {
       <VisitTracker />
 
       <div className="flex min-h-screen flex-col bg-background text-foreground">
+        {/* Skip-to-content link for keyboard / screen-reader users. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         {!isAdmin && (
           <SafeClientModules
             loaders={{ PageBackground: () => import("@/components/PageBackground") }}
@@ -480,7 +487,7 @@ function RootComponent() {
           />
         )}
         {!isAdmin && <Header />}
-        <main className="flex-1">
+        <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
           <Outlet />
         </main>
         {!isAdmin && isHome && (
