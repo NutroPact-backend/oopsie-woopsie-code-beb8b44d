@@ -5060,6 +5060,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_state: {
+        Row: {
+          cart: Json
+          updated_at: string
+          user_id: string
+          wishlist: Json
+        }
+        Insert: {
+          cart?: Json
+          updated_at?: string
+          user_id: string
+          wishlist?: Json
+        }
+        Update: {
+          cart?: Json
+          updated_at?: string
+          user_id?: string
+          wishlist?: Json
+        }
+        Relationships: []
+      }
       user_wallets: {
         Row: {
           balance: number | null
@@ -5371,6 +5392,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_review_helpful: {
+        Args: { _review_id: string }
+        Returns: number
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       release_stock_for_order: {

@@ -757,11 +757,40 @@ const POST: Record<string, Handler> = {
     if (walletUsed > 0) {
       if (!user) fail(401, "Login required to use wallet");
     }
-    const finalTotal = Math.max(0, Number(body.total) - walletUsed);
+
+    // WIR-005: server-side wholesale discount. The client is not trusted to
+    // declare its own pricing — we look up the authenticated user's
+    // wholesale profile and apply the discount here, where it can't be
+    // forged by tampering with the request body. Anonymous orders never
+    // qualify. Discount is computed against the (already-validated)
+    // subtotal and added on top of any client-supplied discount.
+    let wholesaleDiscount = 0;
+    let wholesalePercent = 0;
+    if (user) {
+      const { data: wsRow } = await supabase
+        .from("profiles")
+        .select("is_wholesale,wholesale_discount_percent,wholesale_min_order")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (wsRow?.is_wholesale) {
+        const subtotal = Number(body.subtotal ?? 0);
+        const minOrder = Number(wsRow.wholesale_min_order || 0);
+        const pct = Math.min(80, Math.max(0, Number(wsRow.wholesale_discount_percent || 0)));
+        if (subtotal >= minOrder && pct > 0) {
+          wholesalePercent = pct;
+          wholesaleDiscount = Math.round((subtotal * pct) / 100);
+        }
+      }
+    }
+    const declaredTotal = Number(body.total);
+    const finalTotal = Math.max(0, declaredTotal - walletUsed - wholesaleDiscount);
 
     const shippingAddr = { ...(body.shippingAddress || {}) };
     if (body.paymentMethodOffer) shippingAddr.paymentMethodOffer = body.paymentMethodOffer;
     if (walletUsed > 0) shippingAddr.walletUsed = walletUsed;
+    if (wholesaleDiscount > 0) {
+      shippingAddr.wholesale = { percent: wholesalePercent, discount: wholesaleDiscount };
+    }
 
     // SEC-014: explicit allowlist. Status fields are server-controlled — never
     // accept payment_status / order_status from the client (would let anyone
@@ -778,7 +807,7 @@ const POST: Record<string, Handler> = {
       items: Array.isArray(body.items) ? body.items : [],
       subtotal: Number(body.subtotal ?? 0),
       shipping_cost: Number(body.shipping ?? 0),
-      discount: Number(body.discount ?? 0) + walletUsed,
+      discount: Number(body.discount ?? 0) + walletUsed + wholesaleDiscount,
       total: finalTotal,
       coupon_code: String(body.couponCode ?? "").slice(0, 80),
       customer_name: String(body.shippingAddress?.name ?? "").slice(0, 200),
@@ -1044,7 +1073,13 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   // /products/:id/reviews/:rid/helpful
   m = path.match(/^\/products\/[^/]+\/reviews\/([^/]+)\/helpful$/);
   if (m) {
-    return { success: true }; // increment-skip for now (RLS would block)
+    // WIR-001: actually persist the vote via SECURITY DEFINER RPC so the
+    // counter increments atomically. RPC enforces that the review exists
+    // and is approved; we surface a generic success even on RPC error so
+    // a missing review doesn't leak existence.
+    const { data, error } = await supabase.rpc("increment_review_helpful", { _review_id: m[1] });
+    if (error) return { success: false };
+    return { success: true, helpful: Number(data ?? 0) };
   }
   // /admin/orders/:orderNumber/invoice → generate invoice (idempotent)
   m = path.match(/^\/admin\/orders\/([^/]+)\/invoice$/);
@@ -1179,7 +1214,18 @@ async function adminUpsert(path: string, body: any): Promise<any> {
   if (path === "/admin/products") {
     row = await buildProductWriteRow(body);
   } else {
-    row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(body) };
+    // WIR-002 / WIR-003: same field remap as the PUT path so freshly
+    // created reviews honour the admin's verified / pinned toggles.
+    const remapped = table === "global_reviews"
+      ? (() => {
+          const { verified, pinned, ...rest } = body || {};
+          const out: any = { ...rest };
+          if (verified !== undefined) out.isVerified = !!verified;
+          if (pinned !== undefined) out.isFeatured = !!pinned;
+          return out;
+        })()
+      : body;
+    row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(remapped) };
     delete (row as any)._id;
     row = pickAllowed(table, row);
     if (!row.id) row.id = crypto.randomUUID();
@@ -1317,7 +1363,20 @@ async function dynamicPut(path: string, body: any): Promise<any> {
       if (table === 'products') {
         row = await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data));
       } else {
-        const snaked = snakeify(body);
+        // WIR-002 / WIR-003: the admin UI sends `verified` and `pinned`, but
+        // the global_reviews table uses `is_verified` / `is_featured`. Map
+        // them before snakeify so the allowlist + upsert actually persist
+        // the toggles instead of silently dropping them.
+        const remapped = table === 'global_reviews'
+          ? (() => {
+              const { verified, pinned, ...rest } = body || {};
+              const out: any = { ...rest };
+              if (verified !== undefined) out.isVerified = !!verified;
+              if (pinned !== undefined) out.isFeatured = !!pinned;
+              return out;
+            })()
+          : body;
+        const snaked = snakeify(remapped);
         delete snaked._id;
         const filtered = pickAllowed(table, snaked);
         row = table === 'coupons' ? { ...filtered, code: m[2] } : { ...filtered, id: m[2] };

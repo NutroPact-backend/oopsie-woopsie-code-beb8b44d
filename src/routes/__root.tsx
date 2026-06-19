@@ -345,6 +345,10 @@ function AuthSync() {
     import("@/store/authStore").then(({ useAuthStore }) => {
       useAuthStore.getState().refresh();
     });
+    // WIR-004: start cross-device cart/wishlist sync once per app load.
+    import("@/lib/user-state-sync").then(({ startUserStateSync }) => {
+      startUserStateSync();
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((evt) => {
       import("@/store/authStore").then(({ useAuthStore }) => {
         useAuthStore.getState().refresh();
