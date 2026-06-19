@@ -49,107 +49,35 @@ type Audience = {
 };
 
 async function evaluateAudience(rules: SegmentRules): Promise<Audience> {
-  // Aggregate per-user spend & last order date from orders
-  const { data: orders } = await supabaseAdmin
-    .from("orders")
-    .select("user_id,customer_email,customer_phone,customer_name,total,created_at,shipping_address")
-    .order("created_at", { ascending: false })
-    .limit(50000); // cap raw orders scanned for lite-mode
+  // BIZ-010: All aggregation + filtering happens in SQL. The worker only ever
+  // receives the already-matched contacts (capped at MAX_MATCH), so we never
+  // pull tens of thousands of raw orders into memory.
+  const { data, error } = await supabaseAdmin.rpc("evaluate_campaign_audience", {
+    _min_orders: rules.minOrders ?? null,
+    _min_ltv: rules.minLifetimeValue ?? null,
+    _last_order_days_ago_min: rules.lastOrderDaysAgoMin ?? null,
+    _last_order_days_ago_max: rules.lastOrderDaysAgoMax ?? null,
+    _city: rules.city ?? null,
+    _state: rules.state ?? null,
+    _pincode: rules.pincode ?? null,
+    _has_subscription: rules.hasSubscription ?? null,
+    _registered_only: rules.registeredOnly ?? null,
+    _channel_required: rules.channelRequired ?? null,
+    _include_zero_order_profiles: !rules.minOrders || rules.minOrders === 0,
+    _max_rows: MAX_MATCH,
+  });
+  if (error) throw new Error(error.message);
 
-  const byKey = new Map<string, {
-    user_id: string | null;
-    email: string;
-    phone: string;
-    name: string;
-    city: string;
-    state: string;
-    pincode: string;
-    orders: number;
-    ltv: number;
-    lastAt: number;
-  }>();
-
-  for (const o of orders ?? []) {
-    const email = (o.customer_email || "").trim().toLowerCase();
-    const phone = (o.customer_phone || "").trim();
-    const key = o.user_id || (email ? `e:${email}` : phone ? `p:${phone}` : "");
-    if (!key) continue;
-    const addr = (o.shipping_address || {}) as any;
-    const ex = byKey.get(key) || {
-      user_id: o.user_id,
-      email, phone,
-      name: o.customer_name || "",
-      city: String(addr.city || ""),
-      state: String(addr.state || ""),
-      pincode: String(addr.pincode || addr.zip || ""),
-      orders: 0, ltv: 0, lastAt: 0,
-    };
-    ex.orders += 1;
-    ex.ltv += Number(o.total) || 0;
-    const t = new Date(o.created_at).getTime();
-    if (t > ex.lastAt) ex.lastAt = t;
-    byKey.set(key, ex);
-  }
-
-  // Optionally include profiles with zero orders (registered users)
-  if (!rules.minOrders || rules.minOrders === 0) {
-    const { data: profiles } = await supabaseAdmin
-      .from("profiles").select("id,email,phone,name").limit(20000);
-    for (const p of profiles ?? []) {
-      const key = p.id;
-      if (byKey.has(key)) continue;
-      byKey.set(key, {
-        user_id: p.id,
-        email: (p.email || "").toLowerCase(),
-        phone: p.phone || "",
-        name: p.name || "",
-        city: "", state: "", pincode: "",
-        orders: 0, ltv: 0, lastAt: 0,
-      });
-    }
-  }
-
-  // Optional subscription filter
-  let subUserIds: Set<string> | null = null;
-  if (rules.hasSubscription) {
-    const { data: subs } = await supabaseAdmin
-      .from("subscriptions").select("user_id").eq("status", "active").limit(50000);
-    subUserIds = new Set((subs ?? []).map((s: any) => s.user_id).filter(Boolean));
-  }
-
-  const now = Date.now();
-  const matched: Audience["rows"] = [];
+  const rows: Audience["rows"] = [];
   let withEmail = 0, withPhone = 0;
-
-  for (const r of byKey.values()) {
-    if (rules.minOrders !== undefined && r.orders < rules.minOrders) continue;
-    if (rules.minLifetimeValue !== undefined && r.ltv < rules.minLifetimeValue) continue;
-    if (rules.registeredOnly && !r.user_id) continue;
-    if (rules.city && r.city.toLowerCase() !== rules.city.toLowerCase()) continue;
-    if (rules.state && r.state.toLowerCase() !== rules.state.toLowerCase()) continue;
-    if (rules.pincode && r.pincode !== rules.pincode) continue;
-    if (subUserIds && (!r.user_id || !subUserIds.has(r.user_id))) continue;
-
-    if (rules.lastOrderDaysAgoMin !== undefined) {
-      const daysAgo = r.lastAt ? (now - r.lastAt) / 86400_000 : Infinity;
-      if (daysAgo < rules.lastOrderDaysAgoMin) continue;
-    }
-    if (rules.lastOrderDaysAgoMax !== undefined) {
-      const daysAgo = r.lastAt ? (now - r.lastAt) / 86400_000 : Infinity;
-      if (daysAgo > rules.lastOrderDaysAgoMax) continue;
-    }
-
-    if (rules.channelRequired === "email" && !r.email) continue;
-    if (rules.channelRequired === "phone" && !r.phone) continue;
-    if (rules.channelRequired === "any" && !r.email && !r.phone) continue;
-
-    if (r.email) withEmail++;
-    if (r.phone) withPhone++;
-    matched.push({ user_id: r.user_id, email: r.email, phone: r.phone, name: r.name });
-    if (matched.length >= MAX_MATCH) break;
+  for (const r of (data ?? []) as any[]) {
+    const email = (r.email || "").toLowerCase();
+    const phone = r.phone || "";
+    if (email) withEmail++;
+    if (phone) withPhone++;
+    rows.push({ user_id: r.user_id ?? null, email, phone, name: r.name || "" });
   }
-
-  return { total: matched.length, withEmail, withPhone, rows: matched };
+  return { total: rows.length, withEmail, withPhone, rows };
 }
 
 // ─── Segment CRUD ────────────────────────────────────────────
