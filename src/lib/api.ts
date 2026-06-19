@@ -742,6 +742,8 @@ const POST: Record<string, Handler> = {
       await supabase.from("user_wallets").upsert({ user_id: user.id, balance: newBal, updated_at: new Date().toISOString() });
     }
 
+    // (wallet debit + order insert is handled above via the atomic RPC path)
+
     if (body.userCouponId && user) {
       await supabase.from("user_coupons").update({ used: true, used_order_id: orderNumber })
         .eq("id", body.userCouponId).eq("user_id", user.id);
