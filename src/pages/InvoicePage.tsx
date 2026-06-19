@@ -27,7 +27,7 @@ export default function InvoicePage() {
   );
   if (!invoice) return <div className="p-10 text-center text-gray-400">Loading…</div>;
 
-  const s = invoice.snapshot || {};
+  const s = invoice.snapshot || invoice.data || {};
   const gst = s.gst || { sameState: false, cgst: 0, sgst: 0, igst: 0, totalTax: 0, taxableValue: 0, placeOfSupply: '' };
   const seller = s.seller || {};
   const company = {
