@@ -20,11 +20,11 @@ const sections = [
   },
   {
     title: 'Damaged / Lost in Transit',
-    content: `NutroPact is not liable for any products damaged or lost during shipping. If you received your order damaged, please contact our support team at support@nutropact.com within 48 hours of delivery with photos of the damage. We will file a claim on your behalf and arrange a replacement or refund.\n\nIf your order is lost in transit, please contact us at support@nutropact.com and we will investigate with the carrier.`,
+    content: `NutroPact is not liable for any products damaged or lost during shipping. If you received your order damaged, please contact our support team at info@nutropact.com within 48 hours of delivery with photos of the damage. We will file a claim on your behalf and arrange a replacement or refund.\n\nIf your order is lost in transit, please contact us at info@nutropact.com and we will investigate with the carrier.`,
   },
   {
     title: 'Address Accuracy',
-    content: `Please ensure your shipping address is correct at the time of placing the order. NutroPact is not responsible for orders shipped to incorrect addresses provided by the customer. If you notice an error in your shipping address, contact us immediately at support@nutropact.com — we can only make changes before your order is shipped.`,
+    content: `Please ensure your shipping address is correct at the time of placing the order. NutroPact is not responsible for orders shipped to incorrect addresses provided by the customer. If you notice an error in your shipping address, contact us immediately at info@nutropact.com — we can only make changes before your order is shipped.`,
   },
 ];
 
@@ -52,8 +52,8 @@ export default function ShippingPage() {
         <h3 className="font-black text-lg mb-2">Need Help?</h3>
         <p className="text-gray-600 text-sm">
           If you have any questions about shipping, please contact us at{' '}
-          <a href="mailto:support@nutropact.com" className="text-orange-500 font-semibold hover:underline">
-            support@nutropact.com
+          <a href="mailto:info@nutropact.com" className="text-orange-500 font-semibold hover:underline">
+            info@nutropact.com
           </a>{' '}
           or call us at{' '}
           <a href="tel:+918955590350" className="text-orange-500 font-semibold hover:underline">
