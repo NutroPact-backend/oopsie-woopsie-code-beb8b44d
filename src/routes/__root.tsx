@@ -164,8 +164,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // Store/LocalBusiness JSON-LD — enables rich local-business results
     // (contact, address, hours). Subtype of Organization, so this single
     // block replaces the previous standalone Organization entry.
+    // SEO-005: defaults must match the footer to avoid mixed signals to
+    // Google. Footer shows info@nutropact.com + Mon–Sat 11AM–6PM.
     const phone = cfg.org_phone || "+91-8955590350";
-    const email = cfg.org_email || "support@nutropact.com";
+    const email = cfg.org_email || "info@nutropact.com";
     const address = cfg.org_address || {
       "@type": "PostalAddress",
       addressCountry: "IN",
@@ -174,7 +176,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     };
     const openingHours = Array.isArray(cfg.org_opening_hours) && cfg.org_opening_hours.length
       ? cfg.org_opening_hours
-      : ["Mo-Sa 09:00-19:00"];
+      : ["Mo-Sa 11:00-18:00"];
     const orgJsonLd = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Store",
