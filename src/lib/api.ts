@@ -51,6 +51,60 @@ async function isCurrentUserAdmin(): Promise<boolean> {
   return !!data;
 }
 
+// ---------- SEC-004: admin-settings secret masking ----------
+// Payment-gateway secrets (Razorpay keySecret, PhonePe saltKey, PayU
+// merchantSalt, etc.) must NEVER be sent to the browser. We replace them
+// with a sentinel on GET and restore the stored value on PUT so admins can
+// view/save the rest of the settings blob without leaking secrets via
+// React state or network logs.
+export const SECRET_SENTINEL = "__SECRET_KEEP__";
+const SECRET_PATHS: ReadonlyArray<readonly string[]> = [
+  ["payments", "razorpay", "keySecret"],
+  ["payments", "phonepe", "saltKey"],
+  ["payments", "payu", "merchantSalt"],
+  ["messaging", "cronSecret"],
+  ["auth", "customHttpHeaders"],
+];
+
+function getAtPath(obj: any, path: readonly string[]): any {
+  let cur = obj;
+  for (const k of path) {
+    if (cur == null || typeof cur !== "object") return undefined;
+    cur = cur[k];
+  }
+  return cur;
+}
+function setAtPath(obj: any, path: readonly string[], value: any): void {
+  let cur = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    const k = path[i];
+    if (cur[k] == null || typeof cur[k] !== "object") cur[k] = {};
+    cur = cur[k];
+  }
+  cur[path[path.length - 1]] = value;
+}
+function maskSettingsSecrets<T extends Record<string, any>>(settings: T): T {
+  const cloned: any = JSON.parse(JSON.stringify(settings ?? {}));
+  for (const path of SECRET_PATHS) {
+    const v = getAtPath(cloned, path);
+    if (v !== undefined && v !== null && v !== "") {
+      setAtPath(cloned, path, SECRET_SENTINEL);
+    }
+  }
+  return cloned;
+}
+function restoreSettingsSecrets(incoming: any, current: any): any {
+  const out = JSON.parse(JSON.stringify(incoming ?? {}));
+  for (const path of SECRET_PATHS) {
+    const v = getAtPath(out, path);
+    if (v === SECRET_SENTINEL || v === undefined) {
+      const existing = getAtPath(current ?? {}, path);
+      if (existing !== undefined) setAtPath(out, path, existing);
+    }
+  }
+  return out;
+}
+
 function parsePath(url: string): { path: string; params: URLSearchParams } {
   const [p, q = ""] = url.split("?");
   return { path: p.replace(/\/+$/, "") || "/", params: new URLSearchParams(q) };
@@ -559,7 +613,9 @@ async function dynamicGet(path: string): Promise<any> {
     }
     if (path === "/admin/settings") {
       const { data } = await supabase.from("site_settings").select("settings").eq("key", "default").maybeSingle();
-      return camelize(data?.settings ?? {});
+      // SEC-004: strip secrets before returning to the browser.
+      const masked = maskSettingsSecrets((data?.settings as any) ?? {});
+      return camelize(masked);
     }
     const productReviews = path.match(/^\/admin\/products\/([^/]+)\/reviews$/);
     if (productReviews) {
@@ -1147,7 +1203,11 @@ async function dynamicPut(path: string, body: any): Promise<any> {
       .select("settings")
       .eq("key", "default")
       .maybeSingle();
-    const merged = { ...((current?.settings as any) ?? {}), ...(body ?? {}) };
+    // SEC-004: any field still holding the sentinel (or missing) is restored
+    // from the previously-stored secret, so unchanged secrets survive a save
+    // even though they were never sent to the browser.
+    const restored = restoreSettingsSecrets(body ?? {}, (current?.settings as any) ?? {});
+    const merged = { ...((current?.settings as any) ?? {}), ...restored };
     const { error: upsertErr } = await supabase
       .from("site_settings")
       .upsert({ key: "default", settings: merged }, { onConflict: "key" });
