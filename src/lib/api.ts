@@ -819,7 +819,7 @@ const POST: Record<string, Handler> = {
       shipping_address: shippingAddr,
       payment_method: paymentMethod,
       payment_status: "pending",
-      order_status: "pending",
+      status: "pending",
       priority_shipping: !!body.priorityShipping,
     };
 
@@ -1096,7 +1096,7 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   if (m) {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
     const orderNumber = m[1];
-    const { data: ord } = await supabase.from("orders").select("id,order_status").eq("order_number", orderNumber).maybeSingle();
+    const { data: ord } = await supabase.from("orders").select("id,status").eq("order_number", orderNumber).maybeSingle();
     if (!ord) fail(404, "Order not found");
     const { data: existing } = await supabase.from("order_tracking").select("status_history").eq("order_number", orderNumber).maybeSingle();
     const history = Array.isArray(existing?.status_history) ? existing!.status_history : [];
@@ -1116,21 +1116,21 @@ async function dynamicPost(path: string, body: any): Promise<any> {
     if (!row.id) delete (row as any).id;
     const { data, error } = await supabase.from("order_tracking").upsert(row, { onConflict: "order_number" }).select().single();
     if (error) fail(500, error.message);
-    // If status maps to an order_status, also update the parent order (triggers customer notification)
+    // If status maps to an order status, also update the parent order (triggers customer notification)
     const statusMap: Record<string, string> = {
       shipped: "shipped", out_for_delivery: "out_for_delivery", delivered: "delivered",
     };
     if (body.status && statusMap[body.status]) {
-      await supabase.from("orders").update({ order_status: statusMap[body.status] }).eq("order_number", orderNumber);
+      await supabase.from("orders").update({ status: statusMap[body.status] }).eq("order_number", orderNumber);
     }
     return camelize(data);
   }
-  // /admin/orders/:orderNumber/status → update order_status / payment_status
+  // /admin/orders/:orderNumber/status → update status / payment_status
   m = path.match(/^\/admin\/orders\/([^/]+)\/status$/);
   if (m) {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
     const patch: any = {};
-    if (body.orderStatus) patch.order_status = body.orderStatus;
+    if (body.orderStatus) patch.status = body.orderStatus;
     if (body.paymentStatus) patch.payment_status = body.paymentStatus;
     if (body.notes !== undefined) patch.notes = body.notes;
     const { data, error } = await supabase.from("orders").update(patch).eq("order_number", m[1]).select().single();
@@ -1141,11 +1141,19 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   m = path.match(/^\/admin\/orders\/([^/]+)\/retry-shipment$/);
   if (m) {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
-    const { error } = await supabase.from("orders").update({
+    // auto_ship_* fields live inside the `data` jsonb column on `orders` —
+    // the table itself doesn't expose them as top-level columns. Read the
+    // current blob, merge, write back so we don't clobber other keys.
+    const { data: cur } = await supabase
+      .from("orders").select("data").eq("order_number", m[1]).maybeSingle();
+    const mergedData = {
+      ...(cur?.data && typeof cur.data === "object" ? cur.data : {}),
       auto_ship_attempts: 0,
       auto_ship_last_error: null,
       auto_ship_scheduled_at: new Date(Date.now() - 1000).toISOString(),
-    }).eq("order_number", m[1]);
+    };
+    const { error } = await supabase.from("orders")
+      .update({ data: mergedData }).eq("order_number", m[1]);
     if (error) fail(500, error.message);
     // Best-effort: kick the cron immediately (don't block if it fails)
     try { fetch("/api/public/auto-shipment", { method: "POST" }).catch(() => {}); } catch {}
