@@ -757,6 +757,34 @@ const POST: Record<string, Handler> = {
       }
     }
 
+    // BIZ-007: Atomically claim the personal coupon BEFORE creating the order
+    // so two concurrent checkouts can't both consume the same single-use coupon.
+    // The conditional update only succeeds when used=false; if no row returns,
+    // the coupon was already spent and we reverse wallet + stock.
+    let couponClaimed = false;
+    if (body.userCouponId && user) {
+      const { data: claimed, error: couponErr } = await supabase
+        .from("user_coupons")
+        .update({ used: true, used_order_id: orderNumber })
+        .eq("id", body.userCouponId)
+        .eq("user_id", user.id)
+        .eq("used", false)
+        .select("id")
+        .maybeSingle();
+      if (couponErr || !claimed) {
+        if (walletUsed > 0) {
+          await supabase.rpc("wallet_refund_for_order", {
+            _amount: walletUsed,
+            _order_number: orderNumber,
+            _note: `Auto-refund: coupon already used for ${orderNumber}`,
+          });
+        }
+        await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
+        fail(409, couponErr?.message || "Coupon already used");
+      }
+      couponClaimed = true;
+    }
+
     const { data, error } = await supabase.from("orders").insert(payload).select().single();
     if (error) {
       // Order failed after wallet/stock was reserved — refund + release so nothing is lost.
@@ -768,12 +796,13 @@ const POST: Record<string, Handler> = {
         });
       }
       await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
+      // Release the claimed coupon back to unused so the customer can retry.
+      if (couponClaimed && body.userCouponId && user) {
+        await supabase.from("user_coupons")
+          .update({ used: false, used_order_id: null })
+          .eq("id", body.userCouponId).eq("user_id", user.id);
+      }
       fail(500, error.message);
-    }
-
-    if (body.userCouponId && user) {
-      await supabase.from("user_coupons").update({ used: true, used_order_id: orderNumber })
-        .eq("id", body.userCouponId).eq("user_id", user.id);
     }
 
     return camelize(data);
