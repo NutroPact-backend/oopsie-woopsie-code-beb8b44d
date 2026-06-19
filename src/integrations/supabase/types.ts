@@ -5307,6 +5307,14 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      wallet_debit_for_order: {
+        Args: { _amount: number; _note?: string; _order_number: string }
+        Returns: number
+      }
+      wallet_refund_for_order: {
+        Args: { _amount: number; _note?: string; _order_number: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "staff" | "user" | "super_admin"
