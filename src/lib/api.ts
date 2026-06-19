@@ -451,7 +451,11 @@ const GET: Record<string, Handler> = {
     const [wallets, tx30, expSoon, couponsActive] = await Promise.all([
       supabase.from("user_wallets").select("balance"),
       supabase.from("wallet_transactions").select("amount,type,created_at").gte("created_at", new Date(Date.now() - 30 * 86400e3).toISOString()),
-      supabase.from("wallet_transactions").select("amount,user_id,expires_at").eq("type", "credit").not("expires_at", "is", null).gte("expires_at", new Date().toISOString()).lte("expires_at", new Date(Date.now() + 7 * 86400e3).toISOString()),
+      // CODE-001: `expires_at` is not a column — it lives inside `data` jsonb.
+      supabase.from("wallet_transactions").select("amount,user_id,data").eq("type", "credit")
+        .not("data->>expires_at", "is", null)
+        .gte("data->>expires_at", new Date().toISOString())
+        .lte("data->>expires_at", new Date(Date.now() + 7 * 86400e3).toISOString()),
       supabase.from("user_coupons").select("id", { count: "exact", head: true }).is("used_at", null),
     ]);
     const balances = (wallets.data ?? []).map((w: any) => Number(w.balance || 0));
@@ -941,9 +945,14 @@ const POST: Record<string, Handler> = {
     const amount = Number(body.amount || 0);
     if (!userId || !amount) fail(400, "userId and amount required");
     const type = amount > 0 ? "credit" : "debit";
+    // CODE-001: schema has no `source`/`note`/`expires_at` columns —
+    // stash them in `data` jsonb and use `reason` for the human note.
     await supabase.from("wallet_transactions").insert({
-      user_id: userId, amount, type, source: "admin", note: body.note ?? "Admin adjustment",
-      expires_at: body.expiresAt ?? null,
+      user_id: userId,
+      amount,
+      type,
+      reason: body.note ?? "Admin adjustment",
+      data: { source: "admin", note: body.note ?? "Admin adjustment", expires_at: body.expiresAt ?? null },
     });
     const { data: w } = await supabase.from("user_wallets").select("balance").eq("user_id", userId).maybeSingle();
     const newBal = Math.max(0, Number(w?.balance || 0) + amount);
@@ -976,7 +985,11 @@ const POST: Record<string, Handler> = {
 
     // Insert transactions in batches
     const txns = userIds.map((uid) => ({
-      user_id: uid, amount, type: "credit", source: "bulk_admin", note, expires_at: expiresAt,
+      user_id: uid,
+      amount,
+      type: "credit",
+      reason: note,
+      data: { source: "bulk_admin", note, expires_at: expiresAt },
     }));
     for (let i = 0; i < txns.length; i += 500) {
       await supabase.from("wallet_transactions").insert(txns.slice(i, i + 500));
@@ -1007,18 +1020,22 @@ const POST: Record<string, Handler> = {
     const now = new Date().toISOString();
     const { data: expired } = await supabase
       .from("wallet_transactions")
-      .select("user_id, amount")
+      .select("user_id, amount, id, data")
       .eq("type", "credit")
-      .not("expires_at", "is", null)
-      .lt("expires_at", now);
+      .not("data->>expires_at", "is", null)
+      .lt("data->>expires_at", now);
     if (!expired?.length) return { success: true, expired: 0 };
     const byUser = new Map<string, number>();
-    for (const t of expired) byUser.set(t.user_id, (byUser.get(t.user_id) ?? 0) + Number(t.amount));
+    for (const t of expired as any[]) byUser.set(t.user_id, (byUser.get(t.user_id) ?? 0) + Number(t.amount));
     let count = 0;
     for (const [uid, amt] of byUser) {
       // skip if an expire of same total already exists today (idempotency-lite)
       await supabase.from("wallet_transactions").insert({
-        user_id: uid, amount: -amt, type: "expire", source: "system", note: "Auto expired ₹" + amt,
+        user_id: uid,
+        amount: -amt,
+        type: "expire",
+        reason: "Auto expired ₹" + amt,
+        data: { source: "system", note: "Auto expired ₹" + amt },
       });
       const { data: w } = await supabase.from("user_wallets").select("balance").eq("user_id", uid).maybeSingle();
       const newBal = Math.max(0, Number(w?.balance || 0) - amt);
@@ -1026,9 +1043,19 @@ const POST: Record<string, Handler> = {
       await supabase.from("user_notifications").insert({
         user_id: uid, title: "⏰ Wallet credit expired", body: "₹" + amt + " has expired.", type: "warning", link: "/account",
       });
-      // Mark transactions as expired by nulling their expiry (so they're not re-swept)
-      await supabase.from("wallet_transactions").update({ expires_at: null })
-        .eq("user_id", uid).eq("type", "credit").not("expires_at", "is", null).lt("expires_at", now);
+      // Mark transactions as expired by clearing data.expires_at (so they're not re-swept).
+      // jsonb path updates aren't supported via PostgREST update — fetch+rewrite.
+      const { data: toClear } = await supabase
+        .from("wallet_transactions")
+        .select("id, data")
+        .eq("user_id", uid).eq("type", "credit")
+        .not("data->>expires_at", "is", null)
+        .lt("data->>expires_at", now);
+      for (const row of (toClear ?? []) as any[]) {
+        const nd = { ...(row.data || {}) };
+        delete nd.expires_at;
+        await supabase.from("wallet_transactions").update({ data: nd }).eq("id", row.id);
+      }
       count++;
     }
     return { success: true, expired: count };
