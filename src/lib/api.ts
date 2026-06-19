@@ -1185,7 +1185,18 @@ async function adminUpsert(path: string, body: any): Promise<any> {
   if (path === "/admin/products") {
     row = await buildProductWriteRow(body);
   } else {
-    row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(body) };
+    // WIR-002 / WIR-003: same field remap as the PUT path so freshly
+    // created reviews honour the admin's verified / pinned toggles.
+    const remapped = table === "global_reviews"
+      ? (() => {
+          const { verified, pinned, ...rest } = body || {};
+          const out: any = { ...rest };
+          if (verified !== undefined) out.isVerified = !!verified;
+          if (pinned !== undefined) out.isFeatured = !!pinned;
+          return out;
+        })()
+      : body;
+    row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(remapped) };
     delete (row as any)._id;
     row = pickAllowed(table, row);
     if (!row.id) row.id = crypto.randomUUID();
