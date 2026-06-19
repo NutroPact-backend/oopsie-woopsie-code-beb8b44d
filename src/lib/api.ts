@@ -746,7 +746,9 @@ const POST: Record<string, Handler> = {
   "/orders": async (_p, _q, body) => {
     const { data: { user } } = await supabase.auth.getUser();
     const id = crypto.randomUUID();
-    const _rand = new Uint8Array(4);
+    // SEC-011: 8 random bytes (16 hex / 64 bits) — collision-resistant and
+    // not enumerable by guessing the trailing few hex chars.
+    const _rand = new Uint8Array(8);
     crypto.getRandomValues(_rand);
     const _suffix = Array.from(_rand, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
     const orderNumber = `NP${Date.now()}-${_suffix}`;
@@ -761,21 +763,30 @@ const POST: Record<string, Handler> = {
     if (body.paymentMethodOffer) shippingAddr.paymentMethodOffer = body.paymentMethodOffer;
     if (walletUsed > 0) shippingAddr.walletUsed = walletUsed;
 
+    // SEC-014: explicit allowlist. Status fields are server-controlled — never
+    // accept payment_status / order_status from the client (would let anyone
+    // mark their own order as paid). payment_method is whitelisted to known
+    // values; cod orders start as pending, prepaid orders also start as
+    // pending and are only flipped to "paid" by the verified gateway webhook.
+    const ALLOWED_PAYMENT_METHODS = new Set(["cod", "razorpay", "phonepe", "payu", "stripe", "upi"]);
+    const paymentMethod = ALLOWED_PAYMENT_METHODS.has(String(body.paymentMethod || "").toLowerCase())
+      ? String(body.paymentMethod).toLowerCase()
+      : "cod";
     const payload: any = {
       id, order_number: orderNumber,
       user_id: user?.id ?? null,
-      items: body.items ?? [],
-      subtotal: body.subtotal ?? 0,
-      shipping_cost: body.shipping ?? 0,
-      discount: (body.discount ?? 0) + walletUsed,
+      items: Array.isArray(body.items) ? body.items : [],
+      subtotal: Number(body.subtotal ?? 0),
+      shipping_cost: Number(body.shipping ?? 0),
+      discount: Number(body.discount ?? 0) + walletUsed,
       total: finalTotal,
-      coupon_code: body.couponCode ?? "",
-      customer_name: body.shippingAddress?.name ?? "",
-      customer_email: body.shippingAddress?.email ?? user?.email ?? "",
-      customer_phone: body.shippingAddress?.phone ?? "",
+      coupon_code: String(body.couponCode ?? "").slice(0, 80),
+      customer_name: String(body.shippingAddress?.name ?? "").slice(0, 200),
+      customer_email: String(body.shippingAddress?.email ?? user?.email ?? "").slice(0, 255),
+      customer_phone: String(body.shippingAddress?.phone ?? "").slice(0, 32),
       shipping_address: shippingAddr,
-      payment_method: body.paymentMethod ?? "cod",
-      payment_status: body.paymentStatus ?? "pending",
+      payment_method: paymentMethod,
+      payment_status: "pending",
       order_status: "pending",
       priority_shipping: !!body.priorityShipping,
     };
@@ -1170,6 +1181,8 @@ async function adminUpsert(path: string, body: any): Promise<any> {
   } else {
     row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(body) };
     delete (row as any)._id;
+    row = pickAllowed(table, row);
+    if (!row.id) row.id = crypto.randomUUID();
   }
   const { data, error } = await supabase.from(table as any).upsert(row).select().single();
   if (error) fail(500, error.message);
@@ -1184,6 +1197,47 @@ function snakeify(obj: any): any {
   for (const k of Object.keys(obj)) {
     const sk = k.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase());
     out[sk] = snakeify(obj[k]);
+  }
+  return out;
+}
+
+// SEC-015: per-table column allowlists for admin upsert paths.
+// adminUpsert + dynamicPut used to forward `snakeify(body)` straight into
+// `supabase.upsert()`, meaning any column on the targeted table could be
+// rewritten from the request body — including audit columns, role-bearing
+// columns, foreign-key swaps, etc. We now strip everything not in the
+// allowlist before writing. Products take a separate path via
+// buildProductWriteRow which already projects the row explicitly.
+const ADMIN_WRITE_ALLOWLIST: Record<string, ReadonlySet<string>> = {
+  product_groups: new Set(["id", "name", "slug", "description", "image", "active", "sort_order", "data"]),
+  blog_posts: new Set([
+    "id", "title", "slug", "excerpt", "content", "cover_image", "author", "tags",
+    "published", "published_at", "seo_title", "seo_description", "category", "data",
+  ]),
+  coupons: new Set([
+    "id", "code", "type", "value", "min_order_value", "max_discount", "expires_at",
+    "active", "usage_limit", "per_user_limit", "description", "applies_to",
+    "first_order_only", "stackable", "data",
+  ]),
+  dimensions: new Set(["id", "name", "length", "width", "height", "weight", "unit", "active", "data"]),
+  faqs: new Set(["id", "question", "answer", "category", "sort_order", "active", "data"]),
+  packaging_boxes: new Set([
+    "id", "name", "length", "width", "height", "weight_capacity", "cost",
+    "active", "data",
+  ]),
+  global_reviews: new Set([
+    "id", "user_name", "user_avatar", "rating", "title", "comment", "images",
+    "is_verified", "is_featured", "data",
+  ]),
+  contact_submissions: new Set(["id", "name", "email", "phone", "subject", "message", "status", "notes"]),
+};
+
+function pickAllowed(table: string, row: Record<string, any>): Record<string, any> {
+  const allow = ADMIN_WRITE_ALLOWLIST[table];
+  if (!allow) return row; // products have their own builder; unknown tables are blocked upstream
+  const out: Record<string, any> = {};
+  for (const k of Object.keys(row)) {
+    if (allow.has(k)) out[k] = row[k];
   }
   return out;
 }
@@ -1259,12 +1313,15 @@ async function dynamicPut(path: string, body: any): Promise<any> {
     };
     const table = tableMap[m[1]];
     if (table) {
-      const row = table === 'products'
-        ? await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data))
-        : (table === 'coupons'
-            ? { ...snakeify(body), code: m[2] }
-            : { ...snakeify(body), id: m[2] });
-      delete (row as any)._id;
+      let row: any;
+      if (table === 'products') {
+        row = await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data));
+      } else {
+        const snaked = snakeify(body);
+        delete snaked._id;
+        const filtered = pickAllowed(table, snaked);
+        row = table === 'coupons' ? { ...filtered, code: m[2] } : { ...filtered, id: m[2] };
+      }
       const conflictCol = table === 'coupons' ? { onConflict: 'code' } : undefined;
       const q = conflictCol
         ? supabase.from(table as any).upsert(row, conflictCol as any)

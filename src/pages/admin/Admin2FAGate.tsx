@@ -80,14 +80,49 @@ export function Admin2FAGate({ children }: { children: React.ReactNode }) {
   }
 
   if (state === "enroll") {
-    // First-time admin: allow access but flash a banner so they go enroll in Security tab.
+    // SEC-016: hard-block the admin panel, but let the user reach the
+    // Security & 2FA tab so they can actually enroll. Any other tab is
+    // rejected with an enrollment wall.
+    const onSecurityTab = typeof window !== "undefined"
+      && /[?&]tab=security/i.test(window.location.search);
+    if (onSecurityTab) {
+      return (
+        <>
+          <div className="bg-amber-500 text-white text-center text-xs font-bold py-2 px-4">
+            ⚠ Finish enrolling 2FA below to unlock the rest of the admin panel.
+          </div>
+          {children}
+        </>
+      );
+    }
+    // SEC-016: hard-block admin panel access until 2FA is configured. The
+    // previous behavior only flashed a banner, so an admin with a stolen
+    // password and no 2FA still had full panel access.
     return (
-      <>
-        <div className="bg-amber-500 text-white text-center text-xs font-bold py-2 px-4">
-          ⚠ 2FA is not enabled on your admin account. Go to <strong>System → Security & 2FA</strong> and enroll now to keep this account secure.
+      <div className="min-h-dvh flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-sm text-center">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
+            <ShieldCheck className="text-amber-600" />
+          </div>
+          <h1 className="text-xl font-black mb-2">Two-factor authentication required</h1>
+          <p className="text-sm text-gray-600 mb-6">
+            Admin access is locked until you enroll a second factor. This protects the panel
+            if your password is ever compromised.
+          </p>
+          <a
+            href="/admin?tab=security-2fa"
+            className="inline-block w-full rounded-full bg-orange-500 py-3 text-sm font-bold text-white hover:bg-orange-600"
+          >
+            Enroll 2FA now
+          </a>
+          <button
+            onClick={logout}
+            className="mt-4 w-full flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-red-500"
+          >
+            <LogOut size={12} /> Sign out
+          </button>
         </div>
-        {children}
-      </>
+      </div>
     );
   }
 

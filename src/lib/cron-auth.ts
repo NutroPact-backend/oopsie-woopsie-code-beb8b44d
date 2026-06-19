@@ -9,7 +9,6 @@
  * unauthenticated (cron drainers, admin maintenance, carrier triggers).
  */
 import { getRequestHeader } from "@tanstack/react-start/server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -21,20 +20,14 @@ function timingSafeEqual(a: string, b: string): boolean {
 export async function requireCronSecret(): Promise<void> {
   const auth = getRequestHeader("authorization") || getRequestHeader("Authorization") || "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
-  const envSecret = (process.env.MESSAGING_CRON_SECRET || "").trim();
-
-  let expected = envSecret;
+  // SEC-013: only accept the cron secret from the server environment. The
+  // previous DB fallback (site_settings.messaging.cronSecret) meant any admin
+  // (or anyone with write access to that row) could rotate a key that
+  // unlocked system maintenance endpoints. The secret now must be provisioned
+  // as MESSAGING_CRON_SECRET in the deployment environment.
+  const expected = (process.env.MESSAGING_CRON_SECRET || "").trim();
   if (!expected) {
-    const { data } = await supabaseAdmin
-      .from("site_settings")
-      .select("settings")
-      .eq("key", "messaging")
-      .maybeSingle();
-    expected = ((data?.settings as any)?.cronSecret as string | undefined)?.trim() || "";
-  }
-  if (!expected) {
-    // Fail-closed: never run if no secret is configured.
-    throw new Error("Unauthorized: cron secret not configured");
+    throw new Error("Unauthorized: MESSAGING_CRON_SECRET not configured");
   }
   if (!token || !timingSafeEqual(token, expected)) {
     throw new Error("Unauthorized: invalid cron secret");
