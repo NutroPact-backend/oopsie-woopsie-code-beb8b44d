@@ -5307,6 +5307,14 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      release_stock_for_order: {
+        Args: { _order_number: string }
+        Returns: undefined
+      }
+      reserve_stock_for_order: {
+        Args: { _items: Json; _order_number: string }
+        Returns: undefined
+      }
       wallet_debit_for_order: {
         Args: { _amount: number; _note?: string; _order_number: string }
         Returns: number
