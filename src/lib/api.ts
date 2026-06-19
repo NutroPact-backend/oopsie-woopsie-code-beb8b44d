@@ -698,10 +698,6 @@ const POST: Record<string, Handler> = {
     let walletUsed = Math.max(0, Number(body.walletUsed || 0));
     if (walletUsed > 0) {
       if (!user) fail(401, "Login required to use wallet");
-      const { data: w } = await supabase.from("user_wallets").select("balance").eq("user_id", user.id).maybeSingle();
-      const bal = Number(w?.balance || 0);
-      if (bal <= 0) walletUsed = 0;
-      else if (walletUsed > bal) walletUsed = bal;
     }
     const finalTotal = Math.max(0, Number(body.total) - walletUsed);
 
@@ -728,21 +724,31 @@ const POST: Record<string, Handler> = {
       priority_shipping: !!body.priorityShipping,
     };
 
-
-    const { data, error } = await supabase.from("orders").insert(payload).select().single();
-    if (error) fail(500, error.message);
-
+    // BIZ-003: Atomically debit the wallet BEFORE creating the order so two
+    // concurrent checkouts can't both spend the same balance. The RPC fails
+    // loudly if the balance is insufficient; if the order insert later
+    // fails, we refund the same amount through the paired RPC.
     if (walletUsed > 0 && user) {
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id, amount: -walletUsed, type: "debit", source: "order_redeem",
-        order_id: orderNumber, note: `Redeemed on ${orderNumber}`,
+      const { error: debitErr } = await supabase.rpc("wallet_debit_for_order", {
+        _amount: walletUsed,
+        _order_number: orderNumber,
+        _note: `Redeemed on ${orderNumber}`,
       });
-      const { data: w2 } = await supabase.from("user_wallets").select("balance").eq("user_id", user.id).maybeSingle();
-      const newBal = Math.max(0, Number(w2?.balance || 0) - walletUsed);
-      await supabase.from("user_wallets").upsert({ user_id: user.id, balance: newBal, updated_at: new Date().toISOString() });
+      if (debitErr) fail(400, debitErr.message || "Wallet debit failed");
     }
 
-    // (wallet debit + order insert is handled above via the atomic RPC path)
+    const { data, error } = await supabase.from("orders").insert(payload).select().single();
+    if (error) {
+      // Order failed after wallet was debited — refund so no money is lost.
+      if (walletUsed > 0 && user) {
+        await supabase.rpc("wallet_refund_for_order", {
+          _amount: walletUsed,
+          _order_number: orderNumber,
+          _note: `Auto-refund: order ${orderNumber} failed to save`,
+        });
+      }
+      fail(500, error.message);
+    }
 
     if (body.userCouponId && user) {
       await supabase.from("user_coupons").update({ used: true, used_order_id: orderNumber })
