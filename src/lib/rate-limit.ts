@@ -22,6 +22,7 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number,
   blockSeconds?: number,
+  opts?: { failClosed?: boolean },
 ): Promise<RateLimitResult> {
   const safeKey = String(key || "anon").slice(0, 200);
   const { data, error } = await supabaseAdmin.rpc("check_rate_limit" as any, {
@@ -32,9 +33,11 @@ export async function rateLimit(
     _block_seconds: blockSeconds ?? null,
   });
   if (error) {
-    // Fail-open on infra error to avoid locking everyone out — log it.
-    console.warn("[rateLimit] rpc error", error.message);
-    return { allowed: true, hits: 0, blockedUntil: null };
+    // SEC-010: callers that touch credentials / payments pass {failClosed:true}
+    // so an RPC outage cannot silently disable the limiter for them. Non-critical
+    // buckets keep failing open to avoid locking everyone out during infra blips.
+    console.warn("[rateLimit] rpc error", error.message, { failClosed: !!opts?.failClosed });
+    return { allowed: !opts?.failClosed, hits: 0, blockedUntil: null };
   }
   const row = Array.isArray(data) ? data[0] : data;
   return {
