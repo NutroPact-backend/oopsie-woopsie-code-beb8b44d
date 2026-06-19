@@ -1,12 +1,16 @@
 // @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Edit2, Trash2, ArrowUp, ArrowDown, X, Save, Eye, EyeOff, Star } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useServerFn } from '@tanstack/react-start';
 import { fetchCategories, invalidateCategoriesCache, type Category } from '@/hooks/useCategories';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';
-import { useBulkSelection, BulkActionBar, SelectCheckbox, runForEach } from '@/pages/admin/components/BulkSelect';
+import { useBulkSelection, BulkActionBar, SelectCheckbox } from '@/pages/admin/components/BulkSelect';
 import { TabHelp } from './_TabHelp';
 import { PAGE_OPTIONS } from '@/lib/page-keys';
+import {
+  adminCreateCategory, adminUpdateCategory, adminDeleteCategory,
+  adminBulkUpdateCategories, adminBulkDeleteCategories, adminReorderCategories,
+} from '@/lib/categories-admin.functions';
 
 const toSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const toCsv = (v: any) => Array.isArray(v) ? v.filter(Boolean).join(', ') : (typeof v === 'string' ? v : '');
@@ -41,6 +45,13 @@ export default function CategoriesTab() {
   const sel = useBulkSelection(rows, (c) => c.id);
   const perms = useAdminPermissions();
   const canPlacement = perms.has('categories.manage_placement');
+
+  const createFn = useServerFn(adminCreateCategory);
+  const updateFn = useServerFn(adminUpdateCategory);
+  const deleteFn = useServerFn(adminDeleteCategory);
+  const bulkUpdateFn = useServerFn(adminBulkUpdateCategories);
+  const bulkDeleteFn = useServerFn(adminBulkDeleteCategories);
+  const reorderFn = useServerFn(adminReorderCategories);
 
 
   const load = () => {
@@ -99,11 +110,11 @@ export default function CategoriesTab() {
       visible_on_pages: toArr(editing.visible_on_pages),
     };
     if ('id' in editing && editing.id) {
-      const { error } = await supabase.from('categories').update(payload).eq('id', editing.id);
-      if (error) { setSaving(false); return alert(error.message); }
+      try { await updateFn({ data: { id: editing.id, patch: payload } }); }
+      catch (e: any) { setSaving(false); return alert(e?.message || 'Update failed'); }
     } else {
-      const { error } = await supabase.from('categories').insert(payload);
-      if (error) { setSaving(false); return alert(error.message); }
+      try { await createFn({ data: payload }); }
+      catch (e: any) { setSaving(false); return alert(e?.message || 'Create failed'); }
     }
     invalidateCategoriesCache();
     setSaving(false); setEditing(null); load();
@@ -111,17 +122,17 @@ export default function CategoriesTab() {
 
   const remove = async (c: Category) => {
     if (!confirm(`Delete "${c.name}"? Products using this category will keep the old name as text.`)) return;
-    const { error } = await supabase.from('categories').delete().eq('id', c.id);
-    if (error) return alert(error.message);
+    try { await deleteFn({ data: { id: c.id } }); }
+    catch (e: any) { return alert(e?.message || 'Delete failed'); }
     invalidateCategoriesCache(); load();
   };
 
   const toggleActive = async (c: Category) => {
-    await supabase.from('categories').update({ active: !c.active }).eq('id', c.id);
+    try { await updateFn({ data: { id: c.id, patch: { active: !c.active } } }); } catch { /* */ }
     invalidateCategoriesCache(); load();
   };
   const toggleFeatured = async (c: Category) => {
-    await supabase.from('categories').update({ featured: !c.featured }).eq('id', c.id);
+    try { await updateFn({ data: { id: c.id, patch: { featured: !c.featured } } }); } catch { /* */ }
     invalidateCategoriesCache(); load();
   };
 
@@ -130,10 +141,12 @@ export default function CategoriesTab() {
     const idx = peers.findIndex(r => r.id === c.id);
     const swap = peers[idx + dir];
     if (!swap) return;
-    await Promise.all([
-      supabase.from('categories').update({ sort_order: swap.sort_order }).eq('id', c.id),
-      supabase.from('categories').update({ sort_order: c.sort_order }).eq('id', swap.id),
-    ]);
+    try {
+      await reorderFn({ data: {
+        a: { id: c.id, sort_order: swap.sort_order },
+        b: { id: swap.id, sort_order: c.sort_order },
+      }});
+    } catch (e: any) { return alert(e?.message || 'Reorder failed'); }
     invalidateCategoriesCache(); load();
   };
 
@@ -156,11 +169,11 @@ export default function CategoriesTab() {
         ids={Array.from(sel.selected)}
         onClear={() => { sel.clear(); load(); }}
         actions={[
-          { key: 'activate', label: 'Activate', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('categories').update({ active: true }).eq('id', id)); invalidateCategoriesCache(); } },
-          { key: 'deactivate', label: 'Deactivate', color: 'bg-gray-700 hover:bg-gray-800', run: async (ids) => { await runForEach(ids, (id) => supabase.from('categories').update({ active: false }).eq('id', id)); invalidateCategoriesCache(); } },
-          { key: 'feature', label: 'Feature', color: 'bg-yellow-500 hover:bg-yellow-600', run: async (ids) => { await runForEach(ids, (id) => supabase.from('categories').update({ featured: true }).eq('id', id)); invalidateCategoriesCache(); } },
-          { key: 'unfeature', label: 'Unfeature', color: 'bg-gray-500 hover:bg-gray-600', run: async (ids) => { await runForEach(ids, (id) => supabase.from('categories').update({ featured: false }).eq('id', id)); invalidateCategoriesCache(); } },
-          { key: 'delete', label: 'Delete', color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} categor(ies)?', run: async (ids) => { await runForEach(ids, (id) => supabase.from('categories').delete().eq('id', id)); invalidateCategoriesCache(); } },
+          { key: 'activate', label: 'Activate', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await bulkUpdateFn({ data: { ids: ids as string[], patch: { active: true } } }); invalidateCategoriesCache(); } },
+          { key: 'deactivate', label: 'Deactivate', color: 'bg-gray-700 hover:bg-gray-800', run: async (ids) => { await bulkUpdateFn({ data: { ids: ids as string[], patch: { active: false } } }); invalidateCategoriesCache(); } },
+          { key: 'feature', label: 'Feature', color: 'bg-yellow-500 hover:bg-yellow-600', run: async (ids) => { await bulkUpdateFn({ data: { ids: ids as string[], patch: { featured: true } } }); invalidateCategoriesCache(); } },
+          { key: 'unfeature', label: 'Unfeature', color: 'bg-gray-500 hover:bg-gray-600', run: async (ids) => { await bulkUpdateFn({ data: { ids: ids as string[], patch: { featured: false } } }); invalidateCategoriesCache(); } },
+          { key: 'delete', label: 'Delete', color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} categor(ies)?', run: async (ids) => { await bulkDeleteFn({ data: { ids: ids as string[] } }); invalidateCategoriesCache(); } },
         ]}
       />
       {loading ? (
