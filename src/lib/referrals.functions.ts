@@ -160,10 +160,21 @@ export const adminCompleteReferral = createServerFn({ method: "POST" })
     if (!r) throw new Error("Not found");
     if (r.status === "completed") return { ok: true, already: true };
 
-    await supabaseAdmin.from("referrals").update({
-      status: "completed",
-      completed_at: new Date().toISOString(),
-    }).eq("id", r.id);
+    // Atomic claim: only one concurrent caller can flip pending → completed.
+    // Using `.select()` returns just the rows we actually updated; if another
+    // request already flipped the status, we get an empty array and exit
+    // without inserting wallet credits.
+    const { data: claimed, error: claimErr } = await supabaseAdmin
+      .from("referrals")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", r.id)
+      .eq("status", "pending")
+      .select("id");
+    if (claimErr) throw new Error(claimErr.message);
+    if (!claimed || claimed.length === 0) {
+      // Someone else completed this referral first — do NOT credit again.
+      return { ok: true, already: true };
+    }
 
     const txs: any[] = [];
     if (Number(r.referrer_reward) > 0) {
@@ -184,7 +195,13 @@ export const adminCompleteReferral = createServerFn({ method: "POST" })
     }
     if (txs.length) {
       const { error: wErr } = await supabaseAdmin.from("wallet_transactions").insert(txs);
-      if (wErr) throw new Error(wErr.message);
+      if (wErr) {
+        // Wallet credit failed — roll the referral back so a retry can credit cleanly.
+        await supabaseAdmin.from("referrals")
+          .update({ status: "pending", completed_at: null })
+          .eq("id", r.id);
+        throw new Error(wErr.message);
+      }
     }
     return { ok: true };
   });
