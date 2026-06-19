@@ -863,12 +863,20 @@ const POST: Record<string, Handler> = {
     // the coupon was already spent and we reverse wallet + stock.
     let couponClaimed = false;
     if (body.userCouponId && user) {
+      // Preserve the existing `data` jsonb (which holds min_order, value, etc.)
+      // and merge in the order ref. Atomicity comes from the `.is(used_at,null)` guard.
+      const { data: ucExisting } = await supabase
+        .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
+      const mergedData = {
+        ...((ucExisting?.data && typeof ucExisting.data === "object") ? ucExisting.data : {}),
+        used_order_id: orderNumber,
+      };
       const { data: claimed, error: couponErr } = await supabase
         .from("user_coupons")
-        .update({ used: true, used_order_id: orderNumber })
+        .update({ used_at: new Date().toISOString(), data: mergedData })
         .eq("id", body.userCouponId)
         .eq("user_id", user.id)
-        .eq("used", false)
+        .is("used_at", null)
         .select("id")
         .maybeSingle();
       if (couponErr || !claimed) {
@@ -898,8 +906,13 @@ const POST: Record<string, Handler> = {
       await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
       // Release the claimed coupon back to unused so the customer can retry.
       if (couponClaimed && body.userCouponId && user) {
+        // Release the claimed coupon: clear used_at and drop used_order_id from data.
+        const { data: ucRel } = await supabase
+          .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
+        const relData: any = { ...((ucRel?.data && typeof ucRel.data === "object") ? ucRel.data : {}) };
+        delete relData.used_order_id;
         await supabase.from("user_coupons")
-          .update({ used: false, used_order_id: null })
+          .update({ used_at: null, data: relData })
           .eq("id", body.userCouponId).eq("user_id", user.id);
       }
       fail(500, error.message);
