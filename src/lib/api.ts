@@ -1323,7 +1323,20 @@ async function dynamicPut(path: string, body: any): Promise<any> {
       if (table === 'products') {
         row = await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data));
       } else {
-        const snaked = snakeify(body);
+        // WIR-002 / WIR-003: the admin UI sends `verified` and `pinned`, but
+        // the global_reviews table uses `is_verified` / `is_featured`. Map
+        // them before snakeify so the allowlist + upsert actually persist
+        // the toggles instead of silently dropping them.
+        const remapped = table === 'global_reviews'
+          ? (() => {
+              const { verified, pinned, ...rest } = body || {};
+              const out: any = { ...rest };
+              if (verified !== undefined) out.isVerified = !!verified;
+              if (pinned !== undefined) out.isFeatured = !!pinned;
+              return out;
+            })()
+          : body;
+        const snaked = snakeify(remapped);
         delete snaked._id;
         const filtered = pickAllowed(table, snaked);
         row = table === 'coupons' ? { ...filtered, code: m[2] } : { ...filtered, id: m[2] };
