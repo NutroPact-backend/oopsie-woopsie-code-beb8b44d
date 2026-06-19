@@ -449,7 +449,7 @@ const GET: Record<string, Handler> = {
       supabase.from("user_wallets").select("balance"),
       supabase.from("wallet_transactions").select("amount,type,created_at").gte("created_at", new Date(Date.now() - 30 * 86400e3).toISOString()),
       supabase.from("wallet_transactions").select("amount,user_id,expires_at").eq("type", "credit").not("expires_at", "is", null).gte("expires_at", new Date().toISOString()).lte("expires_at", new Date(Date.now() + 7 * 86400e3).toISOString()),
-      supabase.from("user_coupons").select("id", { count: "exact", head: true }).eq("used", false),
+      supabase.from("user_coupons").select("id", { count: "exact", head: true }).is("used_at", null),
     ]);
     const balances = (wallets.data ?? []).map((w: any) => Number(w.balance || 0));
     const txs = tx30.data ?? [];
@@ -726,12 +726,13 @@ const POST: Record<string, Handler> = {
       const { data: uc } = await supabase.from("user_coupons").select("*")
         .eq("code", body.code).eq("user_id", user.id).maybeSingle();
       if (uc) {
-        if (uc.used) fail(400, "Coupon already used");
+        const ucData: any = (uc as any).data || {};
+        if ((uc as any).used_at) fail(400, "Coupon already used");
         if (uc.expires_at && new Date(uc.expires_at) < new Date()) fail(400, "Coupon expired");
-        if (uc.min_order && body.orderTotal < Number(uc.min_order)) fail(400, `Min order ₹${uc.min_order}`);
-        let d = uc.discount_type === "percent" ? (body.orderTotal * Number(uc.value)) / 100 : Number(uc.value);
-        if (uc.max_discount) d = Math.min(d, Number(uc.max_discount));
-        return camelize({ id: uc.id, code: uc.code, type: uc.discount_type, value: uc.value, source: "user_coupon", discount: d });
+        if (ucData.min_order && body.orderTotal < Number(ucData.min_order)) fail(400, `Min order ₹${ucData.min_order}`);
+        let d = ucData.discount_type === "percent" ? (body.orderTotal * Number(ucData.value)) / 100 : Number(ucData.value);
+        if (ucData.max_discount) d = Math.min(d, Number(ucData.max_discount));
+        return camelize({ id: uc.id, code: uc.code, type: ucData.discount_type, value: ucData.value, source: "user_coupon", discount: d });
       }
     }
     const { data: coupon } = await supabase.from("coupons").select("*").eq("code", body.code).eq("active", true).maybeSingle();
