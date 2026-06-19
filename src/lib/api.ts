@@ -746,7 +746,9 @@ const POST: Record<string, Handler> = {
   "/orders": async (_p, _q, body) => {
     const { data: { user } } = await supabase.auth.getUser();
     const id = crypto.randomUUID();
-    const _rand = new Uint8Array(4);
+    // SEC-011: 8 random bytes (16 hex / 64 bits) — collision-resistant and
+    // not enumerable by guessing the trailing few hex chars.
+    const _rand = new Uint8Array(8);
     crypto.getRandomValues(_rand);
     const _suffix = Array.from(_rand, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
     const orderNumber = `NP${Date.now()}-${_suffix}`;
@@ -761,21 +763,30 @@ const POST: Record<string, Handler> = {
     if (body.paymentMethodOffer) shippingAddr.paymentMethodOffer = body.paymentMethodOffer;
     if (walletUsed > 0) shippingAddr.walletUsed = walletUsed;
 
+    // SEC-014: explicit allowlist. Status fields are server-controlled — never
+    // accept payment_status / order_status from the client (would let anyone
+    // mark their own order as paid). payment_method is whitelisted to known
+    // values; cod orders start as pending, prepaid orders also start as
+    // pending and are only flipped to "paid" by the verified gateway webhook.
+    const ALLOWED_PAYMENT_METHODS = new Set(["cod", "razorpay", "phonepe", "payu", "stripe", "upi"]);
+    const paymentMethod = ALLOWED_PAYMENT_METHODS.has(String(body.paymentMethod || "").toLowerCase())
+      ? String(body.paymentMethod).toLowerCase()
+      : "cod";
     const payload: any = {
       id, order_number: orderNumber,
       user_id: user?.id ?? null,
-      items: body.items ?? [],
-      subtotal: body.subtotal ?? 0,
-      shipping_cost: body.shipping ?? 0,
-      discount: (body.discount ?? 0) + walletUsed,
+      items: Array.isArray(body.items) ? body.items : [],
+      subtotal: Number(body.subtotal ?? 0),
+      shipping_cost: Number(body.shipping ?? 0),
+      discount: Number(body.discount ?? 0) + walletUsed,
       total: finalTotal,
-      coupon_code: body.couponCode ?? "",
-      customer_name: body.shippingAddress?.name ?? "",
-      customer_email: body.shippingAddress?.email ?? user?.email ?? "",
-      customer_phone: body.shippingAddress?.phone ?? "",
+      coupon_code: String(body.couponCode ?? "").slice(0, 80),
+      customer_name: String(body.shippingAddress?.name ?? "").slice(0, 200),
+      customer_email: String(body.shippingAddress?.email ?? user?.email ?? "").slice(0, 255),
+      customer_phone: String(body.shippingAddress?.phone ?? "").slice(0, 32),
       shipping_address: shippingAddr,
-      payment_method: body.paymentMethod ?? "cod",
-      payment_status: body.paymentStatus ?? "pending",
+      payment_method: paymentMethod,
+      payment_status: "pending",
       order_status: "pending",
       priority_shipping: !!body.priorityShipping,
     };
