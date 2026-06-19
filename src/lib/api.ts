@@ -1181,6 +1181,8 @@ async function adminUpsert(path: string, body: any): Promise<any> {
   } else {
     row = { id: body.id || body._id || crypto.randomUUID(), ...snakeify(body) };
     delete (row as any)._id;
+    row = pickAllowed(table, row);
+    if (!row.id) row.id = crypto.randomUUID();
   }
   const { data, error } = await supabase.from(table as any).upsert(row).select().single();
   if (error) fail(500, error.message);
