@@ -5326,6 +5326,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_phone_otp_slot: {
+        Args: {
+          _code_hash: string
+          _expires_at: string
+          _limit: number
+          _phone: string
+          _window_secs: number
+        }
+        Returns: string
+      }
+      consume_phone_otp: {
+        Args: { _code_hash: string; _phone: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
