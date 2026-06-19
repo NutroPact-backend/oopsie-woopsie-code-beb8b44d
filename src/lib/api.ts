@@ -1313,12 +1313,15 @@ async function dynamicPut(path: string, body: any): Promise<any> {
     };
     const table = tableMap[m[1]];
     if (table) {
-      const row = table === 'products'
-        ? await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data))
-        : (table === 'coupons'
-            ? { ...snakeify(body), code: m[2] }
-            : { ...snakeify(body), id: m[2] });
-      delete (row as any)._id;
+      let row: any;
+      if (table === 'products') {
+        row = await buildProductWriteRow(body, await supabase.from('products').select('*').eq('id', m[2]).maybeSingle().then(r => r.data));
+      } else {
+        const snaked = snakeify(body);
+        delete snaked._id;
+        const filtered = pickAllowed(table, snaked);
+        row = table === 'coupons' ? { ...filtered, code: m[2] } : { ...filtered, id: m[2] };
+      }
       const conflictCol = table === 'coupons' ? { onConflict: 'code' } : undefined;
       const q = conflictCol
         ? supabase.from(table as any).upsert(row, conflictCol as any)
