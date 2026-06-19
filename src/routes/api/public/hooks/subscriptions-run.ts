@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/public/hooks/subscriptions-run')({
         const nowIso = new Date().toISOString();
         const { data: due } = await supabaseAdmin
           .from('subscriptions')
-          .select('*')
+          .select('id')
           .eq('status', 'active')
           .lte('next_run_at', nowIso)
           .order('next_run_at', { ascending: true })
@@ -26,12 +26,26 @@ export const Route = createFileRoute('/api/public/hooks/subscriptions-run')({
 
         let created = 0;
         const errors: any[] = [];
-        for (const sub of due ?? []) {
+        // Atomic per-row claim prevents duplicate orders when cron overlaps
+        // or is retried. We bump next_run_at forward as a short-lived lock;
+        // runSubscriptionOnce later sets it to the real next interval.
+        const claimUntil = new Date(Date.now() + 5 * 60_000).toISOString();
+        for (const { id } of due ?? []) {
+          const { data: claimed, error: claimErr } = await supabaseAdmin
+            .from('subscriptions')
+            .update({ next_run_at: claimUntil })
+            .eq('id', id)
+            .eq('status', 'active')
+            .lte('next_run_at', nowIso)
+            .select('*')
+            .maybeSingle();
+          if (claimErr) { errors.push({ id, error: claimErr.message }); continue; }
+          if (!claimed) continue; // another worker already claimed this row
           try {
-            await runSubscriptionOnce(sub);
+            await runSubscriptionOnce(claimed);
             created++;
           } catch (e: any) {
-            errors.push({ id: sub.id, error: e?.message });
+            errors.push({ id, error: e?.message });
           }
         }
         return Response.json({ ok: true, created, errors, pending: due?.length ?? 0 });
