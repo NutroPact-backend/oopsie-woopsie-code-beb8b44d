@@ -459,12 +459,16 @@ export function trackBeginCheckout(value: number, items: TrackProduct[]) {
 export function trackPurchase(orderId: string, value: number, items: TrackProduct[]) {
   const mapped = items.map(p => ({ item_id: p.id, item_name: p.name, price: p.price, quantity: p.quantity || 1 }));
 
+  // ANL-004: deterministic eventID so FB CAPI (server) dedupes against the
+  // browser pixel. Same string is used by dispatchPurchaseConversion server-side.
+  const fbEventId = `purchase-${orderId}`;
+
   // Fire global pixels
   if (GA_ID && window.gtag) {
     window.gtag('event', 'purchase', { transaction_id: orderId, currency: 'INR', value, items: mapped });
   }
   if (FB_PIXEL_ID && window.fbq) {
-    window.fbq('track', 'Purchase', { value, currency: 'INR' });
+    window.fbq('track', 'Purchase', { value, currency: 'INR' }, { eventID: fbEventId });
   }
   if (GTM_ID && window.dataLayer) {
     window.dataLayer.push({ event: 'purchase', ecommerce: { transaction_id: orderId, currency: 'INR', value, items: mapped } });
@@ -497,7 +501,7 @@ export function trackPurchase(orderId: string, value: number, items: TrackProduc
 
     if (px.fbPixelId && !firedFb.has(px.fbPixelId) && window.fbq) {
       firedFb.add(px.fbPixelId);
-      window.fbq('trackSingle', px.fbPixelId, 'Purchase', { value: product.price * (product.quantity || 1), currency: 'INR' });
+      window.fbq('trackSingle', px.fbPixelId, 'Purchase', { value: product.price * (product.quantity || 1), currency: 'INR' }, { eventID: fbEventId });
     }
 
     if (px.tiktokPixelId && !firedTt.has(px.tiktokPixelId) && window.ttq) {

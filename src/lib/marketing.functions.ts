@@ -191,3 +191,69 @@ export const getMarketingDashboard = createServerFn({ method: 'GET' })
       }, {}),
     };
   });
+
+// ── Browser-initiated purchase CAPI dispatch (ANL-004 dedup) ─────────────
+// Called from CheckoutPage right after the client-side pixel fires. Server
+// looks up the order so the browser cannot tamper with value/email, and
+// uses the deterministic eventId `purchase-<orderNumber>` so FB matches it
+// with the browser pixel's eventID and dedupes (no double-count).
+export const dispatchPurchaseConversion = createServerFn({ method: 'POST' })
+  .inputValidator((d: { orderNumber: string }) => d)
+  .handler(async ({ data }) => {
+    if (!data?.orderNumber) return { ok: false, error: 'order_required' };
+    const { data: order } = await supabaseAdmin
+      .from('orders')
+      .select('order_number,total,customer_email,customer_phone,user_id')
+      .eq('order_number', data.orderNumber)
+      .maybeSingle();
+    if (!order) return { ok: false, error: 'order_not_found' };
+
+    const { data: cfg } = await supabaseAdmin
+      .from('marketing_settings').select('*').eq('key', 'default').maybeSingle();
+    if (!cfg?.fb_capi_pixel_id || !cfg?.fb_capi_access_token) {
+      return { ok: true, skipped: 'fb_capi_not_configured' };
+    }
+
+    const eventId = `purchase-${order.order_number}`;
+    // Idempotency: skip if we've already pushed this exact eventId
+    const { data: prior } = await supabaseAdmin
+      .from('marketing_events')
+      .select('id')
+      .eq('channel', 'fb_capi')
+      .eq('order_number', order.order_number)
+      .contains('payload', { data: [{ event_id: eventId }] } as any)
+      .limit(1)
+      .maybeSingle();
+    if (prior) return { ok: true, deduped: true, eventId };
+
+    const userData: any = {};
+    if (order.customer_email) userData.em = [await sha256(order.customer_email)];
+    if (order.customer_phone) userData.ph = [await sha256(String(order.customer_phone).replace(/\D/g, ''))];
+
+    const body = {
+      data: [{
+        event_name: 'Purchase',
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: eventId,
+        action_source: 'website',
+        user_data: userData,
+        custom_data: { value: Number(order.total || 0), currency: 'INR', order_id: order.order_number },
+      }],
+      ...(cfg.fb_capi_test_event_code ? { test_event_code: cfg.fb_capi_test_event_code } : {}),
+    };
+
+    try {
+      const r = await fetch(`https://graph.facebook.com/v19.0/${cfg.fb_capi_pixel_id}/events?access_token=${cfg.fb_capi_access_token}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const j = await r.json();
+      await supabaseAdmin.from('marketing_events').insert({
+        channel: 'fb_capi', event_name: 'Purchase', order_number: order.order_number,
+        value: Number(order.total || 0), currency: 'INR', payload: body, response: j,
+        status: r.ok ? 'sent' : 'failed', error: r.ok ? '' : JSON.stringify(j),
+      });
+      return { ok: r.ok, eventId, response: j };
+    } catch (e: any) {
+      return { ok: false, error: e?.message || 'fetch_failed' };
+    }
+  });
