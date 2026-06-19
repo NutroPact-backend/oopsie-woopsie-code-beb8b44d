@@ -30,6 +30,20 @@ export const Route = createFileRoute("/api/public/hooks/razorpay")({
         const payment = payload?.payload?.payment?.entity;
         const refund = payload?.payload?.refund?.entity;
 
+        // Idempotency: drop duplicate deliveries (Razorpay retries on 5xx/timeout).
+        const eventId = request.headers.get("x-razorpay-event-id")
+          || `${event}:${payment?.id || refund?.id || ""}`;
+        if (eventId && eventId !== ":") {
+          const { error: dupErr } = await supabaseAdmin
+            .from("webhook_events")
+            .insert({ provider: "razorpay", event_id: eventId, event_type: event, payload });
+          if (dupErr) {
+            // Unique violation = already processed → ack so provider stops retrying.
+            if ((dupErr as any).code === "23505") return new Response("ok (duplicate)");
+            return new Response("Storage error", { status: 500 });
+          }
+        }
+
         if (payment) {
           const orderNumber = payment?.notes?.order_number || payment?.receipt;
           const status = event === "payment.captured" ? "paid"
