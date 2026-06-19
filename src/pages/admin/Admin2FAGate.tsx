@@ -80,6 +80,21 @@ export function Admin2FAGate({ children }: { children: React.ReactNode }) {
   }
 
   if (state === "enroll") {
+    // SEC-016: hard-block the admin panel, but let the user reach the
+    // Security & 2FA tab so they can actually enroll. Any other tab is
+    // rejected with an enrollment wall.
+    const onSecurityTab = typeof window !== "undefined"
+      && /[?&]tab=security/i.test(window.location.search);
+    if (onSecurityTab) {
+      return (
+        <>
+          <div className="bg-amber-500 text-white text-center text-xs font-bold py-2 px-4">
+            ⚠ Finish enrolling 2FA below to unlock the rest of the admin panel.
+          </div>
+          {children}
+        </>
+      );
+    }
     // SEC-016: hard-block admin panel access until 2FA is configured. The
     // previous behavior only flashed a banner, so an admin with a stolen
     // password and no 2FA still had full panel access.
