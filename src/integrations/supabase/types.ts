@@ -5258,6 +5258,33 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_type: string | null
+          id: string
+          payload: Json | null
+          provider: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          provider: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          provider?: string
+        }
+        Relationships: []
+      }
       whatsapp_channels: {
         Row: {
           api_key: string | null
