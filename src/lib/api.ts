@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 
+
 /**
  * Supabase-backed API adapter.
  * Translates the original Express REST surface to Supabase queries.
@@ -693,13 +694,24 @@ async function ensureInvoice(orderNumber: string) {
   const { buildInvoiceSnapshot } = await import("./invoice.shared");
   const snapshot = buildInvoiceSnapshot(ord, productMap, seller);
 
-  // Use DB sequence for monotonic invoice numbers
-  const { data: numRow } = await supabase.rpc("next_invoice_number");
-  const invoiceNumber = (numRow as string) || `INV-${new Date().toISOString().slice(0,7).replace("-","")}-${Date.now()}`;
+  // Generate invoice number client-side. Uses YYYYMM prefix + a monthly
+  // sequence derived from existing invoice count to stay roughly monotonic
+  // without requiring a DB sequence/RPC.
+  const ym = new Date().toISOString().slice(0, 7).replace("-", "");
+  const prefix = `${seller.invoicePrefix || "INV"}-${ym}-`;
+  const { count: monthCount } = await supabase
+    .from("invoices")
+    .select("id", { count: "exact", head: true })
+    .like("invoice_number", `${prefix}%`);
+  const invoiceNumber = `${prefix}${String((monthCount || 0) + 1).padStart(5, "0")}`;
 
   const { data: inv, error } = await supabase.from("invoices").insert({
-    id: crypto.randomUUID(), order_id: ord!.id, order_number: orderNumber,
-    invoice_number: invoiceNumber, snapshot,
+    id: crypto.randomUUID(),
+    order_id: ord!.id,
+    order_number: orderNumber,
+    invoice_number: invoiceNumber,
+    data: snapshot as any,
+    issued_at: new Date().toISOString(),
   }).select().single();
   if (error) fail(500, error.message);
   return inv;
