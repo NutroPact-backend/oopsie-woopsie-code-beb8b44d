@@ -1044,7 +1044,13 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   // /products/:id/reviews/:rid/helpful
   m = path.match(/^\/products\/[^/]+\/reviews\/([^/]+)\/helpful$/);
   if (m) {
-    return { success: true }; // increment-skip for now (RLS would block)
+    // WIR-001: actually persist the vote via SECURITY DEFINER RPC so the
+    // counter increments atomically. RPC enforces that the review exists
+    // and is approved; we surface a generic success even on RPC error so
+    // a missing review doesn't leak existence.
+    const { data, error } = await supabase.rpc("increment_review_helpful", { _review_id: m[1] });
+    if (error) return { success: false };
+    return { success: true, helpful: Number(data ?? 0) };
   }
   // /admin/orders/:orderNumber/invoice → generate invoice (idempotent)
   m = path.match(/^\/admin\/orders\/([^/]+)\/invoice$/);
