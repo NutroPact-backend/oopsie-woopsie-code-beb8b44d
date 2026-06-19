@@ -774,13 +774,14 @@ const POST: Record<string, Handler> = {
     if (user) {
       const { data: wsRow } = await supabase
         .from("profiles")
-        .select("is_wholesale,wholesale_discount_percent,wholesale_min_order")
+        .select("data")
         .eq("id", user.id)
         .maybeSingle();
-      if (wsRow?.is_wholesale) {
+      const wsData: any = (wsRow as any)?.data || {};
+      if (wsData.is_wholesale) {
         const subtotal = Number(body.subtotal ?? 0);
-        const minOrder = Number(wsRow.wholesale_min_order || 0);
-        const pct = Math.min(80, Math.max(0, Number(wsRow.wholesale_discount_percent || 0)));
+        const minOrder = Number(wsData.wholesale_min_order || 0);
+        const pct = Math.min(80, Math.max(0, Number(wsData.wholesale_discount_percent || 0)));
         if (subtotal >= minOrder && pct > 0) {
           wholesalePercent = pct;
           wholesaleDiscount = Math.round((subtotal * pct) / 100);
