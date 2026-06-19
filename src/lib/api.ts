@@ -403,16 +403,19 @@ const GET: Record<string, Handler> = {
   "/referral/me": async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { code: "", referrals: [], signupBonus: 0, firstOrderBonus: 0, totalEarned: 0 };
-    const [prof, events, rules] = await Promise.all([
+    // CODE-001 / schema-drift fix: `referral_events` has no `referrer_id`
+    // column — the referrer lives on `referrals`. Join through that table
+    // and use `reward_amount` for the lifetime earnings total.
+    const [prof, refs, rules] = await Promise.all([
       supabase.from("profiles").select("referral_code").eq("id", user.id).maybeSingle(),
-      supabase.from("referral_events").select("*").eq("referrer_id", user.id).order("created_at", { ascending: false }).limit(100),
+      supabase.from("referrals").select("*").eq("referrer_id", user.id).order("created_at", { ascending: false }).limit(100),
       supabase.from("wallet_rules").select("trigger,amount,enabled").in("trigger", ["referral_signup","referral_first_order"]),
     ]);
     const ru = (rules.data ?? []).reduce((m: any, r: any) => { m[r.trigger] = r; return m; }, {});
-    const totalEarned = (events.data ?? []).reduce((s: number, e: any) => s + Number(e.amount || 0), 0);
+    const totalEarned = (refs.data ?? []).reduce((s: number, r: any) => s + Number(r.reward_amount || 0), 0);
     return camelize({
       code: prof.data?.referral_code || "",
-      referrals: events.data ?? [],
+      referrals: refs.data ?? [],
       signupBonus: ru.referral_signup?.enabled ? Number(ru.referral_signup.amount || 0) : 0,
       firstOrderBonus: ru.referral_first_order?.enabled ? Number(ru.referral_first_order.amount || 0) : 0,
       totalEarned,
