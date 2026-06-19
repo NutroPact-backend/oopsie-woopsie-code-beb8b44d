@@ -68,6 +68,24 @@ function Txt({ value, onChange, placeholder, type = 'text' }:
 function Secret({ value, onChange, placeholder }:
   { value: any; onChange: (v: string) => void; placeholder?: string }) {
   const [show, setShow] = useState(false);
+  // SEC-004: server returns "__SECRET_KEEP__" when a secret is configured.
+  // Never reveal it; show a "set ✓ click to replace" UI instead.
+  const SENTINEL = "__SECRET_KEEP__";
+  const isMasked = value === SENTINEL;
+  const [editing, setEditing] = useState(false);
+  if (isMasked && !editing) {
+    return (
+      <div className="flex gap-2 items-center">
+        <div className="flex-1 border rounded-xl px-3 py-2.5 text-sm font-mono bg-gray-50 text-gray-500 select-none">
+          •••••••••• <span className="text-green-600 text-xs ml-1">✓ set</span>
+        </div>
+        <button type="button" onClick={() => { setEditing(true); onChange(""); }}
+          className="shrink-0 px-3 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl text-xs font-bold">
+          Replace
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="flex gap-2">
       <input type={show ? 'text' : 'password'} value={value ?? ''} onChange={e => onChange(e.target.value)}
