@@ -5,7 +5,7 @@ import FAQPage from "@/pages/FAQPage";
 const FAQS = [
   { q: "Are NutroPact supplements lab tested?", a: "Yes. Every batch of NutroPact protein, creatine, pre-workout, and other supplements is third-party lab tested for purity, potency, and label accuracy before it ships." },
   { q: "How fast is delivery in India?", a: "Most NutroPact orders are delivered within 2–5 business days across India with full tracking. Free shipping is included on orders above ₹999." },
-  { q: "What is your return policy?", a: "We offer a hassle-free 7-day return window on eligible NutroPact products. Reach out to support@nutropact.com and our team will guide you through the return." },
+  { q: "What is your return policy?", a: "We offer a hassle-free 7-day return window on eligible NutroPact products. Reach out to info@nutropact.com and our team will guide you through the return." },
   { q: "Are the products 100% authentic?", a: "Yes — NutroPact products are manufactured and shipped directly. We do not sell through unauthorised resellers, so every order is guaranteed authentic." },
 ];
 

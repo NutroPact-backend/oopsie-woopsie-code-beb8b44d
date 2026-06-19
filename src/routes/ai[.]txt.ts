@@ -43,7 +43,7 @@ LLM-Summary: https://www.nutropact.com/llms.txt
 LLM-Full: https://www.nutropact.com/llms-full.txt
 AI-Context: https://www.nutropact.com/api/public/ai-context
 
-Contact: support@nutropact.com
+Contact: info@nutropact.com
 `;
 
 export const Route = createFileRoute('/ai.txt')({
@@ -61,7 +61,7 @@ export const Route = createFileRoute('/ai.txt')({
             body = cfg.ai_policy_text;
           } else if (cfg.ai_allow_training === false || cfg.ai_allow_inference === false) {
             const brand = cfg.org_legal_name || 'NutroPact';
-            const email = cfg.org_email || 'support@nutropact.com';
+            const email = cfg.org_email || 'info@nutropact.com';
             body = `# ${brand} AI Usage Policy\n# Updated: ${new Date().toISOString().slice(0,10)}\n\nUser-Agent: *\n${cfg.ai_allow_training === false ? 'Disallow: training' : 'Allow: training'}\n${cfg.ai_allow_inference === false ? 'Disallow: inference' : 'Allow: inference'}\nAllow: search\nAllow: citation\n\nSitemap: https://www.nutropact.com/sitemap.xml\nLLM-Summary: https://www.nutropact.com/llms.txt\nLLM-Full: https://www.nutropact.com/llms-full.txt\nAI-Context: https://www.nutropact.com/api/public/ai-context\n\nContact: ${email}\n`;
           }
         } catch {}

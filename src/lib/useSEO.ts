@@ -158,7 +158,7 @@ export function useSEO(meta: SEOMeta) {
         contactPoint: {
           '@type': 'ContactPoint',
           telephone: '+91-8955590350',
-          email: 'support@nutropact.com',
+          email: 'info@nutropact.com',
           contactType: 'customer service',
           availableLanguage: 'English',
         },
