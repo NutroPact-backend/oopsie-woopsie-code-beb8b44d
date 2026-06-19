@@ -5340,6 +5340,31 @@ export type Database = {
         Args: { _code_hash: string; _phone: string }
         Returns: string
       }
+      evaluate_campaign_audience: {
+        Args: {
+          _channel_required?: string
+          _city?: string
+          _has_subscription?: boolean
+          _include_zero_order_profiles?: boolean
+          _last_order_days_ago_max?: number
+          _last_order_days_ago_min?: number
+          _max_rows?: number
+          _min_ltv?: number
+          _min_orders?: number
+          _pincode?: string
+          _registered_only?: boolean
+          _state?: string
+        }
+        Returns: {
+          email: string
+          last_at: string
+          ltv: number
+          name: string
+          orders: number
+          phone: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
