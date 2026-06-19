@@ -143,32 +143,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }
 
     const scriptExtras: any[] = [];
-    // Pinterest tag
-    if (cfg.pinterest_tag_id) {
-      scriptExtras.push({ children: `!function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");pintrk('load','${cfg.pinterest_tag_id}');pintrk('page');` });
-    }
-    // LinkedIn Insight
-    if (cfg.linkedin_partner_id) {
-      scriptExtras.push({ children: `_linkedin_partner_id="${cfg.linkedin_partner_id}";window._linkedin_data_partner_ids=window._linkedin_data_partner_ids||[];window._linkedin_data_partner_ids.push(_linkedin_partner_id);(function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0];var b=document.createElement("script");b.type="text/javascript";b.async=true;b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";s.parentNode.insertBefore(b,s)})(window.lintrk);` });
-    }
-    // X / Twitter pixel
-    if (cfg.twitter_pixel_id) {
-      scriptExtras.push({ children: `!function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments)},s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');twq('config','${cfg.twitter_pixel_id}');` });
-    }
-    // Reddit
-    if (cfg.reddit_pixel_id) {
-      scriptExtras.push({ children: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','${cfg.reddit_pixel_id}');rdt('track','PageVisit');` });
-    }
-    // Quora
-    if (cfg.quora_pixel_id) {
-      scriptExtras.push({ children: `!function(q,e,v,n,t,s){if(q.qp)return;n=q.qp=function(){n.qp?n.qp.apply(n,arguments):n.queue.push(arguments)};n.queue=[];t=document.createElement(e);t.async=!0;t.src=v;s=document.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,'script','https://a.quora.com/qevents.js');qp('init','${cfg.quora_pixel_id}');qp('track','ViewContent');` });
+    // ANL-001: third-party advertising pixels (Pinterest, LinkedIn, X,
+    // Reddit, Quora) must NOT fire before the user grants consent. We used
+    // to inline-load them in <head>, which fires before the cookie banner
+    // is even visible — a DPDP/GDPR violation. Now we just stash the IDs on
+    // window.__npAdPixelIds; analytics.ts:grantConsent() reads them and
+    // loads the actual scripts only after the user clicks Accept.
+    const adPixelIds: Record<string, string> = {};
+    if (cfg.pinterest_tag_id) adPixelIds.pinterest = cfg.pinterest_tag_id;
+    if (cfg.linkedin_partner_id) adPixelIds.linkedin = cfg.linkedin_partner_id;
+    if (cfg.twitter_pixel_id) adPixelIds.twitter = cfg.twitter_pixel_id;
+    if (cfg.reddit_pixel_id) adPixelIds.reddit = cfg.reddit_pixel_id;
+    if (cfg.quora_pixel_id) adPixelIds.quora = cfg.quora_pixel_id;
+    if (Object.keys(adPixelIds).length) {
+      scriptExtras.push({
+        children: `window.__npAdPixelIds=${JSON.stringify(adPixelIds)};`,
+      });
     }
 
     // Store/LocalBusiness JSON-LD — enables rich local-business results
     // (contact, address, hours). Subtype of Organization, so this single
     // block replaces the previous standalone Organization entry.
+    // SEO-005: defaults must match the footer to avoid mixed signals to
+    // Google. Footer shows info@nutropact.com + Mon–Sat 11AM–6PM.
     const phone = cfg.org_phone || "+91-8955590350";
-    const email = cfg.org_email || "support@nutropact.com";
+    const email = cfg.org_email || "info@nutropact.com";
     const address = cfg.org_address || {
       "@type": "PostalAddress",
       addressCountry: "IN",
@@ -177,7 +176,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     };
     const openingHours = Array.isArray(cfg.org_opening_hours) && cfg.org_opening_hours.length
       ? cfg.org_opening_hours
-      : ["Mo-Sa 09:00-19:00"];
+      : ["Mo-Sa 11:00-18:00"];
     const orgJsonLd = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Store",

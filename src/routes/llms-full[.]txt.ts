@@ -97,7 +97,7 @@ async function build(): Promise<string> {
 
   out.push('## Contact & Support');
   out.push('- Website: ' + BASE);
-  out.push('- Email: support@nutropact.com');
+  out.push('- Email: info@nutropact.com');
   out.push('- Phone: +91-8955590350');
   out.push('- Location: Jaipur, Rajasthan, India');
   out.push('- Service area: All of India');

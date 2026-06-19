@@ -8,16 +8,30 @@ import { isLiteMode, onIdle } from "./lite";
 
 const SS_KEY = "sv_sid";
 const SENT_KEY = "sv_last_path";
+const CONSENT_KEY = "nutropact:cookie-consent";
+
+// ANL-003: gate visitor tracking behind explicit consent.
+function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const v = localStorage.getItem(CONSENT_KEY);
+    if (!v) return false;
+    return !!JSON.parse(v)?.accepted;
+  } catch { return false; }
+}
 
 function sid(): string {
   try {
     let s = sessionStorage.getItem(SS_KEY);
     if (!s) {
-      s = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      // ANL-005: cryptographically-random session id.
+      s = (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : (Date.now().toString(36) + Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, "0")).join(""));
       sessionStorage.setItem(SS_KEY, s);
     }
     return s;
-  } catch { return "anon" + Date.now().toString(36); }
+  } catch { return "anon-" + Date.now().toString(36); }
 }
 
 function device(): "mobile" | "desktop" | "tablet" {
@@ -55,6 +69,7 @@ function utm(search: string) {
 
 export function trackVisit() {
   if (typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) return;
   // Skip admin and api paths
   const path = window.location.pathname;
   if (path.startsWith("/admin") || path.startsWith("/api/")) return;

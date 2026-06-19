@@ -9,7 +9,7 @@ export const Route = createFileRoute("/refund")({
       { name: "description", content: "Easy 7-day returns and refunds on NutroPact orders. Learn how to request a return, eligibility, and refund timelines." },
       { property: "og:title", content: "Refund & Return Policy — NutroPact" },
       { property: "og:description", content: "Easy 7-day returns and refunds on NutroPact orders across India." },
-      { property: "og:url", content: "/refund" },
+      { property: "og:url", content: "https://www.nutropact.com/refund" },
     ],
     links: [{ rel: "canonical", href: "/refund" }],
   }),

@@ -120,6 +120,26 @@ export function grantConsent() {
     ad_personalization: 'granted',
     analytics_storage: 'granted',
   });
+  // ANL-001: now that consent is granted, boot any advertising pixels
+  // whose IDs were stashed on window by the root head() pass.
+  try {
+    const ids: any = (window as any).__npAdPixelIds || {};
+    if (ids.pinterest && !(window as any).pintrk) {
+      inlineScript(`!function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");pintrk('load','${ids.pinterest}');pintrk('page');`);
+    }
+    if (ids.linkedin && !(window as any).lintrk) {
+      inlineScript(`_linkedin_partner_id="${ids.linkedin}";window._linkedin_data_partner_ids=window._linkedin_data_partner_ids||[];window._linkedin_data_partner_ids.push(_linkedin_partner_id);(function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0];var b=document.createElement("script");b.type="text/javascript";b.async=true;b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";s.parentNode.insertBefore(b,s)})(window.lintrk);`);
+    }
+    if (ids.twitter && !(window as any).twq) {
+      inlineScript(`!function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments)},s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');twq('config','${ids.twitter}');`);
+    }
+    if (ids.reddit && !(window as any).rdt) {
+      inlineScript(`!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','${ids.reddit}');rdt('track','PageVisit');`);
+    }
+    if (ids.quora && !(window as any).qp) {
+      inlineScript(`!function(q,e,v,n,t,s){if(q.qp)return;n=q.qp=function(){n.qp?n.qp.apply(n,arguments):n.queue.push(arguments)};n.queue=[];t=document.createElement(e);t.async=!0;t.src=v;s=document.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,'script','https://a.quora.com/qevents.js');qp('init','${ids.quora}');qp('track','ViewContent');`);
+    }
+  } catch {}
 }
 
 export function denyConsent() {

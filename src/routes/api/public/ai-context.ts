@@ -45,7 +45,7 @@ export const Route = createFileRoute('/api/public/ai-context')({
                 ? { latitude: Number(cfg.geo_latitude), longitude: Number(cfg.geo_longitude) } : null,
               languages: ['en', 'hi'],
               contact: {
-                email: cfg.org_email || 'support@nutropact.com',
+                email: cfg.org_email || 'info@nutropact.com',
                 phone: cfg.org_phone || '+91-8955590350',
               },
               differentiators: Array.isArray(cfg.ai_usps) && cfg.ai_usps.length

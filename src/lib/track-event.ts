@@ -7,17 +7,32 @@
  */
 
 const SS_KEY = "sv_sid";
+const CONSENT_KEY = "nutropact:cookie-consent";
+
+// ANL-003: never beacon internal analytics until the user has interacted
+// with the consent banner AND opted in. Returns true only after `accepted`.
+function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const v = localStorage.getItem(CONSENT_KEY);
+    if (!v) return false;
+    return !!JSON.parse(v)?.accepted;
+  } catch { return false; }
+}
 
 function sid(): string {
   if (typeof window === "undefined") return "ssr";
   try {
     let s = sessionStorage.getItem(SS_KEY);
     if (!s) {
-      s = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      // ANL-005: cryptographically-random session id (no Math.random collisions).
+      s = (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : (Date.now().toString(36) + Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, "0")).join(""));
       sessionStorage.setItem(SS_KEY, s);
     }
     return s;
-  } catch { return "anon" + Date.now().toString(36); }
+  } catch { return "anon-" + Date.now().toString(36); }
 }
 
 function device(): "mobile" | "desktop" | "tablet" {
@@ -50,6 +65,8 @@ export interface SiteEventPayload {
 
 export function trackSiteEvent(eventType: SiteEventType, payload: SiteEventPayload = {}) {
   if (typeof window === "undefined") return;
+  // ANL-003: respect cookie consent for internal analytics too.
+  if (!hasAnalyticsConsent()) return;
   try {
     const path = window.location.pathname;
     // Skip admin/api noise

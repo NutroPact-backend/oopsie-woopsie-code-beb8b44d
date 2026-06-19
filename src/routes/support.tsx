@@ -16,7 +16,7 @@ const INTENTS: Array<{ key: string; label: string; reply: (order: string) => Msg
         : `Please share your order number (e.g. NP-12345). If your order has not been shipped yet, we cancel and refund immediately.`,
       cta: [
         { label: 'WhatsApp us', href: 'https://wa.me/918955590350?text=I want to cancel my order' },
-        { label: 'Email support', href: 'mailto:support@nutropact.com?subject=Cancel order' },
+        { label: 'Email support', href: 'mailto:info@nutropact.com?subject=Cancel order' },
       ],
     }),
   },
