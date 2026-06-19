@@ -449,7 +449,7 @@ const GET: Record<string, Handler> = {
       supabase.from("user_wallets").select("balance"),
       supabase.from("wallet_transactions").select("amount,type,created_at").gte("created_at", new Date(Date.now() - 30 * 86400e3).toISOString()),
       supabase.from("wallet_transactions").select("amount,user_id,expires_at").eq("type", "credit").not("expires_at", "is", null).gte("expires_at", new Date().toISOString()).lte("expires_at", new Date(Date.now() + 7 * 86400e3).toISOString()),
-      supabase.from("user_coupons").select("id", { count: "exact", head: true }).eq("used", false),
+      supabase.from("user_coupons").select("id", { count: "exact", head: true }).is("used_at", null),
     ]);
     const balances = (wallets.data ?? []).map((w: any) => Number(w.balance || 0));
     const txs = tx30.data ?? [];
@@ -726,12 +726,13 @@ const POST: Record<string, Handler> = {
       const { data: uc } = await supabase.from("user_coupons").select("*")
         .eq("code", body.code).eq("user_id", user.id).maybeSingle();
       if (uc) {
-        if (uc.used) fail(400, "Coupon already used");
+        const ucData: any = (uc as any).data || {};
+        if ((uc as any).used_at) fail(400, "Coupon already used");
         if (uc.expires_at && new Date(uc.expires_at) < new Date()) fail(400, "Coupon expired");
-        if (uc.min_order && body.orderTotal < Number(uc.min_order)) fail(400, `Min order ₹${uc.min_order}`);
-        let d = uc.discount_type === "percent" ? (body.orderTotal * Number(uc.value)) / 100 : Number(uc.value);
-        if (uc.max_discount) d = Math.min(d, Number(uc.max_discount));
-        return camelize({ id: uc.id, code: uc.code, type: uc.discount_type, value: uc.value, source: "user_coupon", discount: d });
+        if (ucData.min_order && body.orderTotal < Number(ucData.min_order)) fail(400, `Min order ₹${ucData.min_order}`);
+        let d = ucData.discount_type === "percent" ? (body.orderTotal * Number(ucData.value)) / 100 : Number(ucData.value);
+        if (ucData.max_discount) d = Math.min(d, Number(ucData.max_discount));
+        return camelize({ id: uc.id, code: uc.code, type: ucData.discount_type, value: ucData.value, source: "user_coupon", discount: d });
       }
     }
     const { data: coupon } = await supabase.from("coupons").select("*").eq("code", body.code).eq("active", true).maybeSingle();
@@ -862,12 +863,20 @@ const POST: Record<string, Handler> = {
     // the coupon was already spent and we reverse wallet + stock.
     let couponClaimed = false;
     if (body.userCouponId && user) {
+      // Preserve the existing `data` jsonb (which holds min_order, value, etc.)
+      // and merge in the order ref. Atomicity comes from the `.is(used_at,null)` guard.
+      const { data: ucExisting } = await supabase
+        .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
+      const mergedData = {
+        ...((ucExisting?.data && typeof ucExisting.data === "object") ? ucExisting.data : {}),
+        used_order_id: orderNumber,
+      };
       const { data: claimed, error: couponErr } = await supabase
         .from("user_coupons")
-        .update({ used: true, used_order_id: orderNumber })
+        .update({ used_at: new Date().toISOString(), data: mergedData })
         .eq("id", body.userCouponId)
         .eq("user_id", user.id)
-        .eq("used", false)
+        .is("used_at", null)
         .select("id")
         .maybeSingle();
       if (couponErr || !claimed) {
@@ -897,8 +906,13 @@ const POST: Record<string, Handler> = {
       await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
       // Release the claimed coupon back to unused so the customer can retry.
       if (couponClaimed && body.userCouponId && user) {
+        // Release the claimed coupon: clear used_at and drop used_order_id from data.
+        const { data: ucRel } = await supabase
+          .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
+        const relData: any = { ...((ucRel?.data && typeof ucRel.data === "object") ? ucRel.data : {}) };
+        delete relData.used_order_id;
         await supabase.from("user_coupons")
-          .update({ used: false, used_order_id: null })
+          .update({ used_at: null, data: relData })
           .eq("id", body.userCouponId).eq("user_id", user.id);
       }
       fail(500, error.message);
