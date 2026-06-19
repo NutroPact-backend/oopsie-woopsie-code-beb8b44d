@@ -126,15 +126,27 @@ export const redeemGiftCard = createServerFn({ method: "POST" })
 
     const amount = Number(card.balance);
 
-    // Atomic-ish: mark redeemed first; if wallet credit fails we still log
-    const { error: uErr } = await supabaseAdmin.from("gift_cards").update({
-      status: "redeemed",
-      balance: 0,
-      redeemed_by_user_id: userId,
-      redeemed_at: new Date().toISOString(),
-    }).eq("id", card.id).eq("status", "active");
+    // Step 1: Atomically claim the card (active → redeemed). Only one
+    // concurrent caller wins; the others get an empty `claimed` array and
+    // bail out without crediting anything.
+    const { data: claimed, error: uErr } = await supabaseAdmin
+      .from("gift_cards")
+      .update({
+        status: "redeemed",
+        balance: 0,
+        redeemed_by_user_id: userId,
+        redeemed_at: new Date().toISOString(),
+      })
+      .eq("id", card.id)
+      .eq("status", "active")
+      .select("id");
     if (uErr) throw new Error(uErr.message);
+    if (!claimed || claimed.length === 0) {
+      throw new Error("Gift card already redeemed");
+    }
 
+    // Step 2: Credit wallet. If this fails, ROLL BACK the claim so the
+    // user doesn't lose the gift card to a transient error.
     const { error: wErr } = await supabaseAdmin.from("wallet_transactions").insert({
       user_id: userId,
       amount,
@@ -142,7 +154,15 @@ export const redeemGiftCard = createServerFn({ method: "POST" })
       source: "giftcard",
       note: `Gift card ${card.code}`,
     });
-    if (wErr) throw new Error(wErr.message);
+    if (wErr) {
+      await supabaseAdmin.from("gift_cards").update({
+        status: "active",
+        balance: amount,
+        redeemed_by_user_id: null,
+        redeemed_at: null,
+      }).eq("id", card.id);
+      throw new Error(wErr.message);
+    }
 
     return { ok: true, credited: amount };
   });
