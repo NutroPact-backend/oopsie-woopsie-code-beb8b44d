@@ -15,6 +15,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { createRazorpayOrder, verifyRazorpayPayment } from '@/lib/razorpay.functions';
 import { initiatePhonePe } from '@/lib/phonepe.functions';
 import { getMyWholesale } from '@/lib/wholesale.functions';
+import { dispatchPurchaseConversion } from '@/lib/marketing.functions';
 
 declare global { interface Window { Razorpay?: any } }
 
@@ -234,6 +235,9 @@ export default function CheckoutPage() {
 
   const finalizeAndRedirect = (orderNumber: string) => {
     trackPurchase(orderNumber, grandTotal, items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, category: i.category, pixels: i.pixels })));
+    // ANL-004: server-side CAPI mirror with deterministic eventId so FB
+    // dedupes against the browser pixel. Fire-and-forget; do not block UX.
+    dispatchPurchaseConversion({ data: { orderNumber } }).catch(() => {});
     clearAbandonedCart();
     clearCart();
     navigate(`/track-order?order=${orderNumber}`);
