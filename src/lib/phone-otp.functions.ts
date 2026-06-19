@@ -116,30 +116,25 @@ export const requestPhoneOtp = createServerFn({ method: "POST" })
     const cap = await verifyTurnstile(data.captchaToken);
     if (!cap.ok) throw new Error("CAPTCHA verification failed");
 
-    // Rate limit: count OTPs sent in last hour
-    const hourAgo = new Date(Date.now() - 3600_000).toISOString();
-    const { count } = await supabaseAdmin
-      .from("phone_otps")
-      .select("id", { count: "exact", head: true })
-      .eq("phone", phone)
-      .gte("created_at", hourAgo);
-    const limit = cfg.phoneRateLimitPerHour ?? 10;
-    if ((count ?? 0) >= limit) {
-      throw new Error(`Too many OTP requests. Try again later.`);
-    }
-
     const len = cfg.phoneOtpLength ?? 6;
     const expirySec = cfg.phoneOtpExpirySec ?? 300;
     const code = genCode(len);
     const codeHash = hashCode(phone, code);
     const expiresAt = new Date(Date.now() + expirySec * 1000).toISOString();
+    const limit = cfg.phoneRateLimitPerHour ?? 10;
 
-    const { error } = await supabaseAdmin.from("phone_otps").insert({
-      phone,
-      code_hash: codeHash,
-      expires_at: expiresAt,
+    // BIZ-009: Atomic rate-limit + insert under a per-phone advisory lock.
+    // Concurrent requests for the same phone are serialized in the DB, so the
+    // count→insert window can no longer be exploited to bypass the cap.
+    const { data: claimedId, error } = await supabaseAdmin.rpc("claim_phone_otp_slot", {
+      _phone: phone,
+      _code_hash: codeHash,
+      _expires_at: expiresAt,
+      _limit: limit,
+      _window_secs: 3600,
     });
     if (error) throw new Error(error.message);
+    if (!claimedId) throw new Error("Too many OTP requests. Try again later.");
 
     const message = renderTemplate(
       cfg.phoneSmsTemplate || "Your OTP is {{code}}",
@@ -167,35 +162,28 @@ export const verifyPhoneOtp = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const phone = normalizePhone(data.phone);
     const codeHash = hashCode(phone, data.code);
-
-    const { data: rows } = await supabaseAdmin
-      .from("phone_otps")
-      .select("*")
-      .eq("phone", phone)
-      .is("consumed_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    const row = rows?.[0];
-    if (!row) throw new Error("No OTP requested for this number");
-    if (new Date(row.expires_at).getTime() < Date.now()) throw new Error("OTP expired");
-    if (row.attempts >= 5) throw new Error("Too many attempts. Request a new OTP.");
-
-    if (row.code_hash !== codeHash) {
-      await supabaseAdmin
-        .from("phone_otps")
-        .update({ attempts: row.attempts + 1 })
-        .eq("id", row.id);
-      throw new Error("Invalid OTP");
-    }
-
-    await supabaseAdmin
-      .from("phone_otps")
-      .update({ consumed_at: new Date().toISOString() })
-      .eq("id", row.id);
-
+    await consumeOtpOrThrow(phone, codeHash);
     return { ok: true, phone };
   });
+
+// BIZ-008: Atomic consume under per-phone advisory lock. Two concurrent
+// verifies of the same valid code can no longer both succeed.
+async function consumeOtpOrThrow(phone: string, codeHash: string) {
+  const { data: result, error } = await supabaseAdmin.rpc("consume_phone_otp", {
+    _phone: phone,
+    _code_hash: codeHash,
+  });
+  if (error) throw new Error(error.message);
+  switch (result) {
+    case "ok": return;
+    case "not_found": throw new Error("No OTP requested for this number");
+    case "expired": throw new Error("OTP expired");
+    case "too_many_attempts": throw new Error("Too many attempts. Request a new OTP.");
+    case "invalid": throw new Error("Invalid OTP");
+    case "already_used": throw new Error("OTP already used");
+    default: throw new Error("OTP verification failed");
+  }
+}
 
 // ---------- public: verify OTP AND sign in (returns magiclink token_hash) ----------
 
@@ -211,24 +199,7 @@ export const phoneSignIn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const phone = normalizePhone(data.phone);
     const codeHash = hashCode(phone, data.code);
-
-    const { data: rows } = await supabaseAdmin
-      .from("phone_otps")
-      .select("*")
-      .eq("phone", phone)
-      .is("consumed_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    const row = rows?.[0];
-    if (!row) throw new Error("No OTP requested for this number");
-    if (new Date(row.expires_at).getTime() < Date.now()) throw new Error("OTP expired");
-    if (row.attempts >= 5) throw new Error("Too many attempts. Request a new OTP.");
-    if (row.code_hash !== codeHash) {
-      await supabaseAdmin.from("phone_otps").update({ attempts: row.attempts + 1 }).eq("id", row.id);
-      throw new Error("Invalid OTP");
-    }
-    await supabaseAdmin.from("phone_otps").update({ consumed_at: new Date().toISOString() }).eq("id", row.id);
+    await consumeOtpOrThrow(phone, codeHash);
 
     const email = phoneToEmail(phone);
     const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
