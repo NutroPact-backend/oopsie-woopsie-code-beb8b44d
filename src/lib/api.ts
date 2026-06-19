@@ -737,9 +737,29 @@ const POST: Record<string, Handler> = {
       if (debitErr) fail(400, debitErr.message || "Wallet debit failed");
     }
 
+    // BIZ-004: Atomically reserve product stock BEFORE creating the order so
+    // concurrent checkouts can't oversell. If any item is short, the RPC
+    // aborts the whole reservation (transactional). Rollback wallet on failure.
+    {
+      const { error: stockErr } = await supabase.rpc("reserve_stock_for_order", {
+        _items: (body.items ?? []) as any,
+        _order_number: orderNumber,
+      });
+      if (stockErr) {
+        if (walletUsed > 0 && user) {
+          await supabase.rpc("wallet_refund_for_order", {
+            _amount: walletUsed,
+            _order_number: orderNumber,
+            _note: `Auto-refund: stock reservation failed for ${orderNumber}`,
+          });
+        }
+        fail(409, stockErr.message || "Some items are out of stock");
+      }
+    }
+
     const { data, error } = await supabase.from("orders").insert(payload).select().single();
     if (error) {
-      // Order failed after wallet was debited — refund so no money is lost.
+      // Order failed after wallet/stock was reserved — refund + release so nothing is lost.
       if (walletUsed > 0 && user) {
         await supabase.rpc("wallet_refund_for_order", {
           _amount: walletUsed,
@@ -747,6 +767,7 @@ const POST: Record<string, Handler> = {
           _note: `Auto-refund: order ${orderNumber} failed to save`,
         });
       }
+      await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
       fail(500, error.message);
     }
 
