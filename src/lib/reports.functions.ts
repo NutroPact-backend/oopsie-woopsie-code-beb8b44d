@@ -17,6 +17,23 @@ export const getDashboardOverview = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .inputValidator(z.object({ days: z.number().int().min(1).max(365).default(30) }).parse)
   .handler(async ({ data }) => {
+    // PERF-002/003/004: dashboard aggregation runs entirely in Postgres via
+    // public.get_dashboard_overview(_days). Previously we pulled up to 5,000
+    // orders + 20,000 site_visits on every load and aggregated in JS, which
+    // dominated TTFB on the admin home. The RPC returns the full payload
+    // (KPIs, series, top-N, funnel, visitors, cohorts, today) in one round
+    // trip and authorizes the caller via SECURITY DEFINER + role check.
+    const { data: payload, error } = await supabaseAdmin.rpc(
+      "get_dashboard_overview",
+      { _days: data.days },
+    );
+    if (error) throw new Error(error.message);
+    return payload as any;
+  });
+
+// Legacy in-app aggregation kept for reference / fallback only — unused.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _legacyGetDashboardOverview = async (data: { days: number }) => {
     const days = data.days;
     const now = Date.now();
     const since = new Date(now - days * DAY_MS).toISOString();
@@ -286,7 +303,7 @@ export const getDashboardOverview = createServerFn({ method: "POST" })
       },
     };
 
-  });
+};
 
 // ───────────── Custom analytics query ─────────────
 

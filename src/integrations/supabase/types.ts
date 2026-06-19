@@ -5386,6 +5386,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_dashboard_overview: { Args: { _days?: number }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
