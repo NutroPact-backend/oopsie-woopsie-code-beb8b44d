@@ -303,7 +303,7 @@ const _legacyGetDashboardOverview = async (data: { days: number }) => {
       },
     };
 
-  });
+};
 
 // ───────────── Custom analytics query ─────────────
 
