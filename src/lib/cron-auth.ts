@@ -9,7 +9,6 @@
  * unauthenticated (cron drainers, admin maintenance, carrier triggers).
  */
 import { getRequestHeader } from "@tanstack/react-start/server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
