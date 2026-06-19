@@ -1199,6 +1199,47 @@ function snakeify(obj: any): any {
   return out;
 }
 
+// SEC-015: per-table column allowlists for admin upsert paths.
+// adminUpsert + dynamicPut used to forward `snakeify(body)` straight into
+// `supabase.upsert()`, meaning any column on the targeted table could be
+// rewritten from the request body — including audit columns, role-bearing
+// columns, foreign-key swaps, etc. We now strip everything not in the
+// allowlist before writing. Products take a separate path via
+// buildProductWriteRow which already projects the row explicitly.
+const ADMIN_WRITE_ALLOWLIST: Record<string, ReadonlySet<string>> = {
+  product_groups: new Set(["id", "name", "slug", "description", "image", "active", "sort_order", "data"]),
+  blog_posts: new Set([
+    "id", "title", "slug", "excerpt", "content", "cover_image", "author", "tags",
+    "published", "published_at", "seo_title", "seo_description", "category", "data",
+  ]),
+  coupons: new Set([
+    "id", "code", "type", "value", "min_order_value", "max_discount", "expires_at",
+    "active", "usage_limit", "per_user_limit", "description", "applies_to",
+    "first_order_only", "stackable", "data",
+  ]),
+  dimensions: new Set(["id", "name", "length", "width", "height", "weight", "unit", "active", "data"]),
+  faqs: new Set(["id", "question", "answer", "category", "sort_order", "active", "data"]),
+  packaging_boxes: new Set([
+    "id", "name", "length", "width", "height", "weight_capacity", "cost",
+    "active", "data",
+  ]),
+  global_reviews: new Set([
+    "id", "user_name", "user_avatar", "rating", "title", "comment", "images",
+    "is_verified", "is_featured", "data",
+  ]),
+  contact_submissions: new Set(["id", "name", "email", "phone", "subject", "message", "status", "notes"]),
+};
+
+function pickAllowed(table: string, row: Record<string, any>): Record<string, any> {
+  const allow = ADMIN_WRITE_ALLOWLIST[table];
+  if (!allow) return row; // products have their own builder; unknown tables are blocked upstream
+  const out: Record<string, any> = {};
+  for (const k of Object.keys(row)) {
+    if (allow.has(k)) out[k] = row[k];
+  }
+  return out;
+}
+
 // PUT
 async function dynamicPut(path: string, body: any): Promise<any> {
   if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
