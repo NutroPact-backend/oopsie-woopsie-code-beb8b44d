@@ -44,6 +44,21 @@ export const Route = createFileRoute("/api/public/hooks/phonepe")({
                      : code === "PAYMENT_ERROR" || code === "PAYMENT_DECLINED" ? "failed"
                      : "attempted";
 
+        // Idempotency: PhonePe retries the callback on non-2xx. Dedupe by
+        // (merchantTxnId + provider txn id + code) so the same outcome is
+        // processed once and retries just ack.
+        const txnId = decoded?.data?.transactionId || "";
+        const eventId = `${merchantTxnId}:${txnId}:${code}`;
+        if (merchantTxnId && code) {
+          const { error: dupErr } = await supabaseAdmin
+            .from("webhook_events")
+            .insert({ provider: "phonepe", event_id: eventId, event_type: code, payload: decoded });
+          if (dupErr) {
+            if ((dupErr as any).code === "23505") return new Response("ok (duplicate)");
+            return new Response("Storage error", { status: 500 });
+          }
+        }
+
         await supabaseAdmin.from("payment_transactions").update({
           provider_payment_id: decoded?.data?.transactionId || null,
           status,
