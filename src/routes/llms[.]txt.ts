@@ -9,6 +9,17 @@ import { supabaseAdmin } from '@/integrations/supabase/client.server';
 
 const BASE = 'https://www.nutropact.com';
 
+// LLM-001: keep audit fixtures + negative-price test products out of the
+// AI-facing surface. Same pattern as sitemap.xml.
+const TEST_ARTIFACT_RE = /^(audit|depval|dv|flng|fxss|neg|test|qa|demo|temp|fixture)[-_]/i;
+function isTestEntry(slug?: string | null, name?: string | null): boolean {
+  const v = [slug, name].filter(Boolean).join(' ');
+  if (!v) return true;
+  if (TEST_ARTIFACT_RE.test(slug || '')) return true;
+  if (/<|>|script|alert\(/i.test(v)) return true;
+  return false;
+}
+
 function line(title: string, path: string, desc?: string) {
   return `- [${title}](${BASE}${path})${desc ? `: ${desc.replace(/\s+/g, ' ').trim().slice(0, 160)}` : ''}`;
 }
@@ -16,7 +27,7 @@ function line(title: string, path: string, desc?: string) {
 async function build(): Promise<string> {
   const [cats, prods, posts, cfgRow] = await Promise.all([
     supabaseAdmin.from('categories').select('slug,name,description').limit(20),
-    supabaseAdmin.from('products').select('slug,name,short_description,description').eq('is_active', true).order('updated_at', { ascending: false }).limit(40),
+    supabaseAdmin.from('products').select('slug,name,price,short_description,description').eq('is_active', true).gt('price', 0).order('updated_at', { ascending: false }).limit(40),
     supabaseAdmin.from('blog_posts').select('slug,title,excerpt').eq('published', true).order('updated_at', { ascending: false }).limit(20),
     supabaseAdmin.from('marketing_settings')
       .select('llms_intro,ai_brand_description,ai_mission,ai_usps,ai_facts,llms_extra_sections,org_legal_name')
@@ -73,13 +84,17 @@ async function build(): Promise<string> {
 
   if (cats.data?.length) {
     out.push('## Categories');
-    for (const c of cats.data) out.push(line(c.name, `/category/${c.slug}`, c.description || ''));
+    for (const c of cats.data) {
+      if (isTestEntry(c.slug, c.name)) continue;
+      out.push(line(c.name, `/category/${c.slug}`, c.description || ''));
+    }
     out.push('');
   }
 
   if (prods.data?.length) {
     out.push('## Products');
     for (const p of prods.data) {
+      if (isTestEntry(p.slug, p.name)) continue;
       out.push(line(p.name, `/products/${p.slug}`, p.short_description || (p.description || '').slice(0, 160)));
     }
     out.push('');
@@ -87,7 +102,10 @@ async function build(): Promise<string> {
 
   if (posts.data?.length) {
     out.push('## Blog');
-    for (const b of posts.data) out.push(line(b.title, `/blog/${b.slug}`, b.excerpt || ''));
+    for (const b of posts.data) {
+      if (isTestEntry(b.slug, b.title)) continue;
+      out.push(line(b.title, `/blog/${b.slug}`, b.excerpt || ''));
+    }
     out.push('');
   }
 

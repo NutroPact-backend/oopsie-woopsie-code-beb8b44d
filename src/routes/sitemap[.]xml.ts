@@ -10,6 +10,17 @@ const STATIC_PATHS = [
   '/search', '/support', '/answers',
 ];
 
+// SEO-002 / LOV-003 / LLM-001: never expose audit fixtures, XSS payloads,
+// or negative-price test products to public crawlers. Anything matching
+// these patterns is filtered out before we emit the URL.
+const TEST_ARTIFACT_RE = /^(audit|depval|dv|flng|fxss|neg|test|qa|demo|temp|fixture)[-_]/i;
+function isTestSlug(slug: string | null | undefined): boolean {
+  if (!slug) return true;
+  if (TEST_ARTIFACT_RE.test(slug)) return true;
+  // strip anything containing HTML tags or script payloads
+  if (/<|>|script|alert\(/i.test(slug)) return true;
+  return false;
+}
 
 function esc(s: string) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -25,9 +36,13 @@ function urlEntry(loc: string, lastmod?: string, priority = '0.7', changefreq = 
 
 async function buildSitemap(origin: string): Promise<string> {
   const [products, posts, categories] = await Promise.all([
-    supabaseAdmin.from('products').select('slug,updated_at,is_active').eq('is_active', true).limit(2000),
+    supabaseAdmin.from('products')
+      .select('slug,name,price,updated_at,is_active')
+      .eq('is_active', true)
+      .gt('price', 0)
+      .limit(2000),
     supabaseAdmin.from('blog_posts').select('slug,updated_at,published').eq('published', true).limit(2000),
-    supabaseAdmin.from('categories').select('slug,updated_at').limit(500),
+    supabaseAdmin.from('categories').select('slug,name,updated_at').limit(500),
   ]);
 
   const entries: string[] = [];
@@ -35,12 +50,15 @@ async function buildSitemap(origin: string): Promise<string> {
     entries.push(urlEntry(`${origin}${p}`, undefined, p === '/' ? '1.0' : '0.8', 'daily'));
   }
   for (const row of (categories.data || [])) {
+    if (isTestSlug(row.slug) || isTestSlug(row.name)) continue;
     entries.push(urlEntry(`${origin}/category/${row.slug}`, row.updated_at || undefined, '0.8', 'weekly'));
   }
   for (const row of (products.data || [])) {
+    if (isTestSlug(row.slug) || isTestSlug(row.name)) continue;
     entries.push(urlEntry(`${origin}/products/${row.slug}`, row.updated_at || undefined, '0.9', 'weekly'));
   }
   for (const row of (posts.data || [])) {
+    if (isTestSlug(row.slug)) continue;
     entries.push(urlEntry(`${origin}/blog/${row.slug}`, row.updated_at || undefined, '0.6', 'weekly'));
   }
 
