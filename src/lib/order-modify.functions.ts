@@ -138,29 +138,38 @@ export const submitOrderModify = createServerFn({ method: "POST" })
     customerNotes: z.string().max(2000).optional().default(""),
   }).parse(d))
   .handler(async ({ data }) => {
-    const { data: row } = await supabaseAdmin
-      .from("order_modify_requests")
-      .select("id, token_expires_at, submitted_at")
-      .eq("access_token", data.token)
-      .maybeSingle();
-    if (!row) throw new Error("Invalid link");
-    if (new Date(row.token_expires_at).getTime() < Date.now()) throw new Error("Link expired");
-    if (row.submitted_at) throw new Error("Already submitted");
-
+    // BIZ-008: Atomic claim — only the FIRST submit succeeds. Two concurrent
+    // browser tabs / replayed requests can no longer both flip the row.
+    const nowIso = new Date().toISOString();
     const patch: any = {
       customer_notes: data.customerNotes,
       status: "pending_review",
-      submitted_at: new Date().toISOString(),
+      submitted_at: nowIso,
     };
     if (data.requestedAddress) patch.requested_address = data.requestedAddress;
     if (data.requestedPhone) patch.requested_phone = data.requestedPhone;
     if (data.requestedItems) patch.requested_items = data.requestedItems;
 
-    const { error } = await supabaseAdmin
+    const { data: claimed, error } = await supabaseAdmin
       .from("order_modify_requests")
       .update(patch)
-      .eq("id", row.id);
+      .eq("access_token", data.token)
+      .is("submitted_at", null)
+      .gt("token_expires_at", nowIso)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!claimed) {
+      // Disambiguate the failure for a useful customer-facing message.
+      const { data: row } = await supabaseAdmin
+        .from("order_modify_requests")
+        .select("token_expires_at, submitted_at")
+        .eq("access_token", data.token)
+        .maybeSingle();
+      if (!row) throw new Error("Invalid link");
+      if (row.submitted_at) throw new Error("Already submitted");
+      throw new Error("Link expired");
+    }
 
     return { ok: true };
   });
