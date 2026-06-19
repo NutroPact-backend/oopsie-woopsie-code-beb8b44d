@@ -2,7 +2,7 @@
 /**
  * Brand-grade chat widget: welcome chips, suggested follow-ups, smart escalation.
  */
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { MessageSquare, X, Send, User, Bot, Headphones, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,16 +27,39 @@ function getGuestToken(): string {
   } catch { return "g_" + Math.random().toString(36).slice(2); }
 }
 
-// minimal markdown: **bold**, *italic*, line breaks, bullets
-function renderText(text: string) {
-  const html = text
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, "<code class='bg-black/5 px-1 rounded'>$1</code>")
-    .replace(/^[•\-*] (.+)$/gm, "• $1")
-    .replace(/\n/g, "<br/>");
-  return { __html: html };
+// Safe markdown renderer: returns React nodes only — never injects HTML.
+// Supports **bold**, *italic*, `code`, line breaks, and leading bullets.
+function renderInline(text: string): ReactNode[] {
+  // Tokenize **bold**, *italic*, `code`. Anything not matched stays plain text.
+  const re = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+  const parts = text.split(re);
+  return parts.map((part, i) => {
+    if (!part) return null;
+    if (part.startsWith("**") && part.endsWith("**"))
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("`") && part.endsWith("`"))
+      return <code key={i} className="bg-black/5 px-1 rounded">{part.slice(1, -1)}</code>;
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
+
+function renderSafeText(text: string): ReactNode {
+  // Strip any HTML-looking content defensively, then split by line.
+  const safe = String(text ?? "");
+  const lines = safe.split(/\n/);
+  return lines.map((line, i) => {
+    // Normalize "• " / "- " / "* " bullet prefix without rendering as markdown.
+    const bulletMatch = line.match(/^\s*[•\-*]\s+(.*)$/);
+    const content = bulletMatch ? `• ${bulletMatch[1]}` : line;
+    return (
+      <Fragment key={i}>
+        {renderInline(content)}
+        {i < lines.length - 1 ? <br /> : null}
+      </Fragment>
+    );
+  });
 }
 
 export default function ChatWidget() {
@@ -276,7 +299,7 @@ function Bubble({ role, content, meta }: { role: Msg["role"]; content: string; m
       </div>
       <div className={`max-w-[78%] ${isUser ? "" : "space-y-1.5"}`}>
         <div className={`whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${isUser ? "bg-primary text-primary-foreground" : role === "admin" ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-100" : "bg-background border border-border"}`}>
-          {isUser ? content : <span dangerouslySetInnerHTML={renderText(content)} />}
+          {isUser ? content : <span>{renderSafeText(content)}</span>}
         </div>
         {!isUser && sources.length > 0 && (
           <div className="flex flex-wrap gap-1 px-1">
