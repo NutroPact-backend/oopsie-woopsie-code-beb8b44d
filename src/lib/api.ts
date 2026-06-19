@@ -613,7 +613,9 @@ async function dynamicGet(path: string): Promise<any> {
     }
     if (path === "/admin/settings") {
       const { data } = await supabase.from("site_settings").select("settings").eq("key", "default").maybeSingle();
-      return camelize(data?.settings ?? {});
+      // SEC-004: strip secrets before returning to the browser.
+      const masked = maskSettingsSecrets((data?.settings as any) ?? {});
+      return camelize(masked);
     }
     const productReviews = path.match(/^\/admin\/products\/([^/]+)\/reviews$/);
     if (productReviews) {
@@ -1201,7 +1203,11 @@ async function dynamicPut(path: string, body: any): Promise<any> {
       .select("settings")
       .eq("key", "default")
       .maybeSingle();
-    const merged = { ...((current?.settings as any) ?? {}), ...(body ?? {}) };
+    // SEC-004: any field still holding the sentinel (or missing) is restored
+    // from the previously-stored secret, so unchanged secrets survive a save
+    // even though they were never sent to the browser.
+    const restored = restoreSettingsSecrets(body ?? {}, (current?.settings as any) ?? {});
+    const merged = { ...((current?.settings as any) ?? {}), ...restored };
     const { error: upsertErr } = await supabase
       .from("site_settings")
       .upsert({ key: "default", settings: merged }, { onConflict: "key" });
