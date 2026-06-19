@@ -18,14 +18,26 @@ async function assertAdmin(userId: string) {
   if (!data) throw new Error("Admin only");
 }
 
-async function pickTier(spend: number) {
-  const { data: tiers } = await supabaseAdmin.from("loyalty_tiers")
+// PERF-001: avoid N+1 by caching the tier table for the lifetime of the
+// worker instance (or 60s — whichever comes first). adminRecomputeAll
+// used to run this SELECT once per user → 10k users = 10k+ round trips.
+let _tierCache: { at: number; rows: any[] } | null = null;
+async function getTiersCached() {
+  if (_tierCache && Date.now() - _tierCache.at < 60_000) return _tierCache.rows;
+  const { data } = await supabaseAdmin.from("loyalty_tiers")
     .select("*").eq("active", true).order("min_lifetime_spend", { ascending: true });
-  let chosen = null as any;
-  for (const t of tiers || []) {
+  _tierCache = { at: Date.now(), rows: data || [] };
+  return _tierCache.rows;
+}
+function pickTierFromRows(rows: any[], spend: number) {
+  let chosen: any = null;
+  for (const t of rows) {
     if (spend >= Number(t.min_lifetime_spend)) chosen = t;
   }
   return chosen;
+}
+async function pickTier(spend: number) {
+  return pickTierFromRows(await getTiersCached(), spend);
 }
 
 async function computeForUser(userId: string) {
@@ -157,8 +169,12 @@ export const adminRecomputeAll = createServerFn({ method: "POST" })
       byUser.set(o.user_id, cur);
     }
     let updated = 0;
+    // PERF-001: fetch the tier table ONCE for the whole batch and resolve
+    // every user in memory. Previously pickTier() ran a fresh SELECT per
+    // user (10k users → 10k+ DB round trips); now it's exactly 1.
+    const tierRows = await getTiersCached();
     for (const [uid, agg] of byUser) {
-      const tier = await pickTier(agg.spend);
+      const tier = pickTierFromRows(tierRows, agg.spend);
       await supabaseAdmin.from("loyalty_status").upsert({
         user_id: uid, tier_id: tier?.id ?? null,
         lifetime_spend: agg.spend, order_count: agg.count,
