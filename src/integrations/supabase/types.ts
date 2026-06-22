@@ -5411,6 +5411,13 @@ export type Database = {
         Args: { _amount: number; _note?: string; _order_number: string }
         Returns: number
       }
+      wallet_expire_sweep: {
+        Args: never
+        Returns: {
+          out_expired_amount: number
+          out_user_id: string
+        }[]
+      }
       wallet_refund_for_order: {
         Args: { _amount: number; _note?: string; _order_number: string }
         Returns: number
