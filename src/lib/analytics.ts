@@ -90,8 +90,12 @@ export function initAnalytics() {
 // ANL-001 helpers — gate advertising pixels behind consent.
 function hasMarketingConsent(): boolean {
   if (typeof window === 'undefined') return false;
-  try { return window.localStorage.getItem('cookie_consent') === 'accepted'; }
-  catch { return false; }
+  try {
+    const raw = window.localStorage.getItem('nutropact:cookie-consent');
+    if (!raw) return false;
+    const v = JSON.parse(raw);
+    return v?.accepted === true;
+  } catch { return false; }
 }
 function bootAdPixels() {
   const ids: any = (window as any).__npAdPixelIds || {};
