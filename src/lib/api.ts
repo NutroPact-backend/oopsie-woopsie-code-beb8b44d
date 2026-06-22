@@ -4,6 +4,7 @@
 
 
 
+
 /**
  * Supabase-backed API adapter.
  * Translates the original Express REST surface to Supabase queries.
