@@ -10,6 +10,8 @@ import { getProductAuthSecretStatus, rotateProductAuthSecret } from "@/lib/admin
 import { Shield, Smartphone, Mail, Key, Globe, Activity, Trash2, Plus, Loader2, Check, X, Copy, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { TabHelp } from './_TabHelp';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthStore } from "@/store/authStore";
 
 export default function SecurityTab() {
   const [status, setStatus] = useState<any>(null);
@@ -51,6 +53,7 @@ export default function SecurityTab() {
   return (
     <div className="space-y-6 max-w-5xl">
       <TabHelp topic="security" />
+      <CredentialRotationCard />
       <TwoFactorCard status={status} fns={f} onRefresh={refresh} />
       <BackupCodesCard status={status} fns={f} onRefresh={refresh} />
       <SessionsCard status={status} fns={f} onRefresh={refresh} />
@@ -58,6 +61,84 @@ export default function SecurityTab() {
       <ProductAuthSecretCard />
       <AttemptsCard rows={attempts} />
     </div>
+  );
+}
+
+function CredentialRotationCard() {
+  const { user, logout } = useAuthStore() as any;
+  const email: string = user?.email || "";
+  // Supabase exposes the auth user's last update via session. Treat 90+ days as stale.
+  const lastUpdatedRaw =
+    user?.updated_at || user?.user_metadata?.password_changed_at || user?.created_at;
+  const lastUpdated = lastUpdatedRaw ? new Date(lastUpdatedRaw) : null;
+  const days = lastUpdated
+    ? Math.floor((Date.now() - lastUpdated.getTime()) / 86400000)
+    : null;
+  const stale = days !== null && days >= 90;
+  const [busy, setBusy] = useState<"reset" | "signout" | null>(null);
+
+  const sendReset = async () => {
+    if (!email) return toast.error("No email on file");
+    setBusy("reset");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent — check your inbox.");
+    } catch (e: any) { toast.error(e?.message || "Failed to send reset"); }
+    setBusy(null);
+  };
+
+  const signOutEverywhere = async () => {
+    if (!confirm("Sign out of every device including this one?")) return;
+    setBusy("signout");
+    try {
+      await supabase.auth.signOut({ scope: "global" } as any);
+      await logout?.();
+      toast.success("Signed out everywhere");
+      window.location.href = "/login";
+    } catch (e: any) { toast.error(e?.message || "Failed"); setBusy(null); }
+  };
+
+  return (
+    <Card title="Admin Credentials" icon={<Key size={18} />}>
+      <div className={`rounded-xl border p-4 mb-4 ${stale ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-gray-200"}`}>
+        <div className="flex items-start gap-3">
+          <AlertTriangle size={18} className={stale ? "text-amber-600 mt-0.5" : "text-gray-400 mt-0.5"} />
+          <div className="text-sm">
+            <p className="font-bold text-gray-900">
+              {stale ? "Password rotation overdue" : "Rotate admin credentials regularly"}
+            </p>
+            <p className="text-gray-600 mt-1">
+              {days !== null
+                ? `Last password change: ${days} days ago.`
+                : "We could not determine the last password change."}{" "}
+              We recommend rotating at least every 90 days, and immediately if you suspect any exposure.
+              After rotating, sign out of every device to revoke existing sessions.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={sendReset}
+          disabled={busy !== null || !email}
+          className="px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 disabled:opacity-50 inline-flex items-center gap-2"
+        >
+          {busy === "reset" ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+          Email me a password reset link
+        </button>
+        <button
+          onClick={signOutEverywhere}
+          disabled={busy !== null}
+          className="px-4 py-2 rounded-xl border border-gray-300 text-sm font-bold hover:bg-gray-50 disabled:opacity-50 inline-flex items-center gap-2"
+        >
+          {busy === "signout" ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          Sign out everywhere
+        </button>
+      </div>
+    </Card>
   );
 }
 
