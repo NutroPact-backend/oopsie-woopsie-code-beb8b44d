@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Award, FlaskConical, RefreshCw, ShieldCheck, Truck, Zap } from 'lucide-react';
 
 interface Badge {

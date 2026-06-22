@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Link } from '@tanstack/react-router';
 import { useRecentlyViewed } from '@/lib/recentlyViewed';
 import { formatPrice } from '@/lib/utils';
