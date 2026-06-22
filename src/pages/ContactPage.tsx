@@ -1,10 +1,12 @@
 import { useSettings } from '@/lib/useSettings';
 import { Mail, Phone, MapPin, Clock, MessageCircle, Instagram, Facebook, Youtube, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
-import API from '@/lib/api';
+import { useServerFn } from '@tanstack/react-start';
+import { submitContact } from '@/lib/contact.functions';
 
 export default function ContactPage() {
   const { settings } = useSettings();
+  const send = useServerFn(submitContact);
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: 'General Inquiry', message: '' });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -20,10 +22,10 @@ export default function ContactPage() {
     setSending(true);
     setError('');
     try {
-      await API.post('/contact', form);
+      await send({ data: form });
       setSent(true);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Something went wrong. Please try again.');
+      setError(err?.message || 'Something went wrong. Please try again.');
     } finally {
       setSending(false);
     }
