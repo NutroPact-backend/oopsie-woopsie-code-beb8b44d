@@ -72,21 +72,32 @@ export function initAnalytics() {
     initGa4(GA_ID);
   }
 
-  if (FB_PIXEL_ID) {
-    initFbPixel(FB_PIXEL_ID);
-  }
-
-  if (TIKTOK_PIXEL_ID) {
-    initTikTokPixel(TIKTOK_PIXEL_ID);
-  }
-
-  if (SNAPCHAT_PIXEL_ID) {
-    initSnapchatPixel(SNAPCHAT_PIXEL_ID);
-  }
+  // ANL-001: advertising pixels (FB, TikTok, Snap) must NOT fire before the
+  // user grants marketing consent. Stash their IDs; grantConsent() boots them.
+  (window as any).__npAdPixelIds = {
+    ...((window as any).__npAdPixelIds || {}),
+    fb: FB_PIXEL_ID,
+    tiktok: TIKTOK_PIXEL_ID,
+    snap: SNAPCHAT_PIXEL_ID,
+  };
+  if (hasMarketingConsent()) bootAdPixels();
 
   if (CLARITY_ID) {
     initClarity(CLARITY_ID);
   }
+}
+
+// ANL-001 helpers — gate advertising pixels behind consent.
+function hasMarketingConsent(): boolean {
+  if (typeof window === 'undefined') return false;
+  try { return window.localStorage.getItem('cookie_consent') === 'accepted'; }
+  catch { return false; }
+}
+function bootAdPixels() {
+  const ids: any = (window as any).__npAdPixelIds || {};
+  if (ids.fb) initFbPixel(ids.fb);
+  if (ids.tiktok) initTikTokPixel(ids.tiktok);
+  if (ids.snap) initSnapchatPixel(ids.snap);
 }
 
 // ─── Google Consent Mode v2 ──────────────────────────────────────────────────
@@ -119,6 +130,8 @@ export function grantConsent() {
     ad_personalization: 'granted',
     analytics_storage: 'granted',
   });
+  // ANL-001: boot FB/TikTok/Snap now that marketing consent is granted.
+  bootAdPixels();
   // ANL-001: now that consent is granted, boot any advertising pixels
   // whose IDs were stashed on window by the root head() pass.
   try {
