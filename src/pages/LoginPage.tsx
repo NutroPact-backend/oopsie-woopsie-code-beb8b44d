@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { useSettings } from "@/lib/useSettings";
 import { requestPhoneOtp, phoneSignIn } from "@/lib/phone-otp.functions";
+import { checkLoginRateLimit } from "@/lib/login-guard.functions";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { LOCALES, type LocaleCode } from "@/lib/locales";
 import { setLocale, getLocale } from "@/lib/i18n";
@@ -42,6 +43,7 @@ export default function LoginPage() {
 
   const reqPhoneOtp = useServerFn(requestPhoneOtp);
   const doPhoneSignIn = useServerFn(phoneSignIn);
+  const checkRate = useServerFn(checkLoginRateLimit);
 
   const { settings } = useSettings();
   const auth = (settings?.auth ?? {}) as any;
@@ -63,6 +65,7 @@ export default function LoginPage() {
     setLoading(true); resetMsgs();
     try {
       if (isLogin) {
+        await checkRate({ data: { identifier: form.email, kind: "password" } });
         const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
         if (error) throw error;
         await refresh();
@@ -104,6 +107,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true); resetMsgs();
     try {
+      await checkRate({ data: { identifier: form.email, kind: "email_otp" } });
       const { error } = await supabase.auth.signInWithOtp({
         email: form.email,
         options: { shouldCreateUser: signupEnabled, emailRedirectTo: `${window.location.origin}${redirectTo}` },
