@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Public pincode serviceability endpoint.
  * Uses Shipmozo first; falls back to Delhivery if configured.

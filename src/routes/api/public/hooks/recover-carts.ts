@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Recover abandoned carts — called by pg_cron every 15 min.
 // Auth: Supabase anon key in `apikey` header.
 //

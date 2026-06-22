@@ -1,4 +1,3 @@
-// @ts-nocheck
 // /ai.txt — emerging spec (spawning.ai / Adobe) declaring AI usage
 // permissions. Complements robots.txt for AI-specific crawlers.
 import { createFileRoute } from '@tanstack/react-router';
