@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 
 export type LabCompound = { name: string; value: string; status?: string };

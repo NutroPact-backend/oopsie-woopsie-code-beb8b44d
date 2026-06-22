@@ -1,4 +1,3 @@
-// @ts-nocheck
 import process from "node:process";
 
 // Server-only config. The .server.ts suffix prevents Vite from bundling

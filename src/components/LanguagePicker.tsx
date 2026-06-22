@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * LanguagePicker — compact dropdown for switching locale.
  * - Updates local i18n store immediately.

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Brand-grade chat widget: welcome chips, suggested follow-ups, smart escalation.
  */

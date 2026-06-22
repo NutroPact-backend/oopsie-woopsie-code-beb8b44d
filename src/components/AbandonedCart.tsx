@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState, useRef } from 'react';
 import { ShoppingCart, X, ArrowRight } from 'lucide-react';
 import { Link, useLocation } from 'wouter';

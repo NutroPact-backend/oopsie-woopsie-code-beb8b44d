@@ -1,4 +1,3 @@
-// @ts-nocheck
 // GSTR aggregation helpers — pure, testable.
 // Input: invoice rows (each with snapshot JSON containing items[] + gst block).
 // Output: row arrays for GSTR-1 (B2C), GSTR-3B summary, and HSN summary.
