@@ -1042,49 +1042,13 @@ const POST: Record<string, Handler> = {
   },
   "/admin/wallet/expire-now": async () => {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
-    // Manual sweep — uses same logic as wallet_expire_now but invokable from client RLS
-    const now = new Date().toISOString();
-    const { data: expired } = await supabase
-      .from("wallet_transactions")
-      .select("user_id, amount, id, data")
-      .eq("type", "credit")
-      .not("data->>expires_at", "is", null)
-      .lt("data->>expires_at", now);
-    if (!expired?.length) return { success: true, expired: 0 };
-    const byUser = new Map<string, number>();
-    for (const t of expired as any[]) byUser.set(t.user_id, (byUser.get(t.user_id) ?? 0) + Number(t.amount));
-    let count = 0;
-    for (const [uid, amt] of byUser) {
-      // skip if an expire of same total already exists today (idempotency-lite)
-      await supabase.from("wallet_transactions").insert({
-        user_id: uid,
-        amount: -amt,
-        type: "expire",
-        reason: "Auto expired ₹" + amt,
-        data: { source: "system", note: "Auto expired ₹" + amt },
-      });
-      const { data: w } = await supabase.from("user_wallets").select("balance").eq("user_id", uid).maybeSingle();
-      const newBal = Math.max(0, Number(w?.balance || 0) - amt);
-      await supabase.from("user_wallets").upsert({ user_id: uid, balance: newBal, updated_at: new Date().toISOString() });
-      await supabase.from("user_notifications").insert({
-        user_id: uid, title: "⏰ Wallet credit expired", body: "₹" + amt + " has expired.", type: "warning", link: "/account",
-      });
-      // Mark transactions as expired by clearing data.expires_at (so they're not re-swept).
-      // jsonb path updates aren't supported via PostgREST update — fetch+rewrite.
-      const { data: toClear } = await supabase
-        .from("wallet_transactions")
-        .select("id, data")
-        .eq("user_id", uid).eq("type", "credit")
-        .not("data->>expires_at", "is", null)
-        .lt("data->>expires_at", now);
-      for (const row of (toClear ?? []) as any[]) {
-        const nd = { ...(row.data || {}) };
-        delete nd.expires_at;
-        await supabase.from("wallet_transactions").update({ data: nd }).eq("id", row.id);
-      }
-      count++;
-    }
-    return { success: true, expired: count };
+    // BIZ-007: delegate to the atomic SQL sweep. The RPC runs everything in
+    // one transaction under an advisory lock so two overlapping sweeps can
+    // never double-deduct the same credits.
+    const { data, error } = await supabase.rpc("wallet_expire_sweep");
+    if (error) fail(500, error.message);
+    const rows = (data ?? []) as Array<{ out_user_id: string; out_expired_amount: number }>;
+    return { success: true, expired: rows.length, users: rows.length };
   },
   "/admin/wallet/rule-save": async (_p, _q, body) => {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
