@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useSEO } from '@/lib/useSEO';
 
 const sections = [

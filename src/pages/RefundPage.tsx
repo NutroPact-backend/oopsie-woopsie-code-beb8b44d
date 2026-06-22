@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useSettings } from '@/lib/useSettings';
 
 // GEO-004: real default refund policy so the page is never a placeholder

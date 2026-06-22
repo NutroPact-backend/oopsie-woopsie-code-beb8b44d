@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from 'react';
 import { Mail, Phone, MessageSquare, Trash2, Download, Search, RefreshCw, CheckCircle, Clock, Eye, X, Filter } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Customer Segments + Bulk Campaigns
  *

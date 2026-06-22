@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Sparkles, Upload, Star, RotateCw, ChevronDown, ChevronUp, X as XIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

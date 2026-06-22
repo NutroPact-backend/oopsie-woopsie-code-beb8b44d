@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Loyalty Tiers — Bronze/Silver/Gold based on lifetime spend on paid orders.
  * - Admin CRUD on tier thresholds + perks.

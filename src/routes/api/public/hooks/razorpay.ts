@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";

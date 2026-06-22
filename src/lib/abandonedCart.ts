@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Lightweight abandoned-cart tracker.
 // Snapshots cart to Supabase when user lands on checkout / cart edits.
 // Lite-mode: debounced, single insert per session, no network on small carts.

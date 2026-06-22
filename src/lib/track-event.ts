@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Site event beacon — pushes granular behaviour events
  * (page_view, view_item, add_to_cart, wishlist_add, begin_checkout,

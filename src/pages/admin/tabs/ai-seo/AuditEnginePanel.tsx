@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { getAiSeoOverview, listSitemapUrls, generateSchemaSnippet } from '@/lib/aiSeoCenter.functions';

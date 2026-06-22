@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Tiny visitor tracker — lite-mode friendly.
  * Fires once per page on idle; uses sendBeacon (zero-blocking).

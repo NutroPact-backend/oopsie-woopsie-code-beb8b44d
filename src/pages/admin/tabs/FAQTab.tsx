@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Save, X, ChevronUp, ChevronDown, HelpCircle, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";

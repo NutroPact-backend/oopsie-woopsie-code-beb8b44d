@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Analytics & reports — server-side aggregations for the admin dashboard.
  * Lite-mode: one trip per call, slim payloads.

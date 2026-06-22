@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * WIR-004: Server-persisted cart + wishlist for authenticated users.
  *

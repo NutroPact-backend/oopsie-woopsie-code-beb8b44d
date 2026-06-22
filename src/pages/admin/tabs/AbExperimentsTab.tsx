@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Beaker, Plus, Trash2, Save, TrendingUp } from 'lucide-react';

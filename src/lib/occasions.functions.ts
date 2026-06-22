@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Daily personal-occasion rewards: credits wallet for users whose
  * birthday/anniversary is today, but only once per calendar year.

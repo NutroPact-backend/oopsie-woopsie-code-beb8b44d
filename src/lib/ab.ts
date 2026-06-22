@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Lightweight client-side A/B experiment helper. No deps. Lite-mode safe.
 import { recordAbExposure, recordAbConversion } from './admin-phase3.functions';
 

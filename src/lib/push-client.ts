@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Web Push client helpers (browser only). Lazy — does nothing if the user
  * has not granted permission or VAPID public key is missing.

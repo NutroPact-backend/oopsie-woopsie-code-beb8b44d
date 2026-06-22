@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Download, FileSpreadsheet, CheckCircle2, AlertTriangle, X, Loader2 } from 'lucide-react';

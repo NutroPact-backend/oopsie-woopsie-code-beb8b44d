@@ -1,4 +1,3 @@
-// @ts-nocheck
 // AI SEO Command Center — admin-only server functions.
 // Audits the live site for AEO, GEO, Entity, Reputation, Conversational
 // signals and writes scores + roadmap rows to the DB.

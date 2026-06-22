@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Public verification API for third parties (retailers, marketplaces).
  * GET /api/public/verify-product?code=BATCH-NONCE-HMAC

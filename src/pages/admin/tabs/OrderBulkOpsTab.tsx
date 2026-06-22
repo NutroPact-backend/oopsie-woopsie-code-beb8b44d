@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Clock, CheckSquare, Square, Download, Zap, Package } from 'lucide-react';

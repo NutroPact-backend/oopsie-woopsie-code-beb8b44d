@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Lite-mode: localStorage-only, no network. Caps to 12 items.
 import { useEffect, useState } from 'react';
 

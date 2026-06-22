@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Save, GripVertical, Upload, X, Search, Video as VideoIcon, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { adminListVideoSections, upsertVideoSection, deleteVideoSection } from "@/lib/video-sections.functions";

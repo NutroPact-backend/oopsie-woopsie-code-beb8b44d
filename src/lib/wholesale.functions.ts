@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Wholesale / B2B pricing.
  * Admin marks a customer as wholesale with a discount % and min order.

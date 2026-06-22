@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Product Q&A admin tab — moderate questions, answer, publish/hide/delete.
  */

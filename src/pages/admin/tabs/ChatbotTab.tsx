@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Admin Chatbot console: Inbox (handoff), Knowledge Base, Settings.
  */

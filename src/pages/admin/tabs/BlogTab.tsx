@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit2, Eye, EyeOff, Save, X, Upload, BookOpen, Calendar, Tag, ChevronDown, ChevronUp, Search,
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Heading1, Heading2, Heading3, List, ListOrdered, Quote,

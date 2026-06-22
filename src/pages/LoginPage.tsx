@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertTriangle, Package, Plus, RefreshCw, Save, TrendingDown, TrendingUp } from 'lucide-react';

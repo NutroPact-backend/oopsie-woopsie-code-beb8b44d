@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { Trophy, Truck, Activity, Loader2, AlertTriangle, Plus, Trash2, ShieldAlert, ShoppingCart, Scale, Radio, ExternalLink, Copy, Check } from 'lucide-react';

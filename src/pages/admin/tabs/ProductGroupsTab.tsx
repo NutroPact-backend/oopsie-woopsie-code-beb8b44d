@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Product Groups tab — link multiple standalone products into one "family"
  * (e.g. Whey Protein in Chocolate / Vanilla / Mango as separate products).

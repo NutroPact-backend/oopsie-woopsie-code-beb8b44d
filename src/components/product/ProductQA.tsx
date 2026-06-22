@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Product Q&A block — shows on PDP after info tabs.
  * Public list of published Q&A + "Ask a question" form for logged-in users.

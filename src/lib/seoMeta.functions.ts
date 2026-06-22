@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Public server fn — fetches active seo_page_meta override for a given route path.
 // No auth required; bypasses RLS via supabaseAdmin but only returns is_active rows.
 import { createServerFn } from '@tanstack/react-start';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Save, Eye, EyeOff, ChevronDown, ChevronUp, Image, Video, LayoutGrid, Upload } from 'lucide-react';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';

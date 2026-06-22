@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Cloudflare Turnstile (CAPTCHA) server-side verification helper.
  *

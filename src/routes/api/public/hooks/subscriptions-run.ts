@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Process due subscriptions — called by pg_cron every hour.
 // Auth: Supabase anon key in `apikey` header.
 import { createFileRoute } from '@tanstack/react-router';
