@@ -8,12 +8,21 @@
  *   import { verifyTurnstile } from "@/lib/turnstile.server";
  *   await verifyTurnstile(token, ip);
  *
- * If TURNSTILE_SECRET_KEY is not set, verification is skipped (no-op) so
- * the app continues to work in development without a key.
+ * SEC-006: In production we FAIL CLOSED when the secret is missing — a
+ * silent skip would disable CAPTCHA across every form. In development we
+ * still skip with a loud warning so contributors aren't blocked.
  */
 export async function verifyTurnstile(token: string | null | undefined, remoteIp?: string | null) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) return { ok: true, skipped: true as const };
+  if (!secret) {
+    const isProd = (process.env.NODE_ENV === "production") || !!process.env.CF_PAGES || !!process.env.CLOUDFLARE_DEPLOYMENT;
+    if (isProd) {
+      console.error("[turnstile] TURNSTILE_SECRET_KEY missing in production — failing closed");
+      return { ok: false as const, error: "captcha_misconfigured" as const };
+    }
+    console.warn("[turnstile] TURNSTILE_SECRET_KEY missing — skipping (dev only)");
+    return { ok: true, skipped: true as const };
+  }
   if (!token || typeof token !== "string" || token.length > 4096) {
     return { ok: false, error: "missing_token" as const };
   }
