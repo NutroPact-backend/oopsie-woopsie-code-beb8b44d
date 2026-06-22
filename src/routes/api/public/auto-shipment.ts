@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { loadShippingConfig, createShipmentForOrder, pickBestCarrier } from "@/lib/shipping.functions";

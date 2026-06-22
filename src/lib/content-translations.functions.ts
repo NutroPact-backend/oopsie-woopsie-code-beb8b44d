@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Generic per-row content translation.
  *

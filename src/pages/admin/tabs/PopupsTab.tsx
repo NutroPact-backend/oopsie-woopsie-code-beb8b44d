@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
 import { Save, Bell, Zap, ShoppingCart, Trash2, Plus, Image, Upload } from 'lucide-react';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';

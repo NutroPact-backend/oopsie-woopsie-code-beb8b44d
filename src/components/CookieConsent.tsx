@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { initAnalytics, pushConsentDefaults, grantConsent, denyConsent } from '@/lib/analytics';

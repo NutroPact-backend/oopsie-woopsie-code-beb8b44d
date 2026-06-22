@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Referrals admin tab — view all referrals, mark completed (credits both wallets),
  * cancel suspicious ones.

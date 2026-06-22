@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Minimal SSR error capture used by src/server.ts
 let lastError: unknown = null;
 

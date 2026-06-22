@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Pro variant picker — renders only when:
  *   1) feature_flag `variants_pro` is ON, AND

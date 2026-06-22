@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Save, Bell, Trash2, ExternalLink, RefreshCw, MessageCircle, Mail } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";

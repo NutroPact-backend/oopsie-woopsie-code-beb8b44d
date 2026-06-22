@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import TrackOrderPage from "@/pages/TrackOrderPage";
 

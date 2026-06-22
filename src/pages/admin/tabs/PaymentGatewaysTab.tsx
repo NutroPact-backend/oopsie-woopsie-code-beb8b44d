@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Save, Wallet, CreditCard, Smartphone, Banknote, Percent, Shield, Eye, EyeOff, Tag, Plus, Trash2, GripVertical } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";

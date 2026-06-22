@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Admin server functions for category CRUD.
  * Defense-in-depth: even though RLS gates writes to admins, routing through

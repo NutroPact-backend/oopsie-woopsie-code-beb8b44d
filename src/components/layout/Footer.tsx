@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Link } from 'wouter';
 import { useState } from 'react';
 import { useSettings } from '@/lib/useSettings';

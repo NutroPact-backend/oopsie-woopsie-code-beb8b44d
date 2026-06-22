@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import { Save, Truck, MapPin, CheckCircle, XCircle, Loader2, ExternalLink, Plus, Trash2, Star } from 'lucide-react';
 import { TabHelp } from "./_TabHelp";

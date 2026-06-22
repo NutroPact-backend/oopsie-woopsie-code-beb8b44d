@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute } from '@tanstack/react-router';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
 import { semrushCsv, csvToObjects, gscFetch } from '@/lib/seo.server';

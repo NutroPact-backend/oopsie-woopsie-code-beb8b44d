@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Translation provider abstraction.
  *

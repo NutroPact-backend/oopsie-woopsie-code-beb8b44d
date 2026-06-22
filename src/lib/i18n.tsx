@@ -66,8 +66,8 @@ export function useLocale(): [LocaleCode, (l: LocaleCode) => void] {
 export function useT() {
   const [loc] = useLocale();
   return useCallback((key: string, vars?: Record<string, string | number>) => {
-    const dict = dictionaries[loc] || dictionaries.en;
-    let s = dict[key] || dictionaries.en[key] || key;
+    const dict = dictionaries[loc] || dictionaries.en || {};
+    let s = dict[key] || dictionaries.en?.[key] || key;
     if (vars) {
       for (const k in vars) s = s.replaceAll(`{${k}}`, String(vars[k]));
     }

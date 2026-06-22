@@ -1,4 +1,3 @@
-// @ts-nocheck
 // /api/public/ai-context — structured JSON brand + catalog snapshot
 // for AI systems and agents. Pure read endpoint, no auth, cached.
 // Acts as a programmable "press kit" for ChatGPT/Perplexity/Claude/

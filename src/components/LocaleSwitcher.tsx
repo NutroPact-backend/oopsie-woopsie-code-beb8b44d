@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Lite locale switcher — reads hreflang config from marketing_settings (already
  * loaded by __root). Hidden if admin hasn't configured multi-region. Pure HTML

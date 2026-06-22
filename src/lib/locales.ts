@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Indian languages — superset of Amazon.in's locale picker.
 // Native names so users always recognise their language.
 export const LOCALES = [

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Wholesale / B2B admin tab.
  * View all customers, toggle wholesale status, set discount % and min order.

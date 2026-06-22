@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from '@tanstack/react-router';
 import { ShoppingCart, Zap } from 'lucide-react';

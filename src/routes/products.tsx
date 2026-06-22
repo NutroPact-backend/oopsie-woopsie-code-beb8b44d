@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/products")({

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Analytics — supports GA4, Facebook Pixel, Google Tag Manager, TikTok Pixel, Snapchat Pixel
 // Global pixels configure via environment variables:
 //   VITE_GA_ID           — Google Analytics 4 Measurement ID  (e.g. G-XXXXXXXXXX)

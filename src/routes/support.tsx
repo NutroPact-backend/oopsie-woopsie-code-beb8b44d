@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute, Link, useSearch } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User2, MessageSquare } from 'lucide-react';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Auto kg/g → lbs converter for size labels.
 // Skips volume units (ml, l, liter, litre) and non-weight strings (caps, pcs, etc.).
 

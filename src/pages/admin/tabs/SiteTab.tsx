@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
 import { Save, Globe, Bell, Search, Zap, Palette, MessageCircle, Image, Upload, FileText, Plus, Trash2, RotateCcw } from 'lucide-react';
 import { useSimpleUpload } from '@/lib/useSimpleUpload';

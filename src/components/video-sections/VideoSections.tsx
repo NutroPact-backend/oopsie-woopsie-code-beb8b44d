@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, X, Volume2, VolumeX, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { listVideoSectionsForPlacement } from "@/lib/video-sections.functions";

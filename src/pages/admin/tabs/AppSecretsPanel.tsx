@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Key, Plus, Trash2, Eye, EyeOff, Save, Check } from "lucide-react";

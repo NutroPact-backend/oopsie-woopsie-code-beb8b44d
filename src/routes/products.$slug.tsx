@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import ProductPage from "@/pages/ProductPage";
 import { supabase } from "@/integrations/supabase/client";

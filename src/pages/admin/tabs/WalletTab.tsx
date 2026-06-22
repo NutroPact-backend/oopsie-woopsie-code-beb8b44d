@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react';
 import API from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
