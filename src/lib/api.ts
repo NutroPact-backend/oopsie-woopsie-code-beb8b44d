@@ -1126,8 +1126,8 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   if (m) {
     const id = crypto.randomUUID();
     await supabase.from("product_waitlist").insert({
-      id, product_id: m[1], product_name: body.productName ?? "",
-      email: body.email, name: body.name ?? "",
+      id, product_id: m[1], email: body.email,
+      data: { product_name: body.productName ?? "", name: body.name ?? "" },
     });
     return { success: true };
   }
@@ -1159,16 +1159,18 @@ async function dynamicPost(path: string, body: any): Promise<any> {
     const { data: existing } = await supabase.from("order_tracking").select("status_history").eq("order_number", orderNumber).maybeSingle();
     const history = Array.isArray(existing?.status_history) ? existing!.status_history : [];
     if (body.status) history.push({ status: body.status, note: body.note ?? "", at: new Date().toISOString() });
-    const row = {
+    const row: any = {
       id: existing ? undefined : crypto.randomUUID(),
       order_id: ord!.id, order_number: orderNumber,
       courier: body.courier ?? "", awb_number: body.awbNumber ?? "",
-      tracking_url: body.trackingUrl ?? "",
-      current_status: body.status ?? (Array.isArray(history) && history.length ? (history[history.length - 1] as any)?.status : "pending"),
+      status: body.status ?? (Array.isArray(history) && history.length ? (history[history.length - 1] as any)?.status : "pending"),
       status_history: history,
-      estimated_delivery: body.estimatedDelivery ?? null,
-      manual_override: true,
-      last_synced_at: new Date().toISOString(),
+      data: {
+        tracking_url: body.trackingUrl ?? "",
+        estimated_delivery: body.estimatedDelivery ?? null,
+        manual_override: true,
+        last_synced_at: new Date().toISOString(),
+      },
     };
     // Drop undefined id so upsert can match by unique order_number
     if (!row.id) delete (row as any).id;
@@ -1229,7 +1231,7 @@ async function dynamicPost(path: string, body: any): Promise<any> {
   if (m) {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
     const { error } = await supabase.from("notification_queue").update({
-      status: "pending", attempts: 0, error: "", next_attempt_at: new Date().toISOString(),
+      status: "pending", error: "", scheduled_at: new Date().toISOString(),
     }).eq("id", m[1]);
     if (error) fail(500, error.message);
     return { success: true };
@@ -1252,8 +1254,9 @@ async function dynamicPost(path: string, body: any): Promise<any> {
     }
     if (ord!.customer_email) {
       await supabase.from("notification_queue").insert({
-        user_id: ord!.user_id, order_number: ord!.order_number, channel: "email",
-        template: tpl, recipient: ord!.customer_email, payload,
+        user_id: ord!.user_id, channel: "email",
+        template: tpl, payload,
+        data: { order_number: ord!.order_number, recipient: ord!.customer_email },
       });
     }
     return { success: true };
@@ -1363,7 +1366,7 @@ async function dynamicPut(path: string, body: any): Promise<any> {
   if (path === "/admin/homepage") {
     await supabase
       .from("homepage_config")
-      .upsert({ section_key: "default", key: "default", config: body }, { onConflict: "section_key" });
+      .upsert({ key: "default", config: body }, { onConflict: "key" });
     return body;
   }
   if (path === "/admin/settings") {
