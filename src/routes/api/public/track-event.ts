@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { z } from "zod";
+import { isSameOriginRequest } from "@/lib/origin-guard";
+import { rateLimit } from "@/lib/rate-limit";
 
 const Schema = z.object({
   session_id:   z.string().min(1).max(64),
@@ -19,9 +21,20 @@ export const Route = createFileRoute("/api/public/track-event")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          // SEC: same-origin only — analytics beacon should never come from
+          // another site. Also throttle per session to deter event flooding.
+          if (!isSameOriginRequest(request)) return new Response("forbidden", { status: 403 });
           const raw = await request.json().catch(() => null);
           const parsed = Schema.safeParse(raw);
           if (!parsed.success) return new Response("bad", { status: 400 });
+          const rl = await rateLimit(
+            "track_event",
+            parsed.data.session_id,
+            120,
+            60,
+            300,
+          );
+          if (!rl.allowed) return new Response("rate_limited", { status: 429 });
           const country = request.headers.get("cf-ipcountry") || null;
           await (supabaseAdmin.from("site_events" as any) as any).insert({
             ...parsed.data,
