@@ -32,7 +32,7 @@ async function sign(url: string): Promise<string | null> {
   try { return await p; } finally { inflight.delete(url); }
 }
 
-interface Props extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface Props extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "src"> {
   src?: string | null;
   fallback?: React.ReactNode;
 }
