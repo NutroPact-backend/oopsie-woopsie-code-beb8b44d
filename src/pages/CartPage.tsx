@@ -10,6 +10,7 @@ import { formatPrice, calculateDiscount } from '@/lib/utils';
 import { formatSizeDisplay } from '@/lib/sizeFormat';
 import { useSEO } from '@/lib/useSEO';
 import { supabase } from '@/integrations/supabase/client';
+import { validateCoupon } from '@/lib/coupons.functions';
 import API from '@/lib/api';
 import QuickCheckoutBar from '@/components/cart/QuickCheckoutBar';
 import EmptyCartUpsell from '@/components/cart/EmptyCartUpsell';
@@ -81,16 +82,15 @@ function CouponPanel({ subtotal, applied, onApply, onRemove }: {
     const c = (input ?? code).trim().toUpperCase();
     if (!c) return;
     setBusy(true); setErr('');
-    const { data, error } = await supabase.from('coupons')
-      .select('code,type,value,label,min_order_value,max_discount,expires_at,active')
-      .ilike('code', c).maybeSingle();
-    setBusy(false);
-    if (error || !data || !data.active) { setErr('Invalid coupon code'); return; }
-    if (data.expires_at && new Date(data.expires_at) < new Date()) { setErr('This coupon has expired'); return; }
-    if (subtotal < (data.min_order_value || 0)) {
-      setErr(`Min order ${formatPrice(data.min_order_value || 0)} required for this coupon`); return;
+    try {
+      const res = await validateCoupon({ data: { code: c, subtotal } });
+      setBusy(false);
+      if (!res.ok) { setErr(res.error); return; }
+      onApply(res.coupon as Coupon); setCode(''); setErr('');
+    } catch {
+      setBusy(false);
+      setErr('Invalid coupon code');
     }
-    onApply(data as Coupon); setCode(''); setErr('');
   };
 
   if (applied) {
@@ -275,17 +275,12 @@ export default function CartPage() {
     // Auto-apply incoming coupon from recovery link (even if no token)
     if (couponParam && !coupon) {
       (async () => {
-        const { data } = await supabase.from('coupons')
-          .select('code,type,value,label,min_order_value,max_discount,expires_at,active')
-          .eq('code', couponParam.toUpperCase())
-          .maybeSingle();
-        if (data && data.active && (!data.expires_at || new Date(data.expires_at) > new Date())) {
-          setCoupon({
-            code: data.code, type: data.type as any, value: Number(data.value),
-            label: data.label || '', min_order_value: Number(data.min_order_value || 0),
-            max_discount: data.max_discount != null ? Number(data.max_discount) : undefined,
+        try {
+          const res = await validateCoupon({
+            data: { code: couponParam.toUpperCase(), subtotal: total() },
           });
-        }
+          if (res.ok) setCoupon(res.coupon as Coupon);
+        } catch { /* silent */ }
       })();
     }
 
