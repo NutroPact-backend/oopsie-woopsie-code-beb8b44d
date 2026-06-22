@@ -1805,6 +1805,6 @@ const as: Dict = {
   "footer.rights": "সকলো অধিকাৰ সংৰক্ষিত।",
 };
 
-export const dictionaries: Record<LocaleCode, Dict> = {
+export const dictionaries: Partial<Record<LocaleCode, Dict>> = {
   en, hi, ta, te, kn, ml, bn, mr, gu, pa, ur, or, as,
 };
