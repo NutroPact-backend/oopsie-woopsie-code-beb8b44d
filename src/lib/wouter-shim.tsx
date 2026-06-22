@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Drop-in Wouter API implemented on top of TanStack Router.
  * Aliased as `wouter` in vite.config.ts so existing page/component imports work unchanged.

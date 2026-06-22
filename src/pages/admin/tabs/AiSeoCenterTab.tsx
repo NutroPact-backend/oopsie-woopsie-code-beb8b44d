@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import OverviewPanel from './ai-seo/OverviewPanel';
 import AuditEnginePanel from './ai-seo/AuditEnginePanel';

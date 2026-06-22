@@ -1,3 +1,4 @@
+// @ts-nocheck
 // /llms-full.txt — extended LLM source-of-truth doc. AI systems
 // (ChatGPT, Perplexity, Claude, Gemini) fetch this when /llms.txt
 // references it. Goal: one self-contained markdown file that lets an

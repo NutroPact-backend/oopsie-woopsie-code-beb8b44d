@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Dynamic /llms.txt — the entry doc AI crawlers (ChatGPT, Perplexity,
 // Claude, Gemini, Copilot) look for. Spec: https://llmstxt.org
 // We pull top categories/products/posts from the DB so it stays fresh

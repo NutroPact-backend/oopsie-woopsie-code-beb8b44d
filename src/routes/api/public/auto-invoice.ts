@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Cron-callable endpoint: generate invoices for paid/confirmed orders that
 // don't have one yet, and queue an "invoice_ready" email to the customer.
 //

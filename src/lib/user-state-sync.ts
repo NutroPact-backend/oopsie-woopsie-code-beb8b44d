@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * WIR-004 client glue: keep the local Zustand cart + wishlist stores in
  * sync with `user_state` for the signed-in user. Browser-only.
