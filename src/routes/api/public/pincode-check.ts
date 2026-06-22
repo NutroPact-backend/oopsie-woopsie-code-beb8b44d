@@ -5,6 +5,8 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { isSameOriginRequest } from "@/lib/origin-guard";
+import { rateLimit } from "@/lib/rate-limit";
 
 type Result = {
   serviceable: boolean;
@@ -107,6 +109,20 @@ async function checkDelhivery(c: any, origin: string, dest: string): Promise<Res
 }
 
 async function handle(request: Request): Promise<Response> {
+  // SEC: pincode lookup proxies an upstream rate-limited carrier API and
+  // is only meant for our checkout page. Reject cross-origin callers and
+  // throttle per IP.
+  if (!isSameOriginRequest(request)) {
+    return Response.json({ serviceable: false, message: "forbidden" } satisfies Result, { status: 403 });
+  }
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "anon";
+  const rl = await rateLimit("pincode_check", ip, 30, 60, 300);
+  if (!rl.allowed) {
+    return Response.json({ serviceable: false, message: "Too many lookups. Try again shortly." } satisfies Result, { status: 429 });
+  }
   const url = new URL(request.url);
   const pincode = (url.searchParams.get("pincode") || "").trim();
   if (!/^\d{6}$/.test(pincode)) {
