@@ -551,6 +551,19 @@ async function dynamicGet(path: string): Promise<any> {
   // /orders/:orderNumber/invoice — owner or admin, returns full invoice snapshot
   m = path.match(/^\/orders\/([^/]+)\/invoice$/);
   if (m) {
+    // SEC-005: enforce ownership / admin. Unauthenticated reads leaked
+    // GSTIN, addresses, and pricing for any guessable order number.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) fail(401, "Login required");
+    const { data: order } = await supabase
+      .from("orders")
+      .select("user_id,customer_email")
+      .eq("order_number", m[1])
+      .maybeSingle();
+    if (!order) fail(404, "Order not found");
+    const isOwner = order.user_id && order.user_id === user.id;
+    const isAdmin = !isOwner && (await isCurrentUserAdmin());
+    if (!isOwner && !isAdmin) fail(403, "Not authorized to view this invoice");
     const { data: inv } = await supabase.from("invoices").select("*").eq("order_number", m[1]).maybeSingle();
     if (!inv) fail(404, "Invoice not generated yet");
     return camelize(inv);
@@ -558,6 +571,19 @@ async function dynamicGet(path: string): Promise<any> {
   // /orders/:orderNumber/tracking — owner or admin
   m = path.match(/^\/orders\/([^/]+)\/tracking$/);
   if (m) {
+    // SEC-005: enforce ownership / admin. Public tracking lives at
+    // /orders/track/:orderNumber (above) and returns a redacted payload.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) fail(401, "Login required");
+    const { data: order } = await supabase
+      .from("orders")
+      .select("user_id")
+      .eq("order_number", m[1])
+      .maybeSingle();
+    if (!order) fail(404, "Order not found");
+    const isOwner = order.user_id && order.user_id === user.id;
+    const isAdmin = !isOwner && (await isCurrentUserAdmin());
+    if (!isOwner && !isAdmin) fail(403, "Not authorized to view this tracking");
     const { data: tr } = await supabase.from("order_tracking").select("*").eq("order_number", m[1]).maybeSingle();
     return camelize(tr ?? null);
   }
