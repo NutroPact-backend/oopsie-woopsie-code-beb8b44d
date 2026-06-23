@@ -1,72 +1,113 @@
-# NutroPact — Round 3 Repair Plan
+# Phase 2 — P1 Hardening Plan (revised: nothing removed)
 
-Maine saari 10 uploaded audit/wiring files padh li (COMPREHENSIVE_WIRING_MAP, DEEP_BACKEND_AUDIT, FULL_AUDIT, MIGRATION, NATIVE, 2DAY, MASTER, backend_to_ui_wiring, security_audit_repairs, gemini-code). Total **56 unresolved issues** mile (pichle round me jo fix ho gaye unko exclude kiya).
-
-Itne saare issues ek hi turn me fix karna safe nahi — build tootega aur regression aayegi. Isliye 3 phases me karunga. **Iss plan me sirf Phase 1 (P0) execute hoga** — uske baad Phase 2/3 ke liye dobara approval lunga.
+**Guiding principle:** Har item me feature/option pehle jaisa hi rahega. Sirf **harden** karna hai — secrets browser tak na jaaye, endpoints pe auth/rate-limit add ho, races close ho, RLS ke saath server-fn double-defence ho. Koi tab, koi field, koi capability **delete nahi hogi**.
 
 ---
 
-## Phase 1 — P0 Critical (iss turn me)
+## Group A — Secret leak hardening (zero feature change)
 
-Ye 6 issues immediate exploit / money-loss risk hain.
+### A-1 Payment gateway secrets (Razorpay/PhonePe/PayU/Stripe)
+- **Backend me secrets waise hi rahenge** — `admin_secrets`/`site_settings` me store, server functions me use.
+- Admin UI (`PaymentGatewaysTab.tsx`) me sirf 2 chhote change:
+  1. Edit form load karte time secret fields ko masked placeholder (`••••••••••••`) se fill karna — actual value browser tak na bheje.
+  2. Save ke time: agar field empty/unchanged hai → backend purani value rakhe; agar user ne nayi value type ki tabhi update ho.
+- Active/Deactivate toggle, gateway switch, test/live mode — sab waise hi chalega.
+- **Server fn:** new `getMaskedGatewayConfig` (returns non-secret fields + `hasSecret: true/false`), existing `updateGatewayConfig` me "skip if blank" logic.
 
-| # | Issue | Fix |
-|---|---|---|
-| P0-01 | ChatWidget XSS — `dangerouslySetInnerHTML` AI response render karta hai bina sanitize kiye | `DOMPurify.sanitize()` add karna `ChatWidget.tsx:279` me |
-| P0-02 | Chatbot prompt injection — user input seedha Gemini ko jaata hai | `chatbot.functions.ts` me input sanitization + system prompt integrity prefix + output filter |
-| P0-03 | Inventory deduction missing — overselling possible | Order creation me atomic `UPDATE products SET stock = stock - qty WHERE stock >= qty` (RPC), cancel/refund pe revert |
-| P0-04 | Referral double-credit race | `referrals.functions.ts` — `UPDATE ... WHERE consumed_at IS NULL` + rowcount assert |
-| P0-05 | Gift card double-redeem race | `giftcards.functions.ts` — same atomic pattern |
-| P0-06 | Wallet checkout race — concurrent requests double-spend balance | `wallet.functions.ts` — atomic `UPDATE user_wallets SET balance = balance - $1 WHERE user_id=$2 AND balance >= $1` via RPC |
+### A-2 LinkedIn/Pinterest/Twitter/Reddit/Quora pixel IDs
+- Pixels active rahenge — sirf fire timing fix:
+- `__root.tsx` me consent-gated init: `consent === "granted"` ke baad hi pixel script load ho. Pehle se gated GA/FB ki tarah.
+- Cookie banner se opt-in karte hi pixels start ho jayenge.
 
-**DB Migration (single):**
-- `deduct_stock(product_id, qty)` RPC — atomic stock decrement
-- `consume_referral(event_id)` RPC — atomic mark + return success
-- `redeem_gift_card(code, amount)` RPC — atomic
-- `debit_wallet(user_id, amount)` RPC — atomic with balance check
-- All RPCs `SECURITY DEFINER`, `GRANT EXECUTE TO authenticated`
-
-**Code changes:**
-- `src/components/ChatWidget.tsx` — DOMPurify wrap
-- `src/lib/chatbot.functions.ts` — input/output guardrails
-- `src/lib/orders.functions.ts` (or wherever order created) — call `deduct_stock` RPC; rollback on payment fail
-- `src/lib/referrals.functions.ts` — use `consume_referral` RPC
-- `src/lib/giftcards.functions.ts` — use `redeem_gift_card` RPC
-- `src/lib/wallet.functions.ts` — use `debit_wallet` RPC
-- `bun add dompurify @types/dompurify`
-
-**Verification:** Build green, ChatWidget renders sanitized HTML, RPCs visible in DB, manual concurrent-call simulation script for wallet/giftcard race confirms only 1 succeeds.
+### A-3 Internal `trackVisit()` / `trackSiteEvent()` consent gating
+- Tracking band nahi — sirf consent ke baad fire ho (GDPR compliance ke liye).
+- Default state `denied`, banner accept ke baad `granted`.
 
 ---
 
-## Phase 2 — P1 High (next turn, after P0 verified)
+## Group B — Auth & rate-limit on existing endpoints (no removal)
 
-14 issues. Highlights:
-- Payment gateway secrets ko browser se hatana (Razorpay/PhonePe/PayU)
-- Invoice/tracking endpoints pe auth lagana
-- Order number entropy 4→16 hex
-- Webhook idempotency (razorpay + phonepe)
-- Subscription cron dedup
-- Rate-limiter fail-closed
-- Order endpoint pe rate-limit
-- Consent gating sab pixels pe (LinkedIn/Pinterest/Twitter/Reddit/Quora + internal trackVisit)
-- 13 admin tabs ko server-fn pattern me migrate (RLS sole defence problem)
-- `@ts-nocheck` hatana
-- Review verified/featured field mismatch fix
-- Review "helpful" vote actually implement karna
-- 9 content tabs (Homepage/Nav/Footer/Pages/Blog/About/Contact/FAQ/GlobalReviews) ko server-fn me
+### B-1 Invoice & order-tracking endpoints
+- `/orders/:id/invoice` aur `/orders/:id/tracking` pe auth check add karna: ya to logged-in owner, ya signed time-limited token (jo email/SMS me bhejte hain).
+- Endpoint khud rahega, UI flow same — bas guest randomly invoice nahi dekh sakega.
 
-## Phase 3 — P2 + P3 (later turn)
+### B-2 Order creation rate-limit
+- Pehle se mojud `rateLimit("coupon_validate")` jaisa hi pattern: order creation pe `rateLimit("order_create", { perIp: 20, perUser: 10, windowSec: 300 })`.
+- Normal customers ko zero impact.
 
-36 issues: JWT `getUser()` switch, 2FA enforcement, CSRF headers, cron secret env-only, mass-assignment allowlist, FB CAPI dedup, crypto.randomUUID sessions, perf N+1 fixes, SEO (titles/meta/canonical/JSON-LD/hreflang), terms page date, refund page content, CSP unsafe-inline, etc.
+### B-3 Rate-limiter fail-closed (payment/login/coupon paths)
+- Aaj DB error pe limiter `allowed: true` return karta hai → attacker DB flood karke bypass kar sakta hai.
+- Sirf payment/login/coupon paths ke liye fail-closed (`allowed: false`); analytics/read paths fail-open hi rahenge.
 
 ---
 
-## Out of Scope (informational only)
-- Wholesale discount integration — needs product decision on B2B flow
-- Server-side cart persistence — large refactor, separate feature request
-- Bundle splitting — optimization, no functional bug
+## Group C — Race & idempotency hardening (data integrity)
+
+### C-1 Order number entropy 4→16 hex
+- `order_number` format same dikhega (`ORD-XXXXXXXX-XXXX`), sirf suffix length badhega — guess karna 4 billion guna mushkil.
+
+### C-2 Razorpay + PhonePe webhook idempotency
+- Naya choti table `webhook_events` (already exists — use kar lenge) me processed `event_id` store karke duplicate skip.
+- Duplicate refund / duplicate credit nahi hoga.
+
+### C-3 Subscription cron dedup
+- `subscriptions` row pe `last_run_at` check + unique constraint `(subscription_id, interval_index)` so overlapping cron runs duplicate order na bana saken.
 
 ---
 
-**Iss plan ko approve karo to Phase 1 (P0) start karta hoon.** Phase 2/3 ke liye baad me alag approval lunga.
+## Group D — Admin tabs ko server-fn pattern me wrap (additive)
+
+13 tabs aaj direct browser `supabase` se mutations karte hain (CategoriesTab, BrandsTab, FlavorsTab, SizesTab, BulkImportTab, InventoryTab, AccountingTab, OrderBulkOpsTab, AbandonedCartsTab, Customer360Tab, ReviewsModerationTab, OffersTab, DimensionsTab) + 9 content tabs (Homepage/Nav/Footer/Pages/Blog/About/Contact/FAQ/GlobalReviews).
+
+- **Nothing removed.** Har tab, har field, har button waisa rahega.
+- Sirf write operations ko `createServerFn` + `requireSupabaseAuth` + `assertAdmin()` ke through route karna — RLS plus server-side admin check (defense in depth).
+- Read operations browser supabase se hi chal sakte hain (RLS already protect karta hai).
+
+**Itna bada change ek turn me nahi** — Group D ko Phase 2.5 me alag se karenge tab-by-tab, taaki har tab independently test ho sake.
+
+---
+
+## Group E — Bug fixes (no feature change)
+
+### E-1 Review field mismatch
+- Admin "verify" aur "feature/pin" buttons aaj `verified`/`pinned` column update karte hain par DB me column name `is_verified`/`is_featured` hai → silent no-op.
+- Column names fix → buttons kaam karne lagenge.
+
+### E-2 Review "helpful" vote
+- Aaj button click karta hai, toast dikhta hai, par DB me kuch nahi badalta.
+- `increment_review_helpful` RPC already exists (DB me dekha) — bas API call wire karna hai.
+
+### E-3 `@ts-nocheck` removal
+- Sirf un files se hatana jahan koi real type error nahi (mostly clean files me). Jahan type errors aayenge wahaan separate turn me fix karenge. **Koi runtime behaviour change nahi.**
+
+---
+
+## Out of scope (informational — feature decisions)
+
+Ye baad me alag se discuss karenge:
+- 2FA mandatory enforcement (aaj optional warning hai)
+- Server-side cart persistence (naya feature)
+- Wholesale discount integration (B2B flow design)
+
+---
+
+## Execution order (iss turn me)
+
+Iss turn me sirf **Group A + B + C + E** karenge (8 focused fixes). Group D (admin tab migration) bada hai — uska alag plan baad me.
+
+1. DB migration: `webhook_events` dedup helper function, subscription unique constraint
+2. `src/lib/rate-limit.ts` — add `failClosed` option
+3. `src/lib/coupons.functions.ts`, payment/login paths — `failClosed: true`
+4. Order creation server fn — add rate-limit + order_number entropy bump
+5. `src/lib/razorpay.functions.ts` + `phonepe.functions.ts` — idempotency check
+6. `src/lib/subscriptions.functions.ts` — dedup guard
+7. Invoice/tracking server fns — auth gate
+8. `src/routes/__root.tsx` + `CookieConsent.tsx` — consent-gate all pixels + internal tracking
+9. New `src/lib/payment-gateways.functions.ts` — masked read + skip-blank-on-write
+10. `src/pages/admin/tabs/PaymentGatewaysTab.tsx` — masked placeholder UX
+11. Reviews API — fix field names + wire `increment_review_helpful`
+12. Selective `@ts-nocheck` removal (safe files only)
+
+**Verification:** build green, manual probe of each hardened endpoint, security scan re-run.
+
+Approve karo to execute karta hoon.

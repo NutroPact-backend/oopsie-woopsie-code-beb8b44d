@@ -455,6 +455,17 @@ function VisitTracker() {
   const pathname = router.state.location.pathname;
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
+    // ANL-002: gate internal first-party tracking behind the same cookie
+    // consent as third-party pixels. Pre-consent visits never write to
+    // site_visits / site_events — DPDP/GDPR compliance.
+    try {
+      const raw = typeof window !== "undefined"
+        ? window.localStorage.getItem("nutropact:cookie-consent")
+        : null;
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.accepted) return;
+    } catch { return; }
     import("@/lib/track-visit").then(({ trackVisit }) => trackVisit()).catch(() => {});
     import("@/lib/track-event").then(({ trackSiteEvent, startHeartbeat }) => {
       trackSiteEvent("page_view");
