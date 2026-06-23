@@ -3758,6 +3758,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          blocked_until: string | null
+          bucket: string
+          hits: number
+          id: string
+          key: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          bucket: string
+          hits?: number
+          id?: string
+          key: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          bucket?: string
+          hits?: number
+          id?: string
+          key?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       referral_codes: {
         Row: {
           code: string
@@ -4677,6 +4707,7 @@ export type Database = {
           fulfilled_at: string | null
           id: string
           order_id: string | null
+          period_key: string | null
           scheduled_for: string | null
           status: string | null
           subscription_id: string
@@ -4689,6 +4720,7 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           order_id?: string | null
+          period_key?: string | null
           scheduled_for?: string | null
           status?: string | null
           subscription_id: string
@@ -4701,6 +4733,7 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           order_id?: string | null
+          period_key?: string | null
           scheduled_for?: string | null
           status?: string | null
           subscription_id?: string
@@ -5347,6 +5380,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          _block_seconds?: number
+          _bucket: string
+          _key: string
+          _limit: number
+          _window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          blocked_until: string
+          hits: number
+        }[]
+      }
       claim_phone_otp_slot: {
         Args: {
           _code_hash: string
