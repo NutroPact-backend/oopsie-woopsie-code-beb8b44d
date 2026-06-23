@@ -42,7 +42,21 @@ export default function ReviewsModerationTab() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(500);
-    const list = (data as any[]) ?? [];
+    // FIX-REV-1: DB columns are is_verified / helpful_count / user_name / user_avatar,
+    // and "pinned" lives in the data jsonb. Map them to the UI shape so the
+    // moderation tab actually reflects DB state (previously all reviews showed
+    // as unverified / unpinned because verified/pinned columns don't exist).
+    const list = ((data as any[]) ?? []).map((r) => ({
+      ...r,
+      name: r.user_name ?? '',
+      avatar: r.user_avatar ?? '',
+      verified: !!r.is_verified,
+      pinned: !!(r.data && r.data.pinned),
+      helpful: Number(r.helpful_count ?? 0),
+      variant: r.data?.variant ?? '',
+      video: r.data?.video ?? '',
+      source: r.data?.source ?? 'customer',
+    }));
     setRows(list as Review[]);
     const ids = [...new Set(list.map(r => r.product_id).filter(Boolean))];
     if (ids.length) {
