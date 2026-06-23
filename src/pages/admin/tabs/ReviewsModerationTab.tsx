@@ -149,10 +149,18 @@ export default function ReviewsModerationTab() {
         ids={Array.from(sel.selected)}
         onClear={() => { sel.clear(); load(); }}
         actions={[
-          { key: 'verify', label: 'Verify', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ verified: true }).eq('id', id)); } },
-          { key: 'unverify', label: 'Unverify', color: 'bg-yellow-600 hover:bg-yellow-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ verified: false }).eq('id', id)); } },
-          { key: 'pin', label: 'Pin', color: 'bg-blue-600 hover:bg-blue-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ pinned: true }).eq('id', id)); } },
-          { key: 'unpin', label: 'Unpin', color: 'bg-gray-600 hover:bg-gray-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ pinned: false }).eq('id', id)); } },
+          { key: 'verify', label: 'Verify', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ is_verified: true }).eq('id', id)); } },
+          { key: 'unverify', label: 'Unverify', color: 'bg-yellow-600 hover:bg-yellow-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ is_verified: false }).eq('id', id)); } },
+          { key: 'pin', label: 'Pin', color: 'bg-blue-600 hover:bg-blue-700', run: async (ids) => { await runForEach(ids, async (id) => {
+              const { data: cur } = await supabase.from('product_reviews').select('data').eq('id', id).maybeSingle();
+              const nextData = { ...((cur as any)?.data && typeof (cur as any).data === 'object' ? (cur as any).data : {}), pinned: true };
+              await supabase.from('product_reviews').update({ data: nextData }).eq('id', id);
+            }); } },
+          { key: 'unpin', label: 'Unpin', color: 'bg-gray-600 hover:bg-gray-700', run: async (ids) => { await runForEach(ids, async (id) => {
+              const { data: cur } = await supabase.from('product_reviews').select('data').eq('id', id).maybeSingle();
+              const nextData = { ...((cur as any)?.data && typeof (cur as any).data === 'object' ? (cur as any).data : {}), pinned: false };
+              await supabase.from('product_reviews').update({ data: nextData }).eq('id', id);
+            }); } },
           { key: 'delete', label: 'Delete', color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} reviews?', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').delete().eq('id', id)); } },
         ]}
       />
