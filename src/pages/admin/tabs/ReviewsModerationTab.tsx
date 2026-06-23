@@ -22,6 +22,7 @@ type Review = {
   source?: string;
   variant?: string;
   created_at: string;
+  data?: any;
 };
 
 type Filter = 'pending' | 'verified' | 'pinned' | 'all';
@@ -41,7 +42,21 @@ export default function ReviewsModerationTab() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(500);
-    const list = (data as any[]) ?? [];
+    // FIX-REV-1: DB columns are is_verified / helpful_count / user_name / user_avatar,
+    // and "pinned" lives in the data jsonb. Map them to the UI shape so the
+    // moderation tab actually reflects DB state (previously all reviews showed
+    // as unverified / unpinned because verified/pinned columns don't exist).
+    const list = ((data as any[]) ?? []).map((r) => ({
+      ...r,
+      name: r.user_name ?? '',
+      avatar: r.user_avatar ?? '',
+      verified: !!r.is_verified,
+      pinned: !!(r.data && r.data.pinned),
+      helpful: Number(r.helpful_count ?? 0),
+      variant: r.data?.variant ?? '',
+      video: r.data?.video ?? '',
+      source: r.data?.source ?? 'customer',
+    }));
     setRows(list as Review[]);
     const ids = [...new Set(list.map(r => r.product_id).filter(Boolean))];
     if (ids.length) {
@@ -56,12 +71,14 @@ export default function ReviewsModerationTab() {
   useEffect(() => { load(); }, []);
 
   const toggleVerified = async (r: Review) => {
-    await supabase.from('product_reviews').update({ verified: !r.verified }).eq('id', r.id);
+    await supabase.from('product_reviews').update({ is_verified: !r.verified }).eq('id', r.id);
     setRows(rs => rs.map(x => x.id === r.id ? { ...x, verified: !x.verified } : x));
   };
   const togglePinned = async (r: Review) => {
-    await supabase.from('product_reviews').update({ pinned: !r.pinned }).eq('id', r.id);
-    setRows(rs => rs.map(x => x.id === r.id ? { ...x, pinned: !x.pinned } : x));
+    // pinned lives in the data jsonb — merge with existing keys.
+    const nextData = { ...(r.data && typeof r.data === 'object' ? r.data : {}), pinned: !r.pinned };
+    await supabase.from('product_reviews').update({ data: nextData }).eq('id', r.id);
+    setRows(rs => rs.map(x => x.id === r.id ? { ...x, pinned: !x.pinned, data: nextData } : x));
   };
   const remove = async (r: Review) => {
     if (!confirm('Delete this review permanently?')) return;
@@ -132,10 +149,18 @@ export default function ReviewsModerationTab() {
         ids={Array.from(sel.selected)}
         onClear={() => { sel.clear(); load(); }}
         actions={[
-          { key: 'verify', label: 'Verify', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ verified: true }).eq('id', id)); } },
-          { key: 'unverify', label: 'Unverify', color: 'bg-yellow-600 hover:bg-yellow-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ verified: false }).eq('id', id)); } },
-          { key: 'pin', label: 'Pin', color: 'bg-blue-600 hover:bg-blue-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ pinned: true }).eq('id', id)); } },
-          { key: 'unpin', label: 'Unpin', color: 'bg-gray-600 hover:bg-gray-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ pinned: false }).eq('id', id)); } },
+          { key: 'verify', label: 'Verify', color: 'bg-green-600 hover:bg-green-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ is_verified: true }).eq('id', id)); } },
+          { key: 'unverify', label: 'Unverify', color: 'bg-yellow-600 hover:bg-yellow-700', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').update({ is_verified: false }).eq('id', id)); } },
+          { key: 'pin', label: 'Pin', color: 'bg-blue-600 hover:bg-blue-700', run: async (ids) => { await runForEach(ids, async (id) => {
+              const { data: cur } = await supabase.from('product_reviews').select('data').eq('id', id).maybeSingle();
+              const nextData = { ...((cur as any)?.data && typeof (cur as any).data === 'object' ? (cur as any).data : {}), pinned: true };
+              await supabase.from('product_reviews').update({ data: nextData }).eq('id', id);
+            }); } },
+          { key: 'unpin', label: 'Unpin', color: 'bg-gray-600 hover:bg-gray-700', run: async (ids) => { await runForEach(ids, async (id) => {
+              const { data: cur } = await supabase.from('product_reviews').select('data').eq('id', id).maybeSingle();
+              const nextData = { ...((cur as any)?.data && typeof (cur as any).data === 'object' ? (cur as any).data : {}), pinned: false };
+              await supabase.from('product_reviews').update({ data: nextData }).eq('id', id);
+            }); } },
           { key: 'delete', label: 'Delete', color: 'bg-red-600 hover:bg-red-700', confirm: 'Delete {n} reviews?', run: async (ids) => { await runForEach(ids, (id) => supabase.from('product_reviews').delete().eq('id', id)); } },
         ]}
       />
