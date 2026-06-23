@@ -107,9 +107,9 @@ Ye baad me alag se discuss karenge:
 | 10 | `PaymentGatewaysTab.tsx` masked UX | ✅ |
 | 11 | Reviews — `is_verified` + `data.pinned` mapping, helpful RPC wired | ✅ |
 | 12 | `@ts-nocheck` selective removal | ⏸ deferred (cosmetic) |
-| B-2 | Order creation rate-limit | ⏸ needs server-fn refactor of `/orders` (currently client-side mock layer) |
+| B-2 | Order creation rate-limit + server-fn refactor | ✅ `src/lib/orders-create.functions.ts` (`placeOrder`), `/orders` API delegates to it; per-IP 20/5min + per-user 10/5min, fail-closed |
 
 ## Next phase (Phase 2.5 — when ready)
 
 - Group D: 13 admin tabs + 9 content tabs → server-fn pattern with `assertAdmin()`.
-- Move `/orders` creation from client `api.ts` mock layer into a real `createServerFn` so rate-limit + payment-gateway-driven pricing can be enforced server-side.
+- Server-side price recompute in `placeOrder`: re-fetch each item's price from `products`, recompute subtotal, ignore client-declared `subtotal`/`total` (today the client is still trusted for line-item pricing — discounts/wholesale are already server-computed).
