@@ -1,59 +1,72 @@
+# NutroPact — Round 3 Repair Plan
 
-# Audit Repair Plan — Round 2
+Maine saari 10 uploaded audit/wiring files padh li (COMPREHENSIVE_WIRING_MAP, DEEP_BACKEND_AUDIT, FULL_AUDIT, MIGRATION, NATIVE, 2DAY, MASTER, backend_to_ui_wiring, security_audit_repairs, gemini-code). Total **56 unresolved issues** mile (pichle round me jo fix ho gaye unko exclude kiya).
 
-Pichli baar `coupons.functions.ts` aur migration `20260622115855` already ban chuke hain (audit reports old snapshot pe based the). Yeh real baki issues hain jo ab fix karne hain — priority order me.
+Itne saare issues ek hi turn me fix karna safe nahi — build tootega aur regression aayegi. Isliye 3 phases me karunga. **Iss plan me sirf Phase 1 (P0) execute hoga** — uske baad Phase 2/3 ke liye dobara approval lunga.
 
-## P0 — Critical (DB + XSS)
+---
 
-### 1. XSS sanitization on category name (C-02)
-- `src/routes/category.$slug.tsx` aur `src/lib/categories.functions.ts`: category `name`, `description` ko render karte time HTML escape karo. JSON-LD me bhi escape.
-- Same audit `src/routes/p.$slug.tsx`, `products.$slug.tsx` ke head() data for unescaped fields.
+## Phase 1 — P0 Critical (iss turn me)
 
-### 2. Production DB cleanup (C-03)
-- Migration: DELETE `categories` jin ke slug match `fxss-%`, `flng-%`, `audit-%`, `depval-%`, `dv-%` (test data).
-- DELETE products jaha `price < 0` (negative-price test product).
-- DELETE empty/test `product_questions`, `product_reviews` rows linked to deleted categories/products.
+Ye 6 issues immediate exploit / money-loss risk hain.
 
-## P1 — RLS Hygiene
+| # | Issue | Fix |
+|---|---|---|
+| P0-01 | ChatWidget XSS — `dangerouslySetInnerHTML` AI response render karta hai bina sanitize kiye | `DOMPurify.sanitize()` add karna `ChatWidget.tsx:279` me |
+| P0-02 | Chatbot prompt injection — user input seedha Gemini ko jaata hai | `chatbot.functions.ts` me input sanitization + system prompt integrity prefix + output filter |
+| P0-03 | Inventory deduction missing — overselling possible | Order creation me atomic `UPDATE products SET stock = stock - qty WHERE stock >= qty` (RPC), cancel/refund pe revert |
+| P0-04 | Referral double-credit race | `referrals.functions.ts` — `UPDATE ... WHERE consumed_at IS NULL` + rowcount assert |
+| P0-05 | Gift card double-redeem race | `giftcards.functions.ts` — same atomic pattern |
+| P0-06 | Wallet checkout race — concurrent requests double-spend balance | `wallet.functions.ts` — atomic `UPDATE user_wallets SET balance = balance - $1 WHERE user_id=$2 AND balance >= $1` via RPC |
 
-### 3. Drop orphaned policies
-Single migration jo drop kare:
-- `categories_public_read`, `categories_admin_write`
-- `products_public_read`
-- `site_settings_public_read`
-- `site_events anon insert`
+**DB Migration (single):**
+- `deduct_stock(product_id, qty)` RPC — atomic stock decrement
+- `consume_referral(event_id)` RPC — atomic mark + return success
+- `redeem_gift_card(code, amount)` RPC — atomic
+- `debit_wallet(user_id, amount)` RPC — atomic with balance check
+- All RPCs `SECURITY DEFINER`, `GRANT EXECUTE TO authenticated`
 
-### 4. Tighten `categories_read` + `products_read`
-- Replace `USING (true)` with `USING (active = true OR is_admin(auth.uid()))` for both tables.
+**Code changes:**
+- `src/components/ChatWidget.tsx` — DOMPurify wrap
+- `src/lib/chatbot.functions.ts` — input/output guardrails
+- `src/lib/orders.functions.ts` (or wherever order created) — call `deduct_stock` RPC; rollback on payment fail
+- `src/lib/referrals.functions.ts` — use `consume_referral` RPC
+- `src/lib/giftcards.functions.ts` — use `redeem_gift_card` RPC
+- `src/lib/wallet.functions.ts` — use `debit_wallet` RPC
+- `bun add dompurify @types/dompurify`
 
-### 5. `site_settings` secret exposure
-- Replace `ss_read` (public) with policy that excludes sensitive keys. Simplest: change to admin-only read, then move public-needed keys (brand name, footer text) into a new `public_site_settings` view OR mark sensitive keys and create a SELECT policy `key NOT IN (sensitive set)`.
-- Practical fix: keep `ss_read` to authenticated but filter via policy `key NOT LIKE '%_token%' AND key NOT LIKE '%_secret%' AND key NOT LIKE '%_api_key%'`.
+**Verification:** Build green, ChatWidget renders sanitized HTML, RPCs visible in DB, manual concurrent-call simulation script for wallet/giftcard race confirms only 1 succeeds.
 
-## P2 — Missing security wiring
+---
 
-### 6. Turnstile on contact form (H-02)
-- Add `TurnstileWidget` in `src/pages/ContactPage.tsx`.
-- Create `submitContact` server function (`src/lib/contact.functions.ts` already exists — extend) that calls `verifyTurnstileToken` before insert.
-- Wire CartPage / Coupon validate similarly if cheap.
+## Phase 2 — P1 High (next turn, after P0 verified)
 
-### 7. Rate-limit wiring (H-03)
-- GRANT EXECUTE on `check_rate_limit()` to `authenticated, anon`.
-- Call from `validateCoupon` server fn (per-user, 30/min) and from `submitContact` (per-IP, 5/hour).
+14 issues. Highlights:
+- Payment gateway secrets ko browser se hatana (Razorpay/PhonePe/PayU)
+- Invoice/tracking endpoints pe auth lagana
+- Order number entropy 4→16 hex
+- Webhook idempotency (razorpay + phonepe)
+- Subscription cron dedup
+- Rate-limiter fail-closed
+- Order endpoint pe rate-limit
+- Consent gating sab pixels pe (LinkedIn/Pinterest/Twitter/Reddit/Quora + internal trackVisit)
+- 13 admin tabs ko server-fn pattern me migrate (RLS sole defence problem)
+- `@ts-nocheck` hatana
+- Review verified/featured field mismatch fix
+- Review "helpful" vote actually implement karna
+- 9 content tabs (Homepage/Nav/Footer/Pages/Blog/About/Contact/FAQ/GlobalReviews) ko server-fn me
 
-## P3 — Config hygiene
+## Phase 3 — P2 + P3 (later turn)
 
-### 8. Missing permission entries
-- `src/pages/admin/tab-permissions.ts`: add `sizecharts: "products.view"`, `videosections: "content.edit"`.
+36 issues: JWT `getUser()` switch, 2FA enforcement, CSRF headers, cron secret env-only, mass-assignment allowlist, FB CAPI dedup, crypto.randomUUID sessions, perf N+1 fixes, SEO (titles/meta/canonical/JSON-LD/hreflang), terms page date, refund page content, CSP unsafe-inline, etc.
 
-### 9. Dead code cleanup
-- Delete `src/lib/api/example.functions.ts`.
+---
 
-## Out of scope (defer)
-- Refactoring 13 "direct supabase" admin tabs to server functions — multi-day effort, no immediate exploit since admin RLS already gates them.
-- CSP `unsafe-inline` — required by app.
+## Out of Scope (informational only)
+- Wholesale discount integration — needs product decision on B2B flow
+- Server-side cart persistence — large refactor, separate feature request
+- Bundle splitting — optimization, no functional bug
 
-## Order of execution
-1. Single DB migration covering: data cleanup (#2), orphan-drop (#3), policy tighten (#4), site_settings restrict (#5), grant rate_limit (#7a).
-2. Code edits in parallel: XSS escape (#1), Turnstile (#6), validateCoupon rate-limit call (#7b), permissions (#8), delete dead file (#9).
-3. Verify build.
+---
+
+**Iss plan ko approve karo to Phase 1 (P0) start karta hoon.** Phase 2/3 ke liye baad me alag approval lunga.
