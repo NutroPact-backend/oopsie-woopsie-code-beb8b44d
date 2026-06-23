@@ -188,7 +188,9 @@ export const placeOrder = createServerFn({ method: "POST" })
       user_id: userId,
       items: Array.isArray(body.items) ? body.items : [],
       subtotal: Number(body.subtotal ?? 0),
-      shipping_cost: Number(body.shipping ?? 0),
+      // Live schema uses shipping_charge (not shipping_cost) and has no
+      // priority_shipping column — that flag lives in the data jsonb.
+      shipping_charge: Number(body.shipping ?? 0),
       discount: Number(body.discount ?? 0) + walletUsed + wholesaleDiscount,
       total: finalTotal,
       coupon_code: String(body.couponCode ?? "").slice(0, 80),
@@ -198,8 +200,8 @@ export const placeOrder = createServerFn({ method: "POST" })
       shipping_address: shippingAddr,
       payment_method: paymentMethod,
       payment_status: "pending",
-      order_status: "pending",
-      priority_shipping: !!body.priorityShipping,
+      status: "pending",
+      data: { priority_shipping: !!body.priorityShipping },
     };
 
     // BIZ-003: wallet debit BEFORE order create. Uses the user-scoped client
