@@ -2,6 +2,19 @@
 import { createServerFn } from '@tanstack/react-start';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
 
+// SEC: strip any HTML tags from admin-editable text fields before they
+// reach SSR head() / JSON-LD / og: meta. The category page proved that a
+// `<script>alert(1)</script>` name in the DB could land inside a JSON-LD
+// <script> block and close it. Sanitising at the source covers every
+// consumer (head meta, og tags, JSON-LD body strings, llms.txt).
+function stripTags(s: string | null | undefined): string | null {
+  if (s == null) return null;
+  return String(s)
+    .replace(/<\/?[^>]+>/g, '')      // drop HTML tags
+    .replace(/[\u0000-\u001F\u007F]/g, '') // drop control chars
+    .trim();
+}
+
 export type CategorySeo = {
   slug: string;
   name: string | null;
@@ -33,10 +46,10 @@ export const getCategorySeo = createServerFn({ method: 'GET' })
     if (error || !row) return null;
     return {
       slug: row.slug,
-      name: row.name ?? null,
-      seo_title: row.seo_title ?? null,
-      seo_description: row.seo_description ?? null,
-      description: row.description ?? null,
+      name: stripTags(row.name),
+      seo_title: stripTags(row.seo_title),
+      seo_description: stripTags(row.seo_description),
+      description: stripTags(row.description),
       image_url: row.image_url ?? null,
     };
   });

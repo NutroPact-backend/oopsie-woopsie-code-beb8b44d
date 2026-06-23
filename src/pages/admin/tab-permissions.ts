@@ -81,6 +81,8 @@ export const TAB_PERMISSIONS: Record<string, string> = {
   variants_pro: "products.variants_pro.edit",
   verification: "verification.view",
   growth_boosters: "growth_boosters.view",
+  sizecharts: "products.view",
+  videosections: "content.edit",
 };
 
 // Catalog metadata used by sync_tab_permissions() to auto-register any
