@@ -171,8 +171,39 @@ export async function runSubscriptionOnce(sub: any): Promise<string> {
   const discount = Math.round((gross * (Number(sub.discount_percent) || 0)) / 100 * 100) / 100;
   const total = Math.max(0, gross - discount);
 
+  // BIZ-009: dedup guard. Two overlapping cron runs (or a manual "run now"
+  // racing with the scheduler) must not double-bill the customer. We claim
+  // a unique period_key in subscription_orders BEFORE inserting the order;
+  // a parallel run hits the unique index and bails out cleanly.
+  const intervalDays = Math.max(1, Number(sub.interval_days) || 30);
+  const periodIndex = Math.floor(Date.now() / (intervalDays * 86400_000));
+  const periodKey = `${intervalDays}d:${periodIndex}`;
+
   const orderNumber = `SUB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
   const orderId = crypto.randomUUID();
+
+  // Claim the period first. If another run already inserted this period,
+  // the unique index (subscription_id, period_key) rejects with 23505.
+  const { error: claimErr } = await supabaseAdmin.from("subscription_orders").insert({
+    subscription_id: sub.id,
+    order_number: orderNumber,
+    total,
+    status: "created",
+    period_key: periodKey,
+  });
+  if (claimErr) {
+    if ((claimErr as any).code === "23505") {
+      // Already created for this period — return the existing order number.
+      const { data: existing } = await supabaseAdmin
+        .from("subscription_orders")
+        .select("order_number")
+        .eq("subscription_id", sub.id)
+        .eq("period_key", periodKey)
+        .maybeSingle();
+      return existing?.order_number || orderNumber;
+    }
+    throw new Error(claimErr.message);
+  }
 
   const items = [{
     productId: sub.product_id,
@@ -203,18 +234,16 @@ export async function runSubscriptionOnce(sub: any): Promise<string> {
     notes: `Auto-generated from subscription ${sub.id}`,
   });
   if (error) {
+    // Order insert failed — release the period claim so a retry can proceed.
+    await supabaseAdmin.from("subscription_orders")
+      .delete()
+      .eq("subscription_id", sub.id)
+      .eq("period_key", periodKey);
     await supabaseAdmin.from("subscriptions")
       .update({ failures_count: (sub.failures_count || 0) + 1 })
       .eq("id", sub.id);
     throw new Error(error.message);
   }
-
-  await supabaseAdmin.from("subscription_orders").insert({
-    subscription_id: sub.id,
-    order_number: orderNumber,
-    total,
-    status: "created",
-  });
 
   const nextRun = new Date(Date.now() + (Number(sub.interval_days) || 30) * 86400_000).toISOString();
   await supabaseAdmin.from("subscriptions").update({
