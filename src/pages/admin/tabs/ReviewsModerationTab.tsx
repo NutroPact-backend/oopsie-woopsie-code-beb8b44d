@@ -22,6 +22,7 @@ type Review = {
   source?: string;
   variant?: string;
   created_at: string;
+  data?: any;
 };
 
 type Filter = 'pending' | 'verified' | 'pinned' | 'all';
