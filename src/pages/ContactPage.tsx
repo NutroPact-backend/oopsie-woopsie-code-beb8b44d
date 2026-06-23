@@ -3,11 +3,13 @@ import { Mail, Phone, MapPin, Clock, MessageCircle, Instagram, Facebook, Youtube
 import { useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
 import { submitContact } from '@/lib/contact.functions';
+import TurnstileWidget from '@/components/TurnstileWidget';
 
 export default function ContactPage() {
   const { settings } = useSettings();
   const send = useServerFn(submitContact);
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: 'General Inquiry', message: '' });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +24,7 @@ export default function ContactPage() {
     setSending(true);
     setError('');
     try {
-      await send({ data: form });
+      await send({ data: { ...form, captchaToken } });
       setSent(true);
     } catch (err: any) {
       setError(err?.message || 'Something went wrong. Please try again.');
@@ -155,6 +157,7 @@ export default function ContactPage() {
                       <AlertCircle size={15} className="shrink-0" /> {error}
                     </div>
                   )}
+                  <TurnstileWidget onToken={setCaptchaToken} action="contact" />
                   <button type="submit" disabled={sending}
                     data-testid="contact-submit"
                     className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-black transition disabled:opacity-60 text-sm">

@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
+import { rateLimit, logSecurityEvent } from "@/lib/rate-limit";
 
 type ValidateInput = { code: string; subtotal: number };
 
@@ -22,6 +24,20 @@ export const validateCoupon = createServerFn({ method: "POST" })
     return { code, subtotal };
   })
   .handler(async ({ data }) => {
+    // SEC: per-IP throttle so the public coupon endpoint can't be used to
+    // brute-force / enumerate codes. 20 attempts / 5 min, fail-closed so an
+    // RPC blip doesn't turn the endpoint into an open enumerator.
+    const ip = getRequestIP({ xForwardedFor: true }) || "anon";
+    const rl = await rateLimit("coupon_validate", ip, 20, 300, 600, { failClosed: true });
+    if (!rl.allowed) {
+      await logSecurityEvent({
+        kind: "coupon_rate_limited",
+        severity: "warn",
+        sourceIp: ip,
+        detail: { hits: rl.hits, blockedUntil: rl.blockedUntil },
+      });
+      return { ok: false as const, error: "Too many attempts. Please wait a moment." };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("coupons")

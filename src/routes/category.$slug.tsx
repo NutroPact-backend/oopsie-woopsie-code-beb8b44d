@@ -20,6 +20,19 @@ function clip(s: string, max = 160) {
   return t.length > max ? t.slice(0, max - 1).trimEnd() + '…' : t;
 }
 
+// SEC: JSON-LD is emitted inside a real <script> block. JSON.stringify of
+// a string containing </script> would close that block and enable XSS.
+// Replace the closing-tag prefix so the script body stays inside its
+// own element regardless of what's in the DB. Also escape <! and U+2028/9
+// just in case the document parses as HTML5 with comment edge-cases.
+function safeLdJson(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/<\/(script)/gi, '<\\/$1')
+    .replace(/<!--/g, '<\\!--')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export const Route = createFileRoute('/category/$slug')({
   // Loader runs server-side during SSR — head() receives DB-driven values
   // so crawlers + social scrapers see unique, stable meta per slug without
@@ -61,7 +74,7 @@ export const Route = createFileRoute('/category/$slug')({
       links: [{ rel: 'canonical', href: url }],
       scripts: [{
         type: 'application/ld+json',
-        children: JSON.stringify({
+        children: safeLdJson({
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
           itemListElement: [
