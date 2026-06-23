@@ -792,178 +792,21 @@ const POST: Record<string, Handler> = {
     return { codFee: fee, finalTotal: body.orderTotal + fee };
   },
   "/orders": async (_p, _q, body) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const id = crypto.randomUUID();
-    // SEC-011: 8 random bytes (16 hex / 64 bits) — collision-resistant and
-    // not enumerable by guessing the trailing few hex chars.
-    const _rand = new Uint8Array(8);
-    crypto.getRandomValues(_rand);
-    const _suffix = Array.from(_rand, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-    const orderNumber = `NP${Date.now()}-${_suffix}`;
-
-    let walletUsed = Math.max(0, Number(body.walletUsed || 0));
-    if (walletUsed > 0) {
-      if (!user) fail(401, "Login required to use wallet");
+    // SEC-ORDERS-1: order creation moved to a server fn so wallet RPCs run
+    // with the user's real session, status fields can't be tampered with,
+    // and the call is rate-limited (fail-closed) by IP and user.
+    try {
+      const { placeOrder } = await import("./orders-create.functions");
+      const created = await placeOrder({ data: body });
+      return created;
+    } catch (e: any) {
+      const msg = String(e?.message || "Order failed");
+      const status = /rate|too many/i.test(msg) ? 429
+                   : /login required/i.test(msg) ? 401
+                   : /out of stock|already used/i.test(msg) ? 409
+                   : 500;
+      fail(status, msg);
     }
-
-    // WIR-005: server-side wholesale discount. The client is not trusted to
-    // declare its own pricing — we look up the authenticated user's
-    // wholesale profile and apply the discount here, where it can't be
-    // forged by tampering with the request body. Anonymous orders never
-    // qualify. Discount is computed against the (already-validated)
-    // subtotal and added on top of any client-supplied discount.
-    let wholesaleDiscount = 0;
-    let wholesalePercent = 0;
-    if (user) {
-      const { data: wsRow } = await supabase
-        .from("profiles")
-        .select("data")
-        .eq("id", user.id)
-        .maybeSingle();
-      const wsData: any = (wsRow as any)?.data || {};
-      if (wsData.is_wholesale) {
-        const subtotal = Number(body.subtotal ?? 0);
-        const minOrder = Number(wsData.wholesale_min_order || 0);
-        const pct = Math.min(80, Math.max(0, Number(wsData.wholesale_discount_percent || 0)));
-        if (subtotal >= minOrder && pct > 0) {
-          wholesalePercent = pct;
-          wholesaleDiscount = Math.round((subtotal * pct) / 100);
-        }
-      }
-    }
-    const declaredTotal = Number(body.total);
-    const finalTotal = Math.max(0, declaredTotal - walletUsed - wholesaleDiscount);
-
-    const shippingAddr = { ...(body.shippingAddress || {}) };
-    if (body.paymentMethodOffer) shippingAddr.paymentMethodOffer = body.paymentMethodOffer;
-    if (walletUsed > 0) shippingAddr.walletUsed = walletUsed;
-    if (wholesaleDiscount > 0) {
-      shippingAddr.wholesale = { percent: wholesalePercent, discount: wholesaleDiscount };
-    }
-
-    // SEC-014: explicit allowlist. Status fields are server-controlled — never
-    // accept payment_status / order_status from the client (would let anyone
-    // mark their own order as paid). payment_method is whitelisted to known
-    // values; cod orders start as pending, prepaid orders also start as
-    // pending and are only flipped to "paid" by the verified gateway webhook.
-    const ALLOWED_PAYMENT_METHODS = new Set(["cod", "razorpay", "phonepe", "payu", "stripe", "upi"]);
-    const paymentMethod = ALLOWED_PAYMENT_METHODS.has(String(body.paymentMethod || "").toLowerCase())
-      ? String(body.paymentMethod).toLowerCase()
-      : "cod";
-    const payload: any = {
-      id, order_number: orderNumber,
-      user_id: user?.id ?? null,
-      items: Array.isArray(body.items) ? body.items : [],
-      subtotal: Number(body.subtotal ?? 0),
-      shipping_cost: Number(body.shipping ?? 0),
-      discount: Number(body.discount ?? 0) + walletUsed + wholesaleDiscount,
-      total: finalTotal,
-      coupon_code: String(body.couponCode ?? "").slice(0, 80),
-      customer_name: String(body.shippingAddress?.name ?? "").slice(0, 200),
-      customer_email: String(body.shippingAddress?.email ?? user?.email ?? "").slice(0, 255),
-      customer_phone: String(body.shippingAddress?.phone ?? "").slice(0, 32),
-      shipping_address: shippingAddr,
-      payment_method: paymentMethod,
-      payment_status: "pending",
-      status: "pending",
-      priority_shipping: !!body.priorityShipping,
-    };
-
-    // BIZ-003: Atomically debit the wallet BEFORE creating the order so two
-    // concurrent checkouts can't both spend the same balance. The RPC fails
-    // loudly if the balance is insufficient; if the order insert later
-    // fails, we refund the same amount through the paired RPC.
-    if (walletUsed > 0 && user) {
-      const { error: debitErr } = await supabase.rpc("wallet_debit_for_order", {
-        _amount: walletUsed,
-        _order_number: orderNumber,
-        _note: `Redeemed on ${orderNumber}`,
-      });
-      if (debitErr) fail(400, debitErr.message || "Wallet debit failed");
-    }
-
-    // BIZ-004: Atomically reserve product stock BEFORE creating the order so
-    // concurrent checkouts can't oversell. If any item is short, the RPC
-    // aborts the whole reservation (transactional). Rollback wallet on failure.
-    {
-      const { error: stockErr } = await supabase.rpc("reserve_stock_for_order", {
-        _items: (body.items ?? []) as any,
-        _order_number: orderNumber,
-      });
-      if (stockErr) {
-        if (walletUsed > 0 && user) {
-          await supabase.rpc("wallet_refund_for_order", {
-            _amount: walletUsed,
-            _order_number: orderNumber,
-            _note: `Auto-refund: stock reservation failed for ${orderNumber}`,
-          });
-        }
-        fail(409, stockErr.message || "Some items are out of stock");
-      }
-    }
-
-    // BIZ-007: Atomically claim the personal coupon BEFORE creating the order
-    // so two concurrent checkouts can't both consume the same single-use coupon.
-    // The conditional update only succeeds when used=false; if no row returns,
-    // the coupon was already spent and we reverse wallet + stock.
-    let couponClaimed = false;
-    if (body.userCouponId && user) {
-      // Preserve the existing `data` jsonb (which holds min_order, value, etc.)
-      // and merge in the order ref. Atomicity comes from the `.is(used_at,null)` guard.
-      const { data: ucExisting } = await supabase
-        .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
-      const mergedData = {
-        ...((ucExisting?.data && typeof ucExisting.data === "object") ? ucExisting.data : {}),
-        used_order_id: orderNumber,
-      };
-      const { data: claimed, error: couponErr } = await supabase
-        .from("user_coupons")
-        .update({ used_at: new Date().toISOString(), data: mergedData })
-        .eq("id", body.userCouponId)
-        .eq("user_id", user.id)
-        .is("used_at", null)
-        .select("id")
-        .maybeSingle();
-      if (couponErr || !claimed) {
-        if (walletUsed > 0) {
-          await supabase.rpc("wallet_refund_for_order", {
-            _amount: walletUsed,
-            _order_number: orderNumber,
-            _note: `Auto-refund: coupon already used for ${orderNumber}`,
-          });
-        }
-        await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
-        fail(409, couponErr?.message || "Coupon already used");
-      }
-      couponClaimed = true;
-    }
-
-    const { data, error } = await supabase.from("orders").insert(payload).select().single();
-    if (error) {
-      // Order failed after wallet/stock was reserved — refund + release so nothing is lost.
-      if (walletUsed > 0 && user) {
-        await supabase.rpc("wallet_refund_for_order", {
-          _amount: walletUsed,
-          _order_number: orderNumber,
-          _note: `Auto-refund: order ${orderNumber} failed to save`,
-        });
-      }
-      await supabase.rpc("release_stock_for_order", { _order_number: orderNumber });
-      // Release the claimed coupon back to unused so the customer can retry.
-      if (couponClaimed && body.userCouponId && user) {
-        // Release the claimed coupon: clear used_at and drop used_order_id from data.
-        const { data: ucRel } = await supabase
-          .from("user_coupons").select("data").eq("id", body.userCouponId).maybeSingle();
-        const relData: any = { ...((ucRel?.data && typeof ucRel.data === "object") ? ucRel.data : {}) };
-        delete relData.used_order_id;
-        await supabase.from("user_coupons")
-          .update({ used_at: null, data: relData })
-          .eq("id", body.userCouponId).eq("user_id", user.id);
-      }
-      fail(500, error.message);
-    }
-
-    return camelize(data);
   },
   "/admin/wallet/adjust": async (_p, _q, body) => {
     if (!(await isCurrentUserAdmin())) fail(403, "Admin only");
