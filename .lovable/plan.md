@@ -91,23 +91,25 @@ Ye baad me alag se discuss karenge:
 
 ---
 
-## Execution order (iss turn me)
+## Status (June 23, 2026)
 
-Iss turn me sirf **Group A + B + C + E** karenge (8 focused fixes). Group D (admin tab migration) bada hai — uska alag plan baad me.
+| # | Item | Status |
+|---|---|---|
+| 1 | `webhook_events` + subscription unique constraint migration | ✅ |
+| 2 | `rate-limit.ts` `failClosed` option | ✅ |
+| 3 | coupon/login/contact/track-order `failClosed: true` | ✅ |
+| 4 | Order entropy 16 hex (`NP{ts}-{8 bytes hex}`) | ✅ |
+| 5 | Razorpay + PhonePe webhook idempotency (`webhook_events` dedup) | ✅ |
+| 6 | Subscription cron `period_key` dedup | ✅ |
+| 7 | Invoice + tracking owner/admin auth gate | ✅ |
+| 8 | Pixels + `trackVisit` consent-gated | ✅ |
+| 9 | Payment gateway secrets — server masks, skip-blank on save | ✅ |
+| 10 | `PaymentGatewaysTab.tsx` masked UX | ✅ |
+| 11 | Reviews — `is_verified` + `data.pinned` mapping, helpful RPC wired | ✅ |
+| 12 | `@ts-nocheck` selective removal | ⏸ deferred (cosmetic) |
+| B-2 | Order creation rate-limit | ⏸ needs server-fn refactor of `/orders` (currently client-side mock layer) |
 
-1. DB migration: `webhook_events` dedup helper function, subscription unique constraint
-2. `src/lib/rate-limit.ts` — add `failClosed` option
-3. `src/lib/coupons.functions.ts`, payment/login paths — `failClosed: true`
-4. Order creation server fn — add rate-limit + order_number entropy bump
-5. `src/lib/razorpay.functions.ts` + `phonepe.functions.ts` — idempotency check
-6. `src/lib/subscriptions.functions.ts` — dedup guard
-7. Invoice/tracking server fns — auth gate
-8. `src/routes/__root.tsx` + `CookieConsent.tsx` — consent-gate all pixels + internal tracking
-9. New `src/lib/payment-gateways.functions.ts` — masked read + skip-blank-on-write
-10. `src/pages/admin/tabs/PaymentGatewaysTab.tsx` — masked placeholder UX
-11. Reviews API — fix field names + wire `increment_review_helpful`
-12. Selective `@ts-nocheck` removal (safe files only)
+## Next phase (Phase 2.5 — when ready)
 
-**Verification:** build green, manual probe of each hardened endpoint, security scan re-run.
-
-Approve karo to execute karta hoon.
+- Group D: 13 admin tabs + 9 content tabs → server-fn pattern with `assertAdmin()`.
+- Move `/orders` creation from client `api.ts` mock layer into a real `createServerFn` so rate-limit + payment-gateway-driven pricing can be enforced server-side.
