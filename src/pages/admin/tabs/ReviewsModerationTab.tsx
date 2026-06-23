@@ -71,12 +71,14 @@ export default function ReviewsModerationTab() {
   useEffect(() => { load(); }, []);
 
   const toggleVerified = async (r: Review) => {
-    await supabase.from('product_reviews').update({ verified: !r.verified }).eq('id', r.id);
+    await supabase.from('product_reviews').update({ is_verified: !r.verified }).eq('id', r.id);
     setRows(rs => rs.map(x => x.id === r.id ? { ...x, verified: !x.verified } : x));
   };
   const togglePinned = async (r: Review) => {
-    await supabase.from('product_reviews').update({ pinned: !r.pinned }).eq('id', r.id);
-    setRows(rs => rs.map(x => x.id === r.id ? { ...x, pinned: !x.pinned } : x));
+    // pinned lives in the data jsonb — merge with existing keys.
+    const nextData = { ...(r.data && typeof r.data === 'object' ? r.data : {}), pinned: !r.pinned };
+    await supabase.from('product_reviews').update({ data: nextData }).eq('id', r.id);
+    setRows(rs => rs.map(x => x.id === r.id ? { ...x, pinned: !x.pinned, data: nextData } : x));
   };
   const remove = async (r: Review) => {
     if (!confirm('Delete this review permanently?')) return;
